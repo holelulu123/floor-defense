@@ -4,7 +4,11 @@
     "$className": "DataModel",
     "ReplicatedStorage": {
       "Shared": { "$path": "src/shared" },
-      "Packages": { "$path": { "optional": "Packages" } }
+      "Packages": { "$path": { "optional": "Packages" } },
+      "Remotes": {
+        "$className": "Folder",
+        "RunState": { "$className": "RemoteEvent" }
+      }
     },
     "ServerScriptService": {
       "Server": { "$path": "src/server" }

@@ -11,8 +11,8 @@ local Monetization = {}
 
 -- What each developer product grants. Keyed by product ID.
 local productHandlers: { [number]: (Player) -> () } = {
-	[Config.Products.Coins100] = function(player)
-		PlayerData.addCoins(player, 100)
+	[Config.Products.Gems500] = function(player)
+		PlayerData.addGems(player, 500)
 	end,
 }
 

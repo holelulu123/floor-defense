@@ -68,11 +68,25 @@ function PlayerData.release(player: Player)
 	sessions[player] = nil
 end
 
-function PlayerData.addCoins(player: Player, amount: number)
+function PlayerData.addGems(player: Player, amount: number)
 	local data = sessions[player]
 	if data then
-		data.Coins += amount
+		data.Gems += amount
 	end
+end
+
+-- Records a finished run's score against the mode's best. Returns true if it is a new best.
+function PlayerData.recordScore(player: Player, mode: string, score: number): boolean
+	local data = sessions[player]
+	if not data then
+		return false
+	end
+	local field = "BestScore" .. mode
+	if score > (data[field] or 0) then
+		data[field] = score
+		return true
+	end
+	return false
 end
 
 return PlayerData
