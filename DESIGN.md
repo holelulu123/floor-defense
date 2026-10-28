@@ -110,14 +110,19 @@ None of this is sold for Robux. Selling in-run power would break the Hall of Fam
 
 Each map has its own creature family, so the roster stays readable: on the graveyard map everything is undead, on the swamp map everything is a bug. The same five archetypes exist in every family with the skin changed, so one set of AI and balance covers all maps.
 
-| Archetype | Role | First appears | Town Hall damage | Example (Graveyard) | Example (Swamp) |
+| Archetype | Role | First appears | Town Hall damage | Graveyard | Swamp |
 | --- | --- | --- | --- | --- | --- |
-| Runner | Fast, weak, swarms | Wave 1 | 10 | Zombie | Beetle |
-| Brute | Slow, tanky | Wave 3 | 40 | Ghoul | Mud toad |
-| Spitter | Stops at range and shoots the Town Hall | Wave 5 | 5 per shot | Banshee | Spitting wasp |
-| Exploder | Rushes and detonates on the Town Hall | Wave 7 | 80 | Bloater | Gas bug |
-| Shielder | Blocks damage for creatures behind it | Wave 10 | 20 | Armored knight | Shell crab |
-| Boss | Every 5th wave | Wave 5 | 250 | Lich | Hive queen |
+| Runner | Fast, weak, swarms | Wave 1 | 10 | Zombie / Minion | Caterpillar |
+| Brute | Slow, tanky | Wave 3 | 40 | Vampire / Warrior | Mud Hog |
+| Spitter | Stops at range and shoots the Town Hall | Wave 5 | 20 per shot | S-Ghost / Mage | Crab |
+| Exploder | Rushes and detonates on the Town Hall | Wave 7 | 80 | Bomber | Bomb Bee |
+| Shielder | Blocks damage for creatures behind it | Wave 10 | 20 | Guard | Beaver |
+| Flyer | Ignores ground paths and floor spells, flies straight in | Wave 12 | 15 | Wraith | Parrot |
+| Elite Runner | Runner with an extra ability (frost aura, regen, teleport) | Wave 15 | 10 | Skeleton / Rogue | Fox |
+| Healer | Heals nearby creatures; priority target | Wave 18 | 10 | Necromancer | Bunny |
+| Boss | Every 5th wave | Wave 5 | 250 | Keeper / Lich | Elephant |
+
+Horde mix once everything is unlocked: Runner 58%, Brute 15%, Spitter 10%, Exploder 6%, Flyer 5%, Shielder 4%, Healer 2% (`Enemies.HordeMix`); shares of locked archetypes go to Runners. Two more families exist as models for future maps: slimes (Sewer) and bandits/orcs (Village), plus static UFOs for the Factory map's Flyers.
 
 Scaling: health multiplies by `1 + 0.12 x wave`, count grows by 4 per wave, and from wave 15 some Runners spawn as elites with an extra ability (frost aura, regen, teleport). Elites keep late waves interesting without only raising numbers.
 

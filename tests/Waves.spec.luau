@@ -28,8 +28,19 @@ eq(w1[1].count, 12, "wave 1 runner count")
 local w3 = Waves.composition(3, "Solo") -- 20 creatures; brutes unlock, spitters not yet
 eq(#w3, 2, "wave 3 has runners and brutes")
 eq(w3[2].archetype, "Brute", "wave 3 second group is Brute")
-eq(w3[2].count, 4, "wave 3 brutes = floor(20 * 0.2)")
-eq(w3[1].count, 16, "wave 3 runners take the rest")
+eq(w3[2].count, 3, "wave 3 brutes = floor(20 * 0.15)")
+eq(w3[1].count, 17, "wave 3 runners take the rest")
+
+local w21 = Waves.composition(21, "Squad") -- not a boss wave; 92 * 2.8 = 258; every archetype unlocked
+local seen = {}
+for _, g in w21 do
+	seen[g.archetype] = g.count
+end
+for _, name in { "Runner", "Brute", "Spitter", "Exploder", "Shielder", "Flyer", "Healer" } do
+	assert(seen[name] and seen[name] > 0, `wave 21 squad includes {name}`)
+end
+eq(seen.Healer, 5, "wave 21 healers = floor(258 * 0.02)")
+eq(seen.Brute, 38, "wave 21 brutes = floor(258 * 0.15)")
 
 local w5 = Waves.composition(5, "Solo")
 eq(w5[1].archetype, "Boss", "wave 5 leads with the boss")

@@ -206,10 +206,11 @@ async function showAnimated(def) {
   const actions = {};
   for (const clip of gltf.animations) actions[clip.name] = mixer.clipAction(clip);
   const maxHp = def.stats.health ?? 100;
-  current = { def, root, mixer, actions, hp: maxHp, maxHp, state: 'idle', stepTimer: 0, animated: true };
+  // A model with no clips (the UFOs) still gets the hit/kill buttons; it bobs instead of animating.
+  current = { def, root, mixer, actions, hp: maxHp, maxHp, state: 'idle', stepTimer: 0, animated: true, bob: gltf.animations.length === 0, baseY: root.position.y };
 
-  $('anim-select').innerHTML = gltf.animations.map(c => `<option>${c.name}</option>`).join('');
-  $('anim-select').value = def.anims.idle;
+  $('anim-select').innerHTML = gltf.animations.length ? gltf.animations.map(c => `<option>${c.name}</option>`).join('') : '<option>(static model: hover bob)</option>';
+  $('anim-select').value = def.anims.idle ?? $('anim-select').value;
   $('hud-name').textContent = def.id;
   $('stats').innerHTML = Object.entries(def.stats).map(([k, v]) => `<tr><td>${STAT_ICONS[k] ? `<img src="${ICONS}${STAT_ICONS[k]}@64.png" alt="">` : ''}${STAT_LABELS[k] ?? k}</td><td>${v}</td></tr>`).join('');
   $('sounds').innerHTML = Object.entries(def.sounds).map(([k, v]) => `${k}: <code>${v}_00x.ogg</code>`).join('<br>');
@@ -245,6 +246,7 @@ async function showClass(cls) {
 
 function playAnim(name, { once = false, then = null } = {}) {
   if (!current?.animated) return;
+  if (current.bob) { $('hud-state').textContent = name ?? 'hover'; if (once && then) setTimeout(then, 400); return; }
   let next = current.actions[name];
   if (!next) {
     // A clip the pack doesn't have: fall back to idle so the model never freezes in bind pose.
@@ -342,7 +344,7 @@ function renderThumb(file, { scale = 1, tint = null, idle = null } = {}) {
 }
 
 const TABS = {
-  creatures: { animated: true, groups: () => FAMILIES.map(f => ({ title: f.name, items: f.creatures.map(c => ({ ...c, source: f.source })) })) },
+  creatures: { animated: true, groups: () => FAMILIES.map(f => ({ title: `${f.name} · ${f.map}`, items: f.creatures })) },
   classes: { animated: false, isClass: true, groups: () => [
     { title: 'Free classes', items: CLASSES.filter(c => c.tier === 'Free') },
     { title: 'Premium classes', items: CLASSES.filter(c => c.tier === 'Premium') },
@@ -401,7 +403,13 @@ function tick() {
   const dt = clock.getDelta();
   if (current?.animated) {
     current.mixer.update(dt);
-    if ((current.state === 'walk' || current.state === 'run') && $('chk-footsteps').checked) {
+    if (current.bob) {
+      const t = performance.now() / 1000;
+      current.root.position.y = current.baseY + (current.state === 'dead' ? -0.5 : Math.sin(t * 2.2) * 0.12);
+      current.root.rotation.y += dt * (current.state === 'run' ? 2.5 : current.state === 'walk' ? 1.2 : 0.4);
+      current.root.rotation.z = current.state === 'dead' ? Math.PI / 5 : Math.sin(t * 1.7) * 0.06;
+    }
+    if ((current.state === 'walk' || current.state === 'run') && $('chk-footsteps').checked && current.def.sounds.step) {
       current.stepTimer -= dt;
       if (current.stepTimer <= 0) { play(current.def.sounds.step, 0.35); current.stepTimer = current.state === 'run' ? 0.28 : 0.45; }
     }

@@ -3,69 +3,124 @@
 
 const KAYKIT = '../assets/creatures/kaykit-skeletons/';
 const KENNEY = '../assets/creatures/kenney-graveyard/';
+const PETS = '../assets/creatures/kenney-cube-pets/';
+const BLOBS = '../assets/creatures/kenney-blobs/';
+const BLOCKY = '../assets/creatures/kenney-blocky/';
+const DUNGEON = '../assets/creatures/kenney-mini-dungeon/';
+const UFO = '../assets/creatures/kenney-ufo/';
 const GUNS = '../assets/weapons/kenney-weapon-pack/';
 
+// Archetype stats from src/shared/Enemies.luau: health, speed, Town Hall damage, coins, first wave.
+export const ARCHETYPES = {
+  Runner:   { health: 30,   speed: 14, damage: 10,  coins: 10,  firstWave: 1,  blurb: 'Fast, weak, swarms. The first thing you shoot.' },
+  Brute:    { health: 150,  speed: 8,  damage: 40,  coins: 30,  firstWave: 3,  blurb: 'Slow and tanky. Hits the Town Hall hard.' },
+  Spitter:  { health: 60,   speed: 10, damage: 20,  coins: 20,  firstWave: 5,  blurb: 'Stops at range and shoots the Town Hall.' },
+  Exploder: { health: 40,   speed: 16, damage: 80,  coins: 25,  firstWave: 7,  blurb: 'Rushes the Town Hall and detonates. Kill it early.' },
+  Shielder: { health: 200,  speed: 7,  damage: 20,  coins: 40,  firstWave: 10, blurb: 'Blocks damage for creatures behind it. Flank it.' },
+  Flyer:    { health: 35,   speed: 18, damage: 15,  coins: 20,  firstWave: 12, blurb: 'Ignores ground paths and floor spells; flies straight in.' },
+  Healer:   { health: 80,   speed: 9,  damage: 10,  coins: 45,  firstWave: 18, blurb: 'Heals nearby creatures. Priority target.' },
+  Elite:    { health: 45,   speed: 16, damage: 10,  coins: 20,  firstWave: 15, blurb: 'Wave 15+. A Runner with an extra ability (frost aura, regen or teleport).' },
+  Boss:     { health: 1200, speed: 6,  damage: 250, coins: 500, firstWave: 5,  blurb: 'Every 5th wave. Drops a guaranteed rare item.' },
+};
+
 // Animation names differ per pack; each entry maps the showcase's verbs to the pack's clip names.
-const KAYKIT_RUNNER = { idle: 'Idle', walk: 'Walking_A', run: 'Running_A', attack: 'Unarmed_Melee_Attack_Punch_A', hit: 'Hit_A', death: 'Death_A', spawn: 'Spawn_Ground_Skeletons' };
-const KENNEY_ANIMS = { idle: 'idle', walk: 'walk', run: 'sprint', attack: 'pick-up', hit: 'jump', death: 'die', spawn: 'idle' };
+const KENNEY_CHAR = { idle: 'idle', walk: 'walk', run: 'sprint', attack: 'pick-up', hit: 'jump', death: 'die', spawn: 'idle' };
+const KENNEY_PET = { idle: 'idle', walk: 'walk', run: 'run', attack: 'eat', hit: 'gesture-negative', death: 'static', spawn: 'gesture-positive' };
+const NONE = {}; // static models (UFOs) bob in place instead of animating
+
+const c = (id, type, model, extra = {}) => ({ id, type, model, scale: 1, tint: null, anims: KENNEY_CHAR,
+  sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' }, ...extra });
 
 export const FAMILIES = [
   {
-    id: 'skeletons', name: 'Graveyard: KayKit Skeletons', source: 'KayKit Character Pack: Skeletons (CC0, Kay Lousberg)',
+    id: 'skeletons', name: 'Graveyard: KayKit Skeletons', map: 'Graveyard', source: 'KayKit Character Pack: Skeletons (CC0, Kay Lousberg)',
     creatures: [
-      { id: 'Runner', model: KAYKIT + 'Skeleton_Minion.glb', scale: 1.0, tint: null,
-        stats: { health: 30, speed: 14, damage: 10, coins: 10, firstWave: 1 },
-        anims: KAYKIT_RUNNER,
-        sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' },
-        blurb: 'Fast, weak, swarms. The first thing you shoot.' },
-      { id: 'Brute', model: KAYKIT + 'Skeleton_Warrior.glb', scale: 1.35, tint: null,
-        stats: { health: 150, speed: 8, damage: 40, coins: 30, firstWave: 3 },
-        anims: { idle: '2H_Melee_Idle', walk: 'Walking_B', run: 'Running_B', attack: '2H_Melee_Attack_Chop', hit: 'Hit_B', death: 'Death_B', spawn: 'Skeletons_Awaken_Standing' },
-        sounds: { hit: 'impact_plate_medium', death: 'impact_metal_heavy', attack: 'impact_wood_heavy', step: 'footstep_concrete' },
-        blurb: 'Slow and tanky. Hits the Town Hall hard.' },
-      { id: 'Spitter', model: KAYKIT + 'Skeleton_Mage.glb', scale: 1.0, tint: null,
-        stats: { health: 60, speed: 10, damage: 20, coins: 20, firstWave: 5 },
-        anims: { idle: 'Idle_B', walk: 'Walking_C', run: 'Running_C', attack: 'Spellcast_Shoot', hit: 'Hit_A', death: 'Death_C_Skeletons', spawn: 'Spawn_Air' },
-        sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: 'footstep_wood' },
-        blurb: 'Stops at range and shoots the Town Hall.' },
-      { id: 'Elite Runner', model: KAYKIT + 'Skeleton_Rogue.glb', scale: 1.05, tint: 0x9ad5ff,
-        stats: { health: 45, speed: 16, damage: 10, coins: 20, firstWave: 15 },
-        anims: { idle: 'Idle_Combat', walk: 'Walking_D_Skeletons', run: 'Running_Strafe_Left', attack: 'Dualwield_Melee_Attack_Slice', hit: 'Hit_B', death: 'Death_A', spawn: 'Skeletons_Awaken_Floor' },
-        sounds: { hit: 'impact_punch_heavy', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_snow' },
-        blurb: 'Wave 15+. A Runner with an extra ability (frost aura shown as a blue tint).' },
-      { id: 'Boss', model: KAYKIT + 'Skeleton_Warrior.glb', scale: 2.4, tint: 0xff5a5a,
-        stats: { health: 1200, speed: 6, damage: 250, coins: 500, firstWave: 5 },
-        anims: { idle: '2H_Melee_Idle', walk: 'Walking_B', run: 'Running_B', attack: '2H_Melee_Attack_Spin', hit: 'Hit_A', death: 'Death_C_Skeletons', spawn: 'Skeletons_Awaken_Floor_Long' },
-        sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' },
-        blurb: 'Every 5th wave. Drops a guaranteed rare item.' },
+      c('Minion', 'Runner', KAYKIT + 'Skeleton_Minion.glb', { anims: { idle: 'Idle', walk: 'Walking_A', run: 'Running_A', attack: 'Unarmed_Melee_Attack_Punch_A', hit: 'Hit_A', death: 'Death_A', spawn: 'Spawn_Ground_Skeletons' } }),
+      c('Warrior', 'Brute', KAYKIT + 'Skeleton_Warrior.glb', { scale: 1.35, anims: { idle: '2H_Melee_Idle', walk: 'Walking_B', run: 'Running_B', attack: '2H_Melee_Attack_Chop', hit: 'Hit_B', death: 'Death_B', spawn: 'Skeletons_Awaken_Standing' },
+        sounds: { hit: 'impact_plate_medium', death: 'impact_metal_heavy', attack: 'impact_wood_heavy', step: 'footstep_concrete' } }),
+      c('Mage', 'Spitter', KAYKIT + 'Skeleton_Mage.glb', { anims: { idle: 'Idle_B', walk: 'Walking_C', run: 'Running_C', attack: 'Spellcast_Shoot', hit: 'Hit_A', death: 'Death_C_Skeletons', spawn: 'Spawn_Air' },
+        sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: 'footstep_wood' } }),
+      c('Bomber', 'Exploder', KAYKIT + 'Skeleton_Minion.glb', { scale: 1.1, tint: 0xffa040, anims: { idle: 'Idle', walk: 'Running_A', run: 'Running_B', attack: 'Jump_Full_Short', hit: 'Hit_B', death: 'Death_B', spawn: 'Spawn_Ground' },
+        sounds: { hit: 'impact_punch_medium', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'footstep_grass' } }),
+      c('Guard', 'Shielder', KAYKIT + 'Skeleton_Warrior.glb', { scale: 1.2, tint: 0x6080c0, anims: { idle: 'Blocking', walk: 'Walking_B', run: 'Running_B', attack: 'Block_Attack', hit: 'Block_Hit', death: 'Death_A', spawn: 'Skeletons_Awaken_Standing' },
+        sounds: { hit: 'impact_plate_heavy', death: 'impact_metal_heavy', attack: 'impact_plate_medium', step: 'footstep_concrete' } }),
+      c('Necromancer', 'Healer', KAYKIT + 'Skeleton_Mage.glb', { tint: 0x80ff9a, anims: { idle: 'Spellcasting', walk: 'Walking_C', run: 'Running_C', attack: 'Spellcast_Raise', hit: 'Hit_A', death: 'Death_C_Skeletons', spawn: 'Spawn_Air' },
+        sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_bell_heavy', step: 'footstep_wood' } }),
+      c('Rogue', 'Elite', KAYKIT + 'Skeleton_Rogue.glb', { scale: 1.05, tint: 0x9ad5ff, anims: { idle: 'Idle_Combat', walk: 'Walking_D_Skeletons', run: 'Running_Strafe_Left', attack: 'Dualwield_Melee_Attack_Slice', hit: 'Hit_B', death: 'Death_A', spawn: 'Skeletons_Awaken_Floor' },
+        sounds: { hit: 'impact_punch_heavy', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_snow' } }),
+      c('Lich', 'Boss', KAYKIT + 'Skeleton_Warrior.glb', { scale: 2.4, tint: 0xff5a5a, anims: { idle: '2H_Melee_Idle', walk: 'Walking_B', run: 'Running_B', attack: '2H_Melee_Attack_Spin', hit: 'Hit_A', death: 'Death_C_Skeletons', spawn: 'Skeletons_Awaken_Floor_Long' },
+        sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
     ],
   },
   {
-    id: 'kenney', name: 'Graveyard: Kenney characters', source: 'Kenney Graveyard Kit (CC0)',
+    id: 'kenney-graveyard', name: 'Graveyard: Kenney characters', map: 'Graveyard', source: 'Kenney Graveyard Kit (CC0)',
     creatures: [
-      { id: 'Zombie', model: KENNEY + 'character-zombie.glb', scale: 1.0, tint: null,
-        stats: { health: 30, speed: 14, damage: 10, coins: 10, firstWave: 1 }, anims: KENNEY_ANIMS,
-        sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_punch_medium', step: 'footstep_grass' },
-        blurb: 'Runner alternative. Blocky Kenney style, closer to the Roblox look.' },
-      { id: 'Skeleton', model: KENNEY + 'character-skeleton.glb', scale: 1.0, tint: null,
-        stats: { health: 45, speed: 16, damage: 10, coins: 20, firstWave: 15 }, anims: KENNEY_ANIMS,
-        sounds: { hit: 'impact_wood_light', death: 'impact_wood_heavy', attack: 'impact_generic_light', step: 'footstep_concrete' },
-        blurb: 'Elite Runner alternative.' },
-      { id: 'S-Ghost', model: KENNEY + 'character-ghost.glb', scale: 1.0, tint: 0xa0e0ff,
-        stats: { health: 60, speed: 10, damage: 20, coins: 20, firstWave: 5 }, anims: KENNEY_ANIMS,
-        sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: 'footstep_snow' },
-        blurb: 'Spitter alternative. Floats, so footsteps are off for it in game.' },
-      { id: 'Vampire', model: KENNEY + 'character-vampire.glb', scale: 1.15, tint: null,
-        stats: { health: 150, speed: 8, damage: 40, coins: 30, firstWave: 3 }, anims: KENNEY_ANIMS,
-        sounds: { hit: 'impact_plate_light', death: 'impact_bell_heavy', attack: 'impact_punch_heavy', step: 'footstep_wood' },
-        blurb: 'Brute alternative.' },
-      { id: 'Keeper', model: KENNEY + 'character-keeper.glb', scale: 2.2, tint: 0xff7a5a,
-        stats: { health: 1200, speed: 6, damage: 250, coins: 500, firstWave: 5 }, anims: KENNEY_ANIMS,
-        sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' },
-        blurb: 'Boss alternative: the graveyard keeper, scaled up.' },
+      c('Zombie', 'Runner', KENNEY + 'character-zombie.glb', { sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_punch_medium', step: 'footstep_grass' } }),
+      c('Vampire', 'Brute', KENNEY + 'character-vampire.glb', { scale: 1.15, sounds: { hit: 'impact_plate_light', death: 'impact_bell_heavy', attack: 'impact_punch_heavy', step: 'footstep_wood' } }),
+      c('S-Ghost', 'Spitter', KENNEY + 'character-ghost.glb', { tint: 0xa0e0ff, sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: 'footstep_snow' } }),
+      c('Wraith', 'Flyer', KENNEY + 'character-ghost.glb', { scale: 0.9, tint: 0xffffff, sounds: { hit: 'impact_glass_light', death: 'impact_glass_medium', attack: 'impact_generic_light', step: 'footstep_snow' } }),
+      c('Skeleton', 'Elite', KENNEY + 'character-skeleton.glb', { sounds: { hit: 'impact_wood_light', death: 'impact_wood_heavy', attack: 'impact_generic_light', step: 'footstep_concrete' } }),
+      c('Keeper', 'Boss', KENNEY + 'character-keeper.glb', { scale: 2.2, tint: 0xff7a5a, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+    ],
+  },
+  {
+    id: 'swamp', name: 'Swamp: Kenney Cube Pets (bugs and beasts)', map: 'Swamp', source: 'Kenney Cube Pets (CC0)',
+    creatures: [
+      c('Caterpillar', 'Runner', PETS + 'animal-caterpillar.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' } }),
+      c('Mud Hog', 'Brute', PETS + 'animal-hog.glb', { scale: 1.3, anims: KENNEY_PET, sounds: { hit: 'impact_soft_heavy', death: 'impact_plank_medium', attack: 'impact_punch_heavy', step: 'footstep_grass' } }),
+      c('Crab', 'Spitter', PETS + 'animal-crab.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_plate_light', death: 'impact_plate_medium', attack: 'impact_tin_medium', step: 'footstep_concrete' } }),
+      c('Bomb Bee', 'Exploder', PETS + 'animal-bee.glb', { tint: 0xffb000, anims: KENNEY_PET, sounds: { hit: 'impact_generic_light', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'footstep_grass' } }),
+      c('Beaver', 'Shielder', PETS + 'animal-beaver.glb', { scale: 1.2, tint: 0x6080c0, anims: KENNEY_PET, sounds: { hit: 'impact_wood_medium', death: 'impact_wood_heavy', attack: 'impact_wood_light', step: 'footstep_wood' } }),
+      c('Parrot', 'Flyer', PETS + 'animal-parrot.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_snow' } }),
+      c('Bunny', 'Healer', PETS + 'animal-bunny.glb', { tint: 0x80ff9a, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_grass' } }),
+      c('Fox', 'Elite', PETS + 'animal-fox.glb', { tint: 0x9ad5ff, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_punch_medium', step: 'footstep_snow' } }),
+      c('Elephant', 'Boss', PETS + 'animal-elephant.glb', { scale: 2.2, tint: 0xff7a5a, anims: KENNEY_PET, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+    ],
+  },
+  {
+    id: 'slimes', name: 'Sewer: Kenney blobs (slimes)', map: 'Sewer (future)', source: 'Kenney Platformer Kit characters (CC0)',
+    creatures: [
+      c('Green Slime', 'Runner', BLOBS + 'character-oozi.glb', { sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_carpet' } }),
+      c('Big Slime', 'Brute', BLOBS + 'character-oobi.glb', { scale: 1.5, sounds: { hit: 'impact_soft_heavy', death: 'impact_soft_heavy', attack: 'impact_punch_heavy', step: 'footstep_carpet' } }),
+      c('Spit Slime', 'Spitter', BLOBS + 'character-ooli.glb', { sounds: { hit: 'impact_soft_medium', death: 'impact_glass_light', attack: 'impact_generic_light', step: 'footstep_carpet' } }),
+      c('Boom Slime', 'Exploder', BLOBS + 'character-oopi.glb', { tint: 0xffa040, sounds: { hit: 'impact_soft_medium', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'footstep_carpet' } }),
+      c('Nurse Slime', 'Healer', BLOBS + 'character-oodi.glb', { tint: 0x80ff9a, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_carpet' } }),
+      c('King Slime', 'Boss', BLOBS + 'character-oobi.glb', { scale: 2.6, tint: 0xff5a5a, sounds: { hit: 'impact_soft_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+    ],
+  },
+  {
+    id: 'bandits', name: 'Village: Kenney bandits and orcs', map: 'Village (future)', source: 'Kenney Blocky Characters + Mini Dungeon (CC0)',
+    creatures: [
+      c('Bandit', 'Runner', BLOCKY + 'character-a.glb'),
+      c('Thug', 'Runner', BLOCKY + 'character-e.glb'),
+      c('Orc', 'Brute', DUNGEON + 'character-orc.glb', { scale: 1.3, sounds: { hit: 'impact_punch_heavy', death: 'impact_soft_heavy', attack: 'impact_wood_heavy', step: 'footstep_concrete' } }),
+      c('Archer', 'Spitter', BLOCKY + 'character-f.glb', { sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_wood_light', step: 'footstep_grass' } }),
+      c('Sapper', 'Exploder', BLOCKY + 'character-j.glb', { tint: 0xffa040, sounds: { hit: 'impact_punch_medium', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'footstep_grass' } }),
+      c('Shield Bearer', 'Shielder', BLOCKY + 'character-k.glb', { scale: 1.1, tint: 0x6080c0, sounds: { hit: 'impact_plate_medium', death: 'impact_metal_heavy', attack: 'impact_plate_light', step: 'footstep_concrete' } }),
+      c('Cleric', 'Healer', DUNGEON + 'character-human.glb', { tint: 0x80ff9a, sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_wood' } }),
+      c('Assassin', 'Elite', BLOCKY + 'character-r.glb', { tint: 0x9ad5ff, sounds: { hit: 'impact_punch_heavy', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_snow' } }),
+      c('Warlord', 'Boss', DUNGEON + 'character-orc.glb', { scale: 2.3, tint: 0xff5a5a, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+    ],
+  },
+  {
+    id: 'invaders', name: 'Factory: Kenney UFOs (flying, static models)', map: 'Factory', source: 'Kenney Tower Defense Kit (CC0)',
+    creatures: [
+      c('Scout UFO', 'Flyer', UFO + 'enemy-ufo-a.glb', { anims: NONE, sounds: { hit: 'impact_metal_light', death: 'impact_metal_heavy', attack: 'impact_generic_light', step: null } }),
+      c('Gunship', 'Spitter', UFO + 'enemy-ufo-b-weapon.glb', { anims: NONE, sounds: { hit: 'impact_metal_medium', death: 'impact_metal_heavy', attack: 'impact_tin_medium', step: null } }),
+      c('Hauler', 'Brute', UFO + 'enemy-ufo-c.glb', { scale: 1.3, anims: NONE, sounds: { hit: 'impact_metal_medium', death: 'impact_metal_heavy', attack: 'impact_plate_heavy', step: null } }),
+      c('Kamikaze', 'Exploder', UFO + 'enemy-ufo-a-weapon.glb', { tint: 0xffa040, anims: NONE, sounds: { hit: 'impact_metal_light', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: null } }),
+      c('Mothership', 'Boss', UFO + 'enemy-ufo-d-weapon.glb', { scale: 2.5, tint: 0xff5a5a, anims: NONE, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: null } }),
     ],
   },
 ];
+
+// Fill in stats and blurb from the archetype table so each family only states what differs.
+for (const f of FAMILIES) for (const cr of f.creatures) {
+  const a = ARCHETYPES[cr.type];
+  cr.stats = { health: a.health, speed: a.speed, damage: a.damage, coins: a.coins, firstWave: a.firstWave };
+  cr.blurb = `${cr.type}. ${a.blurb}`;
+  cr.source = f.source;
+}
 
 // Classes (DESIGN.md "Classes"). Players keep their own avatar; a class is a starting weapon,
 // a passive, an active and a gear overlay. The showcase previews the starting weapon model.

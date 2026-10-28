@@ -10,6 +10,7 @@ export type Archetype = {
 	firstWave: number,
 	size: Vector3 | { number }, -- body size; a plain table when running outside Roblox
 	color: { number }, -- RGB 0-255
+	flying: boolean?,
 }
 
 local Enemies = {}
@@ -45,6 +46,47 @@ Enemies.Archetypes = {
 		size = { 2, 3, 1 },
 		color = { 160, 96, 160 },
 	},
+	Exploder = {
+		name = "Exploder",
+		health = 40,
+		speed = 16,
+		damage = 80, -- detonates on the Town Hall
+		coins = 25,
+		firstWave = 7,
+		size = { 3, 3, 3 },
+		color = { 220, 140, 40 },
+	},
+	Shielder = {
+		name = "Shielder",
+		health = 200,
+		speed = 7,
+		damage = 20,
+		coins = 40,
+		firstWave = 10,
+		size = { 4, 5, 3 },
+		color = { 90, 110, 160 },
+	},
+	Flyer = {
+		name = "Flyer",
+		health = 35,
+		speed = 18,
+		damage = 15,
+		coins = 20,
+		firstWave = 12,
+		size = { 3, 2, 3 },
+		color = { 170, 220, 255 },
+		flying = true, -- ignores ground paths; straight line at height
+	},
+	Healer = {
+		name = "Healer",
+		health = 80,
+		speed = 9,
+		damage = 10,
+		coins = 45,
+		firstWave = 18,
+		size = { 2, 3, 1 },
+		color = { 120, 230, 150 },
+	},
 	Boss = {
 		name = "Boss",
 		health = 1200,
@@ -57,11 +99,16 @@ Enemies.Archetypes = {
 	},
 }
 
--- Archetypes that may appear in regular (non-boss) waves, in spawn-weight order.
+-- Archetypes that may appear in regular (non-boss) waves, in spawn-weight order. Shares of
+-- archetypes not yet unlocked (firstWave) fall back to Runners, so early waves are all Runners.
 Enemies.HordeMix = {
-	{ archetype = "Runner", share = 0.7 },
-	{ archetype = "Brute", share = 0.2 },
+	{ archetype = "Runner", share = 0.58 },
+	{ archetype = "Brute", share = 0.15 },
 	{ archetype = "Spitter", share = 0.1 },
+	{ archetype = "Exploder", share = 0.06 },
+	{ archetype = "Shielder", share = 0.04 },
+	{ archetype = "Flyer", share = 0.05 },
+	{ archetype = "Healer", share = 0.02 },
 }
 
 function Enemies.get(name: string): Archetype
