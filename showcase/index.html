@@ -223,6 +223,20 @@ const clock = new THREE.Clock();
 
 function clear() { if (current) { scene.remove(current.root); current = null; active = null; } }
 
+// Tint a material. Lit materials (KayKit) take an emissive glow; unlit ones (most Kenney kits use
+// KHR_materials_unlit, i.e. MeshBasicMaterial) have no emissive, so their color is blended instead.
+function applyTint(material, tint) {
+  if (!material._baseColor) material._baseColor = material.color.clone();
+  if (material.emissive) {
+    material.emissive.set(tint ?? 0x000000);
+    material.emissiveIntensity = tint ? 0.15 : 0;
+    material.color.copy(material._baseColor);
+  } else {
+    material.color.copy(material._baseColor);
+    if (tint) material.color.lerp(new THREE.Color(tint), 0.35);
+  }
+}
+
 // Loads are async; if the user picks something else (or another tab) while a model is still
 // loading, the late arrival must be dropped or it ends up standing behind the new model.
 let loadSeq = 0;
@@ -234,7 +248,7 @@ async function showAnimated(def) {
   if (seq !== loadSeq) return;
   const root = cloneSkinned(gltf.scene);
   root.scale.setScalar(def.scale);
-  root.traverse(o => { if (o.isMesh) { o.castShadow = true; if (def.tint) { o.material = o.material.clone(); o.material.emissive = new THREE.Color(def.tint); o.material.emissiveIntensity = 0.15; } } });
+  root.traverse(o => { if (o.isMesh) { o.castShadow = true; if (def.tint) { o.material = o.material.clone(); applyTint(o.material, def.tint); } } });
   scene.add(root);
   const fsize = frame(root);
   log(`show ${def.id}: size ${fsize.x.toFixed(2)}x${fsize.y.toFixed(2)}x${fsize.z.toFixed(2)} clips ${gltf.animations.length}`);
@@ -358,7 +372,7 @@ function animatedCard(def) {
 
 // --- thumbnails: a small offscreen render of each model in its idle pose -----------------
 const THUMB = 112;
-const THUMB_VERSION = 'v2'; // bump to invalidate thumbnails saved in localStorage
+const THUMB_VERSION = 'v3'; // bump to invalidate thumbnails saved in localStorage
 const thumbRenderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 thumbRenderer.setSize(THUMB, THUMB, false);
 thumbRenderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -393,7 +407,7 @@ async function thumbRoot(file) {
 async function drawThumb(file, { scale = 1, tint = null, idle = null }) {
   const { root, gltf, mixer } = await thumbRoot(file);
   root.scale.setScalar(scale);
-  root.traverse(o => { if (o.isMesh) { o.material.emissive = new THREE.Color(tint ?? 0x000000); o.material.emissiveIntensity = tint ? 0.15 : 0; } });
+  root.traverse(o => { if (o.isMesh) applyTint(o.material, tint); });
   mixer.stopAllAction();
   if (idle) { const clip = gltf.animations.find(c => c.name === idle); if (clip) { mixer.clipAction(clip).play(); mixer.update(0.4); } }
   thumbScene.add(root);
