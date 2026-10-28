@@ -69,7 +69,9 @@ export const FAMILIES = [
 
 // Player characters (DESIGN.md "Characters"). KayKit Adventurers share the Skeletons rig, so the
 // same animation names work.
-const ADV_ANIMS = { idle: 'Idle', walk: 'Walking_A', run: 'Running_A', attack: '1H_Melee_Attack_Slice_Diagonal', hit: 'Hit_A', death: 'Death_A', spawn: 'Spawn_Ground' };
+// The Adventurers pack has 76 of the Skeletons' 95 clips: no Spawn_*, Idle_B, Idle_Combat,
+// Running_C or *_Skeletons clips, so only names present in both packs are used here.
+const ADV_ANIMS = { idle: 'Idle', walk: 'Walking_A', run: 'Running_A', attack: '1H_Melee_Attack_Slice_Diagonal', hit: 'Hit_A', death: 'Death_A', spawn: 'Cheer' };
 export const CHARACTERS = [
   { id: 'Trooper', model: ADV + 'Rogue.glb', scale: 1, tint: null, anims: { ...ADV_ANIMS, attack: '1H_Ranged_Shoot' }, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_concrete' },
     stats: { tier: 'Free', role: 'All-rounder', weapon: 'Assault rifle' }, blurb: 'Stand-in: KayKit Rogue. Passive +10% reload; active: ammo crate.' },
@@ -77,9 +79,9 @@ export const CHARACTERS = [
     stats: { tier: 'Free', role: 'Blocker', weapon: 'Shotgun' }, blurb: 'Stand-in: KayKit Barbarian. Creatures cannot push past; active: taunt.' },
   { id: 'Scout', model: ADV + 'Rogue_Hooded.glb', scale: 0.95, tint: null, anims: { ...ADV_ANIMS, run: 'Running_B', attack: 'Dualwield_Melee_Attack_Slice' }, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' },
     stats: { tier: 'Free', role: 'Mobility', weapon: 'Dual pistols' }, blurb: 'Stand-in: KayKit Hooded Rogue. +20% move speed; active: dash.' },
-  { id: 'Medic', model: ADV + 'Mage.glb', scale: 1, tint: 0x9affb0, anims: { ...ADV_ANIMS, attack: 'Spellcast_Raise', idle: 'Idle_B' }, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_wood' },
+  { id: 'Medic', model: ADV + 'Mage.glb', scale: 1, tint: 0x9affb0, anims: { ...ADV_ANIMS, attack: 'Spellcast_Raise' }, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_wood' },
     stats: { tier: 'Free', role: 'Support', weapon: 'SMG' }, blurb: 'Stand-in: KayKit Mage, green tint. Repairs the Town Hall 2x faster; active: repair pulse.' },
-  { id: 'Engineer', model: ADV + 'Knight.glb', scale: 1.05, tint: null, anims: { ...ADV_ANIMS, attack: 'Interact', idle: 'Idle_Combat' }, sounds: { hit: 'impact_plate_light', death: 'impact_metal_heavy', attack: 'impact_wood_medium', step: 'footstep_concrete' },
+  { id: 'Engineer', model: ADV + 'Knight.glb', scale: 1.05, tint: null, anims: { ...ADV_ANIMS, attack: 'Interact', idle: 'Blocking' }, sounds: { hit: 'impact_plate_light', death: 'impact_metal_heavy', attack: 'impact_wood_medium', step: 'footstep_concrete' },
     stats: { tier: 'Free', role: 'Area control', weapon: 'Carbine' }, blurb: 'Stand-in: KayKit Knight. Spells cost 15% less; active: barricade.' },
 ];
 

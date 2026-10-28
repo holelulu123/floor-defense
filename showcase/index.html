@@ -155,6 +155,13 @@ function frame(root) {
   const dist = radius / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.4;
   controls.target.copy(center);
   camera.position.set(center.x + dist * 0.65, center.y + dist * 0.45, center.z + dist * 0.75);
+  // Zoom limits and fog scale with the model, so a knife and a boss both zoom sensibly.
+  controls.minDistance = radius * 0.3;
+  controls.maxDistance = dist * 8;
+  scene.fog.near = dist * 4;
+  scene.fog.far = dist * 12;
+  camera.far = dist * 20;
+  camera.updateProjectionMatrix();
   controls.update();
   ground.position.y = box.min.y - 0.001;
   return size;
@@ -222,8 +229,16 @@ async function showStatic(item) {
 
 function playAnim(name, { once = false, then = null } = {}) {
   if (!current?.animated) return;
-  const next = current.actions[name];
-  if (!next) { console.warn('missing animation', name); $('hud-state').textContent = `missing: ${name}`; return; }
+  let next = current.actions[name];
+  if (!next) {
+    // A clip the pack doesn't have: fall back to idle so the model never freezes in bind pose.
+    console.warn('missing animation', name, 'for', current.def.id);
+    $('hud-state').textContent = `missing clip "${name}", showing idle`;
+    next = current.actions[current.def.anims.idle] ?? Object.values(current.actions)[0];
+    if (!next) return;
+    if (once && then) { then(); return; }
+    once = false;
+  }
   if (active && active !== next) active.fadeOut(0.15);
   next.reset().setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat).fadeIn(0.15).play();
   next.clampWhenFinished = once;
