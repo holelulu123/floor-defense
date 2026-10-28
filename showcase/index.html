@@ -272,12 +272,12 @@ async function showAnimated(def) {
   log(`show ${def.id}: size ${fsize.x.toFixed(2)}x${fsize.y.toFixed(2)}x${fsize.z.toFixed(2)} clips ${gltf.animations.length}`);
   const mixer = new THREE.AnimationMixer(root);
   const actions = {};
-  for (const clip of gltf.animations) actions[clip.name] = mixer.clipAction(clip);
+  for (const clip of gltf.animations) actions[clipName(clip)] = mixer.clipAction(clip);
   const maxHp = def.stats.health ?? 100;
   // A model with no clips (the UFOs) still gets the hit/kill buttons; it bobs instead of animating.
   current = { def, root, mixer, actions, hp: maxHp, maxHp, state: 'idle', stepTimer: 0, animated: true, bob: gltf.animations.length === 0, baseY: root.position.y };
 
-  $('anim-select').innerHTML = gltf.animations.length ? gltf.animations.map(c => `<option>${c.name}</option>`).join('') : '<option>(static model: hover bob)</option>';
+  $('anim-select').innerHTML = gltf.animations.length ? gltf.animations.map(c => `<option>${clipName(c)}</option>`).join('') : '<option>(static model: hover bob)</option>';
   $('anim-select').value = def.anims.idle ?? $('anim-select').value;
   $('hud-name').textContent = def.id;
   $('stats').innerHTML = Object.entries(def.stats).map(([k, v]) => `<tr><td>${STAT_ICONS[k] ? `<img src="${ICONS}${STAT_ICONS[k]}@64.png" alt="">` : ''}${STAT_LABELS[k] ?? k}</td><td>${v}</td></tr>`).join('');
@@ -326,6 +326,9 @@ async function showClass(cls) {
   $('stats').innerHTML = ['tier', 'role', 'weapon', 'passive', 'active', 'gear'].map(k => `<tr><td>${STAT_LABELS[k]}</td><td>${cls[k]}</td></tr>`).join('');
   $('source').innerHTML = 'Weapon model: Kenney Weapon Pack (CC0). Gear overlays are added on top of the player\'s own avatar in game.';
 }
+
+// Quaternius exports clips as "<Armature>|<Name>"; the catalog uses the bare name.
+function clipName(clip) { return clip.name.includes('|') ? clip.name.split('|').pop() : clip.name; }
 
 function playAnim(name, { once = false, then = null } = {}) {
   if (!current?.animated) return;
@@ -427,7 +430,7 @@ async function drawThumb(file, { scale = 1, tint = null, idle = null }) {
   root.scale.setScalar(scale);
   root.traverse(o => { if (o.isMesh) applyTint(o.material, tint); });
   mixer.stopAllAction();
-  if (idle) { const clip = gltf.animations.find(c => c.name === idle); if (clip) { mixer.clipAction(clip).play(); mixer.update(0.4); } }
+  if (idle) { const clip = gltf.animations.find(c => clipName(c) === idle); if (clip) { mixer.clipAction(clip).play(); mixer.update(0.4); } }
   thumbScene.add(root);
   const box = meshBox(root);
   const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
@@ -457,6 +460,21 @@ async function pumpThumbs() {
   }
   thumbBusy = false;
   log('thumb queue drained');
+  releaseThumbModels();
+}
+
+// Once every icon is drawn (and cached in localStorage), drop the thumbnail clones and every parsed
+// model that is not on screen. Keeping ~120 rigs with decoded textures resident cost the tab over
+// a gigabyte; a model is re-fetched from the local server when it is clicked again.
+function releaseThumbModels() {
+  const keep = current?.def?.model;
+  for (const [file, entry] of thumbRoots) {
+    entry.mixer.stopAllAction();
+    entry.root.traverse(o => { if (o.isMesh) { o.geometry?.dispose(); const mats = Array.isArray(o.material) ? o.material : [o.material]; for (const m of mats) { for (const v of Object.values(m)) if (v?.isTexture) v.dispose(); m.dispose(); } } });
+    thumbRoots.delete(file);
+    if (file !== keep) gltfCache.delete(file);
+  }
+  renderer.renderLists.dispose();
 }
 
 function renderThumb(file, opts = {}, img = null) {

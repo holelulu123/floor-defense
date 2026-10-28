@@ -12,6 +12,13 @@ Moved out of DESIGN.md so the design doc stays about the game. Rule: only CC0 (o
 | Kenney Weapon Pack (37 guns, grenades, knives, ammo) | `assets/weapons/kenney-weapon-pack/` | CC0 1.0 | kenney.nl/support; glTF copies from github.com/shorepine/kenney |
 | KayKit Halloween Bits (63 graveyard props: graves, crypts, fences, dead trees, lanterns) | `assets/props/kaykit-halloween/` | CC0 1.0 | `LICENSE.txt` in the pack |
 | KayKit Dungeon Remastered, selection (chests, barrels, torches, coins, banners, sword+shield, spike trap) | `assets/props/kaykit-dungeon/` | CC0 1.0 | `LICENSE.txt` in the pack |
+| Quaternius Ultimate Animated Animals (12: wolf, fox, stag, deer, husky, shiba, cow, bull, horses, donkey, alpaca; 12-13 clips each) | `assets/creatures/quaternius-animals/` | CC0 1.0 | pack page states CC0; files via the glTF mirror github.com/trebeljahr/quaternius-showcase (its LICENSES.md) |
+| Quaternius Animated Dinosaurs (6) | `assets/creatures/quaternius-dinosaurs/` | CC0 1.0 | same |
+| Quaternius Easy Enemy Pack (frog, rat, snake x2, spider, wasp) | `assets/creatures/quaternius-easy-enemies/` | CC0 1.0 | same |
+| Quaternius Cyberpunk Kit, enemies + character only (7) | `assets/creatures/quaternius-cyberpunk/` | CC0 1.0 | same |
+| Quaternius Animated Mechs (4) | `assets/creatures/quaternius-mechs/` | CC0 1.0 | same |
+| Quaternius Ultimate Space Kit, enemies + astronauts + mechs only (12; Draco-decoded to plain glb with gltf-transform) | `assets/creatures/quaternius-space/` | CC0 1.0 | same |
+| Quaternius Platformer Kit, Enemy only (1) | `assets/creatures/quaternius-platformer/` | CC0 1.0 | same |
 | Stat icons (health, speed, damage, coins, wave, kills) | `assets/ui/icons/` | Ours, CC0; drawn by `scripts/make-icons.py` | — |
 
 Role mapping (KayKit family): Minion = Runner, Warrior = Brute (and Boss at 2.4x, red tint), Mage = Spitter, Rogue = Elite Runner. Kenney family: Zombie = Runner, Skeleton = Elite, S-Ghost = Spitter, Vampire = Brute, Keeper = Boss. Players keep their own avatar (see Classes), so no player-body packs are kept. Browse everything with `scripts/showcase.sh` (`showcase/index.html`: tabs for creatures, classes, weapons, props; animations, hit/death sounds, stats with icons, auto-rendered thumbnails). `scripts/showcase-index.py` regenerates the weapons/props list from the `assets/` folders.
@@ -20,7 +27,7 @@ Role mapping (KayKit family): Minion = Runner, Warrior = Brute (and Boss at 2.4x
 
 | Source | License | Commercial | Attribution | Caveat |
 | --- | --- | --- | --- | --- |
-| Quaternius | CC0 | Yes | No | Downloads are via Google Drive / itch.io (browser only) |
+| Quaternius | CC0 | Yes | No | Official downloads are Google Drive folders that hit the "too many users" quota; the GitHub mirror above carries most packs as glb. Still missing from the mirror: Ultimate Monsters, Animated Monsters, Cute Monsters, Zombies, Aliens, Robots (download those by hand from the Drive links when the quota resets) |
 | Kenney | CC0 | Yes | No | Don't use the Kenney logo |
 | KayKit (Kay Lousberg) | CC0 | Yes | No | EXTRA/SOURCE tiers are paid; free tier is CC0 |
 | Mixamo (Adobe) | Adobe terms, royalty-free | Yes | No | Can't redistribute characters/animations as standalone assets; official FAQ page blocks automated fetch, confirm by hand before release |
