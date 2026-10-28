@@ -202,7 +202,7 @@ The existing code already supports this: `Config.GamePasses` holds pass ids, `Co
 | KayKit Character Pack: Adventurers (Barbarian, Knight, Mage, Rogue, Hooded Rogue; same rig as Skeletons) | `assets/characters/kaykit-adventurers/` | CC0 1.0 | `LICENSE.txt` in the pack |
 | Stat icons (health, speed, damage, coins, wave, kills) | `assets/ui/icons/` | Ours, CC0; drawn by `scripts/make-icons.py` | — |
 
-Role mapping (KayKit family): Minion = Runner, Warrior = Brute (and Boss at 2.4x, red tint), Mage = Spitter, Rogue = Elite Runner. Kenney family: Zombie = Runner, Skeleton = Elite, Ghost = Spitter, Vampire = Brute, Keeper = Boss. Adventurers stand in for the five free player characters. Browse everything with `scripts/showcase.sh` (`showcase/index.html`: tabs for creatures, characters, weapons, props; animations, hit/death sounds, stats with icons, auto-rendered thumbnails). `scripts/showcase-index.py` regenerates the weapons/props list from the `assets/` folders.
+Role mapping (KayKit family): Minion = Runner, Warrior = Brute (and Boss at 2.4x, red tint), Mage = Spitter, Rogue = Elite Runner. Kenney family: Zombie = Runner, Skeleton = Elite, S-Ghost = Spitter, Vampire = Brute, Keeper = Boss. Adventurers stand in for the five free player characters. Browse everything with `scripts/showcase.sh` (`showcase/index.html`: tabs for creatures, characters, weapons, props; animations, hit/death sounds, stats with icons, auto-rendered thumbnails). `scripts/showcase-index.py` regenerates the weapons/props list from the `assets/` folders.
 
 ### License notes per source (checked on the source pages)
 

@@ -51,7 +51,7 @@ export const FAMILIES = [
         stats: { health: 45, speed: 16, damage: 10, coins: 20, firstWave: 15 }, anims: KENNEY_ANIMS,
         sounds: { hit: 'impact_wood_light', death: 'impact_wood_heavy', attack: 'impact_generic_light', step: 'footstep_concrete' },
         blurb: 'Elite Runner alternative.' },
-      { id: 'Ghost', model: KENNEY + 'character-ghost.glb', scale: 1.0, tint: 0xa0e0ff,
+      { id: 'S-Ghost', model: KENNEY + 'character-ghost.glb', scale: 1.0, tint: 0xa0e0ff,
         stats: { health: 60, speed: 10, damage: 20, coins: 20, firstWave: 5 }, anims: KENNEY_ANIMS,
         sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: 'footstep_snow' },
         blurb: 'Spitter alternative. Floats, so footsteps are off for it in game.' },
