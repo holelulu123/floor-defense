@@ -5,7 +5,14 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 
-local store = DataStoreService:GetDataStore(Config.DataStoreName)
+-- GetDataStore throws in Studio until the place is published with API access enabled.
+-- Without a store we run on in-memory defaults so the game is still playable locally.
+local storeOk, store = pcall(DataStoreService.GetDataStore, DataStoreService, Config.DataStoreName)
+if not storeOk then
+	warn(`DataStore unavailable, player data will not persist: {store}`)
+	store = nil
+end
+
 local sessions: { [Player]: { [string]: any } } = {}
 
 local PlayerData = {}
@@ -27,12 +34,16 @@ local function retry(fn: () -> any): (boolean, any)
 end
 
 function PlayerData.load(player: Player)
-	local ok, saved = retry(function()
-		return store:GetAsync(key(player))
-	end)
-	if not ok then
-		player:Kick("Could not load your data. Please rejoin.")
-		return
+	local saved = nil
+	if store then
+		local ok, result = retry(function()
+			return store:GetAsync(key(player))
+		end)
+		if not ok then
+			player:Kick("Could not load your data. Please rejoin.")
+			return
+		end
+		saved = result
 	end
 
 	local data = table.clone(Config.DefaultData)
@@ -56,6 +67,9 @@ function PlayerData.save(player: Player): boolean
 	local data = sessions[player]
 	if not data then
 		return false
+	end
+	if not store then
+		return true -- nothing to persist to; treat as saved so Studio sessions keep working
 	end
 	local ok = retry(function()
 		store:SetAsync(key(player), data)

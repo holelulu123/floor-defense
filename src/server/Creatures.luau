@@ -29,7 +29,7 @@ local routeCache: { [Part]: { Vector3 } } = {}
 local heartbeat: RBXScriptConnection? = nil
 
 -- Straight-line fallback keeps the game playable if pathfinding fails (e.g. no navmesh yet).
-local function routeFrom(gate: Part, goal: Vector3): { Vector3 }
+local function routeFrom(gate: Part, start: Vector3, goal: Vector3): { Vector3 }
 	local cached = routeCache[gate]
 	if cached then
 		return cached
@@ -37,7 +37,7 @@ local function routeFrom(gate: Part, goal: Vector3): { Vector3 }
 
 	local waypoints = { goal }
 	local path = PathfindingService:CreatePath({ AgentRadius = 2, AgentHeight = 5, AgentCanJump = false })
-	local ok = pcall(path.ComputeAsync, path, gate.Position, goal)
+	local ok = pcall(path.ComputeAsync, path, start, goal)
 	if ok and path.Status == Enum.PathStatus.Success then
 		waypoints = {}
 		for _, wp in path:GetWaypoints() do
@@ -98,13 +98,13 @@ function Creatures.spawn(
 	part:SetAttribute("Archetype", archetype)
 	part.Parent = gate.Parent
 
-	-- Stop short of the Town Hall's surface rather than its centre.
-	local waypoints = table.clone(routeFrom(gate, goal))
-	local last = waypoints[#waypoints]
-	local toGoal = Vector3.new(goal.X - last.X, 0, goal.Z - last.Z)
-	if toGoal.Magnitude > arriveDistance then
-		waypoints[#waypoints] = goal - toGoal.Unit * arriveDistance
-	end
+	-- Path between two points on the floor just outside the solid gate and Town Hall parts;
+	-- a start or goal inside a solid makes ComputeAsync fail.
+	local floorY = gate.Position.Y - gate.Size.Y / 2
+	local toGate = Vector3.new(gate.Position.X - goal.X, 0, gate.Position.Z - goal.Z)
+	local startAt = Vector3.new(gate.Position.X, floorY, gate.Position.Z) - toGate.Unit * (gate.Size.Z / 2 + 3)
+	local stopAt = Vector3.new(goal.X, floorY, goal.Z) + toGate.Unit * arriveDistance
+	local waypoints = routeFrom(gate, startAt, stopAt)
 
 	local creature: Creature = {
 		part = part,

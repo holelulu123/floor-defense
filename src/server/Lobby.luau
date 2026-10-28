@@ -37,7 +37,7 @@ local function buildPad(def): Pad
 	local gui = Instance.new("BillboardGui")
 	gui.Size = UDim2.fromOffset(200, 60)
 	gui.StudsOffset = Vector3.new(0, 6, 0)
-	gui.AlwaysOnTop = true
+	gui.MaxDistance = 80
 	gui.Parent = part
 
 	local label = Instance.new("TextLabel")
