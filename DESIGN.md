@@ -195,8 +195,14 @@ The existing code already supports this: `Config.GamePasses` holds pass ids, `Co
 | --- | --- | --- | --- |
 | KayKit Character Pack: Skeletons 1.0 (4 animated glTF skeletons, 95 animations each, texture) | `assets/creatures/kaykit-skeletons/` | CC0 1.0, no attribution required; README lists Roblox as a supported engine | `LICENSE.txt` in the pack, github.com/KayKit-Game-Assets |
 | Kenney Impact Sounds (130 ogg: impacts, footsteps) | `assets/sounds/kenney-impact/` | CC0 1.0 | `LICENSE.txt` in the pack; kenney.nl/support states all assets are CC0 |
+| Kenney Graveyard Kit characters (zombie, skeleton, ghost, vampire, keeper; animated: idle, walk, sprint, jump, die) | `assets/creatures/kenney-graveyard/` | CC0 1.0 | kenney.nl/support; glTF copies from github.com/shorepine/kenney |
+| Kenney Weapon Pack (37 guns, grenades, knives, ammo) | `assets/weapons/kenney-weapon-pack/` | CC0 1.0 | kenney.nl/support; glTF copies from github.com/shorepine/kenney |
+| KayKit Halloween Bits (63 graveyard props: graves, crypts, fences, dead trees, lanterns) | `assets/props/kaykit-halloween/` | CC0 1.0 | `LICENSE.txt` in the pack |
+| KayKit Dungeon Remastered, selection (chests, barrels, torches, coins, banners, sword+shield, spike trap) | `assets/props/kaykit-dungeon/` | CC0 1.0 | `LICENSE.txt` in the pack |
+| KayKit Character Pack: Adventurers (Barbarian, Knight, Mage, Rogue, Hooded Rogue; same rig as Skeletons) | `assets/characters/kaykit-adventurers/` | CC0 1.0 | `LICENSE.txt` in the pack |
+| Stat icons (health, speed, damage, coins, wave, kills) | `assets/ui/icons/` | Ours, CC0; drawn by `scripts/make-icons.py` | — |
 
-Role mapping: Minion = Runner, Warrior = Brute (and Boss at 2.4x, red tint), Mage = Spitter, Rogue = Elite Runner. Browse them with `scripts/showcase.sh` (opens `showcase/creatures.html`: animations, hit/death sounds, stats).
+Role mapping (KayKit family): Minion = Runner, Warrior = Brute (and Boss at 2.4x, red tint), Mage = Spitter, Rogue = Elite Runner. Kenney family: Zombie = Runner, Skeleton = Elite, Ghost = Spitter, Vampire = Brute, Keeper = Boss. Adventurers stand in for the five free player characters. Browse everything with `scripts/showcase.sh` (`showcase/index.html`: tabs for creatures, characters, weapons, props; animations, hit/death sounds, stats with icons, auto-rendered thumbnails). `scripts/showcase-index.py` regenerates the weapons/props list from the `assets/` folders.
 
 ### License notes per source (checked on the source pages)
 

@@ -9,7 +9,7 @@ python3 -m http.server "$PORT" --bind 127.0.0.1 >/dev/null 2>&1 &
 SERVER=$!
 trap 'kill $SERVER 2>/dev/null' EXIT
 sleep 0.5
-URL="http://127.0.0.1:$PORT/showcase/creatures.html"
+URL="http://127.0.0.1:$PORT/showcase/index.html"
 echo "Showcase at $URL (Ctrl+C to stop)"
 xdg-open "$URL" 2>/dev/null || true
 wait $SERVER

@@ -1,0 +1,1 @@
+Kenney "Weapon Pack" (kenney.nl/assets/weapon-pack), CC0 1.0 per kenney.nl/support. Copied from github.com/shorepine/kenney (glTF conversion). No attribution required.

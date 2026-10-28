@@ -1,0 +1,1 @@
+Stat icons drawn by scripts/make-icons.py for this project. CC0 1.0.

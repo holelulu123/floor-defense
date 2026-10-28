@@ -1,0 +1,790 @@
+{
+ "weapons": [
+  {
+   "pack": "Kenney Weapon Pack",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "ammo machinegun",
+     "file": "../assets/weapons/kenney-weapon-pack/ammo_machinegun.glb"
+    },
+    {
+     "name": "ammo machinegunLauncher",
+     "file": "../assets/weapons/kenney-weapon-pack/ammo_machinegunLauncher.glb"
+    },
+    {
+     "name": "ammo machinegunLauncherGreen",
+     "file": "../assets/weapons/kenney-weapon-pack/ammo_machinegunLauncherGreen.glb"
+    },
+    {
+     "name": "ammo rocket",
+     "file": "../assets/weapons/kenney-weapon-pack/ammo_rocket.glb"
+    },
+    {
+     "name": "ammo rocketModern",
+     "file": "../assets/weapons/kenney-weapon-pack/ammo_rocketModern.glb"
+    },
+    {
+     "name": "ammo shotgun",
+     "file": "../assets/weapons/kenney-weapon-pack/ammo_shotgun.glb"
+    },
+    {
+     "name": "ammo sniper",
+     "file": "../assets/weapons/kenney-weapon-pack/ammo_sniper.glb"
+    },
+    {
+     "name": "ammo uzi",
+     "file": "../assets/weapons/kenney-weapon-pack/ammo_uzi.glb"
+    },
+    {
+     "name": "flamethrower long",
+     "file": "../assets/weapons/kenney-weapon-pack/flamethrower_long.glb"
+    },
+    {
+     "name": "flamethrower short",
+     "file": "../assets/weapons/kenney-weapon-pack/flamethrower_short.glb"
+    },
+    {
+     "name": "grenade",
+     "file": "../assets/weapons/kenney-weapon-pack/grenade.glb"
+    },
+    {
+     "name": "grenadeFlash",
+     "file": "../assets/weapons/kenney-weapon-pack/grenadeFlash.glb"
+    },
+    {
+     "name": "grenadeSmoke",
+     "file": "../assets/weapons/kenney-weapon-pack/grenadeSmoke.glb"
+    },
+    {
+     "name": "grenadeVintage",
+     "file": "../assets/weapons/kenney-weapon-pack/grenadeVintage.glb"
+    },
+    {
+     "name": "knifeRound sharp",
+     "file": "../assets/weapons/kenney-weapon-pack/knifeRound_sharp.glb"
+    },
+    {
+     "name": "knifeRound smooth",
+     "file": "../assets/weapons/kenney-weapon-pack/knifeRound_smooth.glb"
+    },
+    {
+     "name": "knife sharp",
+     "file": "../assets/weapons/kenney-weapon-pack/knife_sharp.glb"
+    },
+    {
+     "name": "knife smooth",
+     "file": "../assets/weapons/kenney-weapon-pack/knife_smooth.glb"
+    },
+    {
+     "name": "machinegun",
+     "file": "../assets/weapons/kenney-weapon-pack/machinegun.glb"
+    },
+    {
+     "name": "machinegunLauncher",
+     "file": "../assets/weapons/kenney-weapon-pack/machinegunLauncher.glb"
+    },
+    {
+     "name": "pistol",
+     "file": "../assets/weapons/kenney-weapon-pack/pistol.glb"
+    },
+    {
+     "name": "pistolSilencer",
+     "file": "../assets/weapons/kenney-weapon-pack/pistolSilencer.glb"
+    },
+    {
+     "name": "rocketlauncher",
+     "file": "../assets/weapons/kenney-weapon-pack/rocketlauncher.glb"
+    },
+    {
+     "name": "rocketlauncherModern",
+     "file": "../assets/weapons/kenney-weapon-pack/rocketlauncherModern.glb"
+    },
+    {
+     "name": "rocketlauncherSide",
+     "file": "../assets/weapons/kenney-weapon-pack/rocketlauncherSide.glb"
+    },
+    {
+     "name": "shotgun",
+     "file": "../assets/weapons/kenney-weapon-pack/shotgun.glb"
+    },
+    {
+     "name": "shotgunShort",
+     "file": "../assets/weapons/kenney-weapon-pack/shotgunShort.glb"
+    },
+    {
+     "name": "sniper",
+     "file": "../assets/weapons/kenney-weapon-pack/sniper.glb"
+    },
+    {
+     "name": "sniperSand",
+     "file": "../assets/weapons/kenney-weapon-pack/sniperSand.glb"
+    },
+    {
+     "name": "uzi",
+     "file": "../assets/weapons/kenney-weapon-pack/uzi.glb"
+    },
+    {
+     "name": "uziGold",
+     "file": "../assets/weapons/kenney-weapon-pack/uziGold.glb"
+    },
+    {
+     "name": "uziLong",
+     "file": "../assets/weapons/kenney-weapon-pack/uziLong.glb"
+    },
+    {
+     "name": "uziLongGold",
+     "file": "../assets/weapons/kenney-weapon-pack/uziLongGold.glb"
+    },
+    {
+     "name": "uziLongSilencer",
+     "file": "../assets/weapons/kenney-weapon-pack/uziLongSilencer.glb"
+    },
+    {
+     "name": "uziLongSilencerGold",
+     "file": "../assets/weapons/kenney-weapon-pack/uziLongSilencerGold.glb"
+    },
+    {
+     "name": "uziSilencer",
+     "file": "../assets/weapons/kenney-weapon-pack/uziSilencer.glb"
+    },
+    {
+     "name": "uziSilencerGold",
+     "file": "../assets/weapons/kenney-weapon-pack/uziSilencerGold.glb"
+    }
+   ]
+  },
+  {
+   "pack": "KayKit Dungeon (weapons only)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "sword shield",
+     "file": "../assets/props/kaykit-dungeon/sword_shield.gltf.glb"
+    },
+    {
+     "name": "sword shield broken",
+     "file": "../assets/props/kaykit-dungeon/sword_shield_broken.gltf.glb"
+    },
+    {
+     "name": "sword shield gold",
+     "file": "../assets/props/kaykit-dungeon/sword_shield_gold.gltf.glb"
+    }
+   ]
+  }
+ ],
+ "props": [
+  {
+   "pack": "KayKit Halloween Bits",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "arch",
+     "file": "../assets/props/kaykit-halloween/arch.gltf"
+    },
+    {
+     "name": "arch gate",
+     "file": "../assets/props/kaykit-halloween/arch_gate.gltf"
+    },
+    {
+     "name": "bench",
+     "file": "../assets/props/kaykit-halloween/bench.gltf"
+    },
+    {
+     "name": "bench decorated",
+     "file": "../assets/props/kaykit-halloween/bench_decorated.gltf"
+    },
+    {
+     "name": "bone A",
+     "file": "../assets/props/kaykit-halloween/bone_A.gltf"
+    },
+    {
+     "name": "bone B",
+     "file": "../assets/props/kaykit-halloween/bone_B.gltf"
+    },
+    {
+     "name": "bone C",
+     "file": "../assets/props/kaykit-halloween/bone_C.gltf"
+    },
+    {
+     "name": "candle",
+     "file": "../assets/props/kaykit-halloween/candle.gltf"
+    },
+    {
+     "name": "candle melted",
+     "file": "../assets/props/kaykit-halloween/candle_melted.gltf"
+    },
+    {
+     "name": "candle thin",
+     "file": "../assets/props/kaykit-halloween/candle_thin.gltf"
+    },
+    {
+     "name": "candle triple",
+     "file": "../assets/props/kaykit-halloween/candle_triple.gltf"
+    },
+    {
+     "name": "coffin",
+     "file": "../assets/props/kaykit-halloween/coffin.gltf"
+    },
+    {
+     "name": "coffin decorated",
+     "file": "../assets/props/kaykit-halloween/coffin_decorated.gltf"
+    },
+    {
+     "name": "crypt",
+     "file": "../assets/props/kaykit-halloween/crypt.gltf"
+    },
+    {
+     "name": "fence",
+     "file": "../assets/props/kaykit-halloween/fence.gltf"
+    },
+    {
+     "name": "fence broken",
+     "file": "../assets/props/kaykit-halloween/fence_broken.gltf"
+    },
+    {
+     "name": "fence gate",
+     "file": "../assets/props/kaykit-halloween/fence_gate.gltf"
+    },
+    {
+     "name": "fence pillar",
+     "file": "../assets/props/kaykit-halloween/fence_pillar.gltf"
+    },
+    {
+     "name": "fence pillar broken",
+     "file": "../assets/props/kaykit-halloween/fence_pillar_broken.gltf"
+    },
+    {
+     "name": "fence seperate",
+     "file": "../assets/props/kaykit-halloween/fence_seperate.gltf"
+    },
+    {
+     "name": "fence seperate broken",
+     "file": "../assets/props/kaykit-halloween/fence_seperate_broken.gltf"
+    },
+    {
+     "name": "floor dirt",
+     "file": "../assets/props/kaykit-halloween/floor_dirt.gltf"
+    },
+    {
+     "name": "floor dirt grave",
+     "file": "../assets/props/kaykit-halloween/floor_dirt_grave.gltf"
+    },
+    {
+     "name": "floor dirt small",
+     "file": "../assets/props/kaykit-halloween/floor_dirt_small.gltf"
+    },
+    {
+     "name": "grave A",
+     "file": "../assets/props/kaykit-halloween/grave_A.gltf"
+    },
+    {
+     "name": "grave A destroyed",
+     "file": "../assets/props/kaykit-halloween/grave_A_destroyed.gltf"
+    },
+    {
+     "name": "grave B",
+     "file": "../assets/props/kaykit-halloween/grave_B.gltf"
+    },
+    {
+     "name": "gravemarker A",
+     "file": "../assets/props/kaykit-halloween/gravemarker_A.gltf"
+    },
+    {
+     "name": "gravemarker B",
+     "file": "../assets/props/kaykit-halloween/gravemarker_B.gltf"
+    },
+    {
+     "name": "gravestone",
+     "file": "../assets/props/kaykit-halloween/gravestone.gltf"
+    },
+    {
+     "name": "lantern hanging",
+     "file": "../assets/props/kaykit-halloween/lantern_hanging.gltf"
+    },
+    {
+     "name": "lantern standing",
+     "file": "../assets/props/kaykit-halloween/lantern_standing.gltf"
+    },
+    {
+     "name": "path A",
+     "file": "../assets/props/kaykit-halloween/path_A.gltf"
+    },
+    {
+     "name": "path B",
+     "file": "../assets/props/kaykit-halloween/path_B.gltf"
+    },
+    {
+     "name": "path C",
+     "file": "../assets/props/kaykit-halloween/path_C.gltf"
+    },
+    {
+     "name": "path D",
+     "file": "../assets/props/kaykit-halloween/path_D.gltf"
+    },
+    {
+     "name": "pillar",
+     "file": "../assets/props/kaykit-halloween/pillar.gltf"
+    },
+    {
+     "name": "plaque",
+     "file": "../assets/props/kaykit-halloween/plaque.gltf"
+    },
+    {
+     "name": "plaque candles",
+     "file": "../assets/props/kaykit-halloween/plaque_candles.gltf"
+    },
+    {
+     "name": "post",
+     "file": "../assets/props/kaykit-halloween/post.gltf"
+    },
+    {
+     "name": "post lantern",
+     "file": "../assets/props/kaykit-halloween/post_lantern.gltf"
+    },
+    {
+     "name": "post skull",
+     "file": "../assets/props/kaykit-halloween/post_skull.gltf"
+    },
+    {
+     "name": "pumpkin orange",
+     "file": "../assets/props/kaykit-halloween/pumpkin_orange.gltf"
+    },
+    {
+     "name": "pumpkin orange jackolantern",
+     "file": "../assets/props/kaykit-halloween/pumpkin_orange_jackolantern.gltf"
+    },
+    {
+     "name": "pumpkin orange small",
+     "file": "../assets/props/kaykit-halloween/pumpkin_orange_small.gltf"
+    },
+    {
+     "name": "pumpkin yellow",
+     "file": "../assets/props/kaykit-halloween/pumpkin_yellow.gltf"
+    },
+    {
+     "name": "pumpkin yellow jackolantern",
+     "file": "../assets/props/kaykit-halloween/pumpkin_yellow_jackolantern.gltf"
+    },
+    {
+     "name": "pumpkin yellow small",
+     "file": "../assets/props/kaykit-halloween/pumpkin_yellow_small.gltf"
+    },
+    {
+     "name": "ribcage",
+     "file": "../assets/props/kaykit-halloween/ribcage.gltf"
+    },
+    {
+     "name": "shrine",
+     "file": "../assets/props/kaykit-halloween/shrine.gltf"
+    },
+    {
+     "name": "shrine candles",
+     "file": "../assets/props/kaykit-halloween/shrine_candles.gltf"
+    },
+    {
+     "name": "skull",
+     "file": "../assets/props/kaykit-halloween/skull.gltf"
+    },
+    {
+     "name": "skull candle",
+     "file": "../assets/props/kaykit-halloween/skull_candle.gltf"
+    },
+    {
+     "name": "tree dead large",
+     "file": "../assets/props/kaykit-halloween/tree_dead_large.gltf"
+    },
+    {
+     "name": "tree dead large decorated",
+     "file": "../assets/props/kaykit-halloween/tree_dead_large_decorated.gltf"
+    },
+    {
+     "name": "tree dead medium",
+     "file": "../assets/props/kaykit-halloween/tree_dead_medium.gltf"
+    },
+    {
+     "name": "tree dead small",
+     "file": "../assets/props/kaykit-halloween/tree_dead_small.gltf"
+    },
+    {
+     "name": "tree pine orange large",
+     "file": "../assets/props/kaykit-halloween/tree_pine_orange_large.gltf"
+    },
+    {
+     "name": "tree pine orange medium",
+     "file": "../assets/props/kaykit-halloween/tree_pine_orange_medium.gltf"
+    },
+    {
+     "name": "tree pine orange small",
+     "file": "../assets/props/kaykit-halloween/tree_pine_orange_small.gltf"
+    },
+    {
+     "name": "tree pine yellow large",
+     "file": "../assets/props/kaykit-halloween/tree_pine_yellow_large.gltf"
+    },
+    {
+     "name": "tree pine yellow medium",
+     "file": "../assets/props/kaykit-halloween/tree_pine_yellow_medium.gltf"
+    },
+    {
+     "name": "tree pine yellow small",
+     "file": "../assets/props/kaykit-halloween/tree_pine_yellow_small.gltf"
+    }
+   ]
+  },
+  {
+   "pack": "KayKit Dungeon Remastered (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "banner blue",
+     "file": "../assets/props/kaykit-dungeon/banner_blue.gltf.glb"
+    },
+    {
+     "name": "banner brown",
+     "file": "../assets/props/kaykit-dungeon/banner_brown.gltf.glb"
+    },
+    {
+     "name": "banner green",
+     "file": "../assets/props/kaykit-dungeon/banner_green.gltf.glb"
+    },
+    {
+     "name": "banner patternA blue",
+     "file": "../assets/props/kaykit-dungeon/banner_patternA_blue.gltf.glb"
+    },
+    {
+     "name": "banner patternA brown",
+     "file": "../assets/props/kaykit-dungeon/banner_patternA_brown.gltf.glb"
+    },
+    {
+     "name": "banner patternA green",
+     "file": "../assets/props/kaykit-dungeon/banner_patternA_green.gltf.glb"
+    },
+    {
+     "name": "banner patternA red",
+     "file": "../assets/props/kaykit-dungeon/banner_patternA_red.gltf.glb"
+    },
+    {
+     "name": "banner patternA white",
+     "file": "../assets/props/kaykit-dungeon/banner_patternA_white.gltf.glb"
+    },
+    {
+     "name": "banner patternA yellow",
+     "file": "../assets/props/kaykit-dungeon/banner_patternA_yellow.gltf.glb"
+    },
+    {
+     "name": "banner patternB blue",
+     "file": "../assets/props/kaykit-dungeon/banner_patternB_blue.gltf.glb"
+    },
+    {
+     "name": "banner patternB brown",
+     "file": "../assets/props/kaykit-dungeon/banner_patternB_brown.gltf.glb"
+    },
+    {
+     "name": "banner patternB green",
+     "file": "../assets/props/kaykit-dungeon/banner_patternB_green.gltf.glb"
+    },
+    {
+     "name": "banner patternB red",
+     "file": "../assets/props/kaykit-dungeon/banner_patternB_red.gltf.glb"
+    },
+    {
+     "name": "banner patternB white",
+     "file": "../assets/props/kaykit-dungeon/banner_patternB_white.gltf.glb"
+    },
+    {
+     "name": "banner patternB yellow",
+     "file": "../assets/props/kaykit-dungeon/banner_patternB_yellow.gltf.glb"
+    },
+    {
+     "name": "banner patternC blue",
+     "file": "../assets/props/kaykit-dungeon/banner_patternC_blue.gltf.glb"
+    },
+    {
+     "name": "banner patternC brown",
+     "file": "../assets/props/kaykit-dungeon/banner_patternC_brown.gltf.glb"
+    },
+    {
+     "name": "banner patternC green",
+     "file": "../assets/props/kaykit-dungeon/banner_patternC_green.gltf.glb"
+    },
+    {
+     "name": "banner patternC red",
+     "file": "../assets/props/kaykit-dungeon/banner_patternC_red.gltf.glb"
+    },
+    {
+     "name": "banner patternC white",
+     "file": "../assets/props/kaykit-dungeon/banner_patternC_white.gltf.glb"
+    },
+    {
+     "name": "banner patternC yellow",
+     "file": "../assets/props/kaykit-dungeon/banner_patternC_yellow.gltf.glb"
+    },
+    {
+     "name": "banner red",
+     "file": "../assets/props/kaykit-dungeon/banner_red.gltf.glb"
+    },
+    {
+     "name": "banner shield blue",
+     "file": "../assets/props/kaykit-dungeon/banner_shield_blue.gltf.glb"
+    },
+    {
+     "name": "banner shield brown",
+     "file": "../assets/props/kaykit-dungeon/banner_shield_brown.gltf.glb"
+    },
+    {
+     "name": "banner shield green",
+     "file": "../assets/props/kaykit-dungeon/banner_shield_green.gltf.glb"
+    },
+    {
+     "name": "banner shield red",
+     "file": "../assets/props/kaykit-dungeon/banner_shield_red.gltf.glb"
+    },
+    {
+     "name": "banner shield white",
+     "file": "../assets/props/kaykit-dungeon/banner_shield_white.gltf.glb"
+    },
+    {
+     "name": "banner shield yellow",
+     "file": "../assets/props/kaykit-dungeon/banner_shield_yellow.gltf.glb"
+    },
+    {
+     "name": "banner thin blue",
+     "file": "../assets/props/kaykit-dungeon/banner_thin_blue.gltf.glb"
+    },
+    {
+     "name": "banner thin brown",
+     "file": "../assets/props/kaykit-dungeon/banner_thin_brown.gltf.glb"
+    },
+    {
+     "name": "banner thin green",
+     "file": "../assets/props/kaykit-dungeon/banner_thin_green.gltf.glb"
+    },
+    {
+     "name": "banner thin red",
+     "file": "../assets/props/kaykit-dungeon/banner_thin_red.gltf.glb"
+    },
+    {
+     "name": "banner thin white",
+     "file": "../assets/props/kaykit-dungeon/banner_thin_white.gltf.glb"
+    },
+    {
+     "name": "banner thin yellow",
+     "file": "../assets/props/kaykit-dungeon/banner_thin_yellow.gltf.glb"
+    },
+    {
+     "name": "banner triple blue",
+     "file": "../assets/props/kaykit-dungeon/banner_triple_blue.gltf.glb"
+    },
+    {
+     "name": "banner triple brown",
+     "file": "../assets/props/kaykit-dungeon/banner_triple_brown.gltf.glb"
+    },
+    {
+     "name": "banner triple green",
+     "file": "../assets/props/kaykit-dungeon/banner_triple_green.gltf.glb"
+    },
+    {
+     "name": "banner triple red",
+     "file": "../assets/props/kaykit-dungeon/banner_triple_red.gltf.glb"
+    },
+    {
+     "name": "banner triple white",
+     "file": "../assets/props/kaykit-dungeon/banner_triple_white.gltf.glb"
+    },
+    {
+     "name": "banner triple yellow",
+     "file": "../assets/props/kaykit-dungeon/banner_triple_yellow.gltf.glb"
+    },
+    {
+     "name": "banner white",
+     "file": "../assets/props/kaykit-dungeon/banner_white.gltf.glb"
+    },
+    {
+     "name": "banner yellow",
+     "file": "../assets/props/kaykit-dungeon/banner_yellow.gltf.glb"
+    },
+    {
+     "name": "barrel large",
+     "file": "../assets/props/kaykit-dungeon/barrel_large.gltf.glb"
+    },
+    {
+     "name": "barrel large decorated",
+     "file": "../assets/props/kaykit-dungeon/barrel_large_decorated.gltf.glb"
+    },
+    {
+     "name": "barrel small",
+     "file": "../assets/props/kaykit-dungeon/barrel_small.gltf.glb"
+    },
+    {
+     "name": "barrel small stack",
+     "file": "../assets/props/kaykit-dungeon/barrel_small_stack.gltf.glb"
+    },
+    {
+     "name": "barrier column",
+     "file": "../assets/props/kaykit-dungeon/barrier_column.gltf.glb"
+    },
+    {
+     "name": "chest",
+     "file": "../assets/props/kaykit-dungeon/chest.glb"
+    },
+    {
+     "name": "chest gold",
+     "file": "../assets/props/kaykit-dungeon/chest_gold.glb"
+    },
+    {
+     "name": "coin",
+     "file": "../assets/props/kaykit-dungeon/coin.gltf.glb"
+    },
+    {
+     "name": "coin stack large",
+     "file": "../assets/props/kaykit-dungeon/coin_stack_large.gltf.glb"
+    },
+    {
+     "name": "coin stack medium",
+     "file": "../assets/props/kaykit-dungeon/coin_stack_medium.gltf.glb"
+    },
+    {
+     "name": "coin stack small",
+     "file": "../assets/props/kaykit-dungeon/coin_stack_small.gltf.glb"
+    },
+    {
+     "name": "column",
+     "file": "../assets/props/kaykit-dungeon/column.gltf.glb"
+    },
+    {
+     "name": "crates stacked",
+     "file": "../assets/props/kaykit-dungeon/crates_stacked.gltf.glb"
+    },
+    {
+     "name": "floor tile big spikes",
+     "file": "../assets/props/kaykit-dungeon/floor_tile_big_spikes.glb"
+    },
+    {
+     "name": "keg",
+     "file": "../assets/props/kaykit-dungeon/keg.gltf.glb"
+    },
+    {
+     "name": "keg decorated",
+     "file": "../assets/props/kaykit-dungeon/keg_decorated.gltf.glb"
+    },
+    {
+     "name": "stairs",
+     "file": "../assets/props/kaykit-dungeon/stairs.gltf.glb"
+    },
+    {
+     "name": "stairs narrow",
+     "file": "../assets/props/kaykit-dungeon/stairs_narrow.gltf.glb"
+    },
+    {
+     "name": "stairs wall left",
+     "file": "../assets/props/kaykit-dungeon/stairs_wall_left.gltf.glb"
+    },
+    {
+     "name": "stairs wall right",
+     "file": "../assets/props/kaykit-dungeon/stairs_wall_right.gltf.glb"
+    },
+    {
+     "name": "stairs walled",
+     "file": "../assets/props/kaykit-dungeon/stairs_walled.gltf.glb"
+    },
+    {
+     "name": "stairs wide",
+     "file": "../assets/props/kaykit-dungeon/stairs_wide.gltf.glb"
+    },
+    {
+     "name": "stairs wood",
+     "file": "../assets/props/kaykit-dungeon/stairs_wood.gltf.glb"
+    },
+    {
+     "name": "stairs wood decorated",
+     "file": "../assets/props/kaykit-dungeon/stairs_wood_decorated.gltf.glb"
+    },
+    {
+     "name": "table long",
+     "file": "../assets/props/kaykit-dungeon/table_long.gltf.glb"
+    },
+    {
+     "name": "table long broken",
+     "file": "../assets/props/kaykit-dungeon/table_long_broken.gltf.glb"
+    },
+    {
+     "name": "table long decorated A",
+     "file": "../assets/props/kaykit-dungeon/table_long_decorated_A.gltf.glb"
+    },
+    {
+     "name": "table long decorated C",
+     "file": "../assets/props/kaykit-dungeon/table_long_decorated_C.gltf.glb"
+    },
+    {
+     "name": "table long tablecloth",
+     "file": "../assets/props/kaykit-dungeon/table_long_tablecloth.gltf.glb"
+    },
+    {
+     "name": "table long tablecloth decorated A",
+     "file": "../assets/props/kaykit-dungeon/table_long_tablecloth_decorated_A.gltf.glb"
+    },
+    {
+     "name": "table medium",
+     "file": "../assets/props/kaykit-dungeon/table_medium.gltf.glb"
+    },
+    {
+     "name": "table medium broken",
+     "file": "../assets/props/kaykit-dungeon/table_medium_broken.gltf.glb"
+    },
+    {
+     "name": "table medium decorated A",
+     "file": "../assets/props/kaykit-dungeon/table_medium_decorated_A.gltf.glb"
+    },
+    {
+     "name": "table medium tablecloth",
+     "file": "../assets/props/kaykit-dungeon/table_medium_tablecloth.gltf.glb"
+    },
+    {
+     "name": "table medium tablecloth decorated B",
+     "file": "../assets/props/kaykit-dungeon/table_medium_tablecloth_decorated_B.gltf.glb"
+    },
+    {
+     "name": "table small",
+     "file": "../assets/props/kaykit-dungeon/table_small.gltf.glb"
+    },
+    {
+     "name": "table small decorated A",
+     "file": "../assets/props/kaykit-dungeon/table_small_decorated_A.gltf.glb"
+    },
+    {
+     "name": "table small decorated B",
+     "file": "../assets/props/kaykit-dungeon/table_small_decorated_B.gltf.glb"
+    },
+    {
+     "name": "torch",
+     "file": "../assets/props/kaykit-dungeon/torch.gltf.glb"
+    },
+    {
+     "name": "torch lit",
+     "file": "../assets/props/kaykit-dungeon/torch_lit.gltf.glb"
+    },
+    {
+     "name": "torch mounted",
+     "file": "../assets/props/kaykit-dungeon/torch_mounted.gltf.glb"
+    },
+    {
+     "name": "wall doorway",
+     "file": "../assets/props/kaykit-dungeon/wall_doorway.glb"
+    },
+    {
+     "name": "wall doorway Tsplit",
+     "file": "../assets/props/kaykit-dungeon/wall_doorway_Tsplit.gltf.glb"
+    },
+    {
+     "name": "wall doorway scaffold",
+     "file": "../assets/props/kaykit-dungeon/wall_doorway_scaffold.glb"
+    },
+    {
+     "name": "wall doorway sides",
+     "file": "../assets/props/kaykit-dungeon/wall_doorway_sides.gltf.glb"
+    }
+   ]
+  }
+ ]
+}
