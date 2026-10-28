@@ -56,7 +56,7 @@
   <h1>Floor Defense · Assets</h1>
   <nav id="tabs">
     <a href="#creatures" data-tab="creatures">Creatures</a>
-    <a href="#characters" data-tab="characters">Characters</a>
+    <a href="#classes" data-tab="classes">Classes</a>
     <a href="#weapons" data-tab="weapons">Weapons</a>
     <a href="#props" data-tab="props">Props</a>
   </nav>
@@ -115,7 +115,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
-import { FAMILIES, CHARACTERS, STAT_ICONS, STAT_LABELS } from './catalog.js';
+import { FAMILIES, CLASSES, STAT_ICONS, STAT_LABELS } from './catalog.js';
 
 const SFX = '../assets/sounds/kenney-impact/';
 const ICONS = '../assets/ui/icons/';
@@ -235,6 +235,14 @@ async function showStatic(item) {
   $('source').innerHTML = `${item.pack} · ${item.license}`;
 }
 
+// A class is shown as its starting weapon plus its text; the player keeps their own avatar.
+async function showClass(cls) {
+  await showStatic({ file: cls.model, name: `${cls.id} · ${cls.weapon}`, pack: `${cls.tier} class · ${cls.role}`, license: 'CC0 (Kenney Weapon Pack)' });
+  if (!current || current.def.file !== cls.model) return;
+  $('stats').innerHTML = ['tier', 'role', 'weapon', 'passive', 'active', 'gear'].map(k => `<tr><td>${STAT_LABELS[k]}</td><td>${cls[k]}</td></tr>`).join('');
+  $('source').innerHTML = 'Weapon model: Kenney Weapon Pack (CC0). Gear overlays are added on top of the player\'s own avatar in game.';
+}
+
 function playAnim(name, { once = false, then = null } = {}) {
   if (!current?.animated) return;
   let next = current.actions[name];
@@ -335,7 +343,10 @@ function renderThumb(file, { scale = 1, tint = null, idle = null } = {}) {
 
 const TABS = {
   creatures: { animated: true, groups: () => FAMILIES.map(f => ({ title: f.name, items: f.creatures.map(c => ({ ...c, source: f.source })) })) },
-  characters: { animated: true, groups: () => [{ title: 'Player characters (stand-ins)', items: CHARACTERS.map(c => ({ ...c, source: 'KayKit Character Pack: Adventurers (CC0, Kay Lousberg)' })) }] },
+  classes: { animated: false, isClass: true, groups: () => [
+    { title: 'Free classes', items: CLASSES.filter(c => c.tier === 'Free') },
+    { title: 'Premium classes', items: CLASSES.filter(c => c.tier === 'Premium') },
+  ] },
   weapons: { animated: false, groups: () => files.weapons.map(p => ({ title: `${p.pack} · ${p.license}`, items: p.items.map(i => ({ ...i, pack: p.pack, license: p.license })) })) },
   props: { animated: false, groups: () => files.props.map(p => ({ title: `${p.pack} · ${p.license}`, items: p.items.map(i => ({ ...i, pack: p.pack, license: p.license })) })) },
 };
@@ -353,12 +364,14 @@ function renderList() {
     for (const item of items) {
       const el = document.createElement('div');
       el.className = 'card';
-      el.innerHTML = cfg.animated ? animatedCard(item) : `<img class="thumb" alt=""><b>${item.name}</b>`;
-      el.onclick = () => { for (const c of list.querySelectorAll('.card')) c.classList.remove('active'); el.classList.add('active'); cfg.animated ? showAnimated(item) : showStatic(item); };
+      el.innerHTML = cfg.animated ? animatedCard(item)
+        : cfg.isClass ? `<img class="thumb" alt=""><div><b>${item.id}</b><small>${item.role} · ${item.weapon}</small><small><br>${item.passive}</small></div>`
+        : `<img class="thumb" alt=""><b>${item.name}</b>`;
+      el.onclick = () => { for (const c of list.querySelectorAll('.card')) c.classList.remove('active'); el.classList.add('active'); cfg.animated ? showAnimated(item) : cfg.isClass ? showClass(item) : showStatic(item); };
       list.appendChild(el);
       const img = el.querySelector('.thumb');
       const opts = cfg.animated ? { scale: item.scale, tint: item.tint, idle: item.anims.idle } : {};
-      renderThumb(cfg.animated ? item.model : item.file, opts).then(url => { if (url) img.src = url; });
+      renderThumb(cfg.animated || cfg.isClass ? item.model : item.file, opts).then(url => { if (url) img.src = url; });
     }
   }
 }

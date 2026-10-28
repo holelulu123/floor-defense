@@ -1,9 +1,9 @@
-// Hand-written catalog for animated things. Props and weapons are listed automatically in
-// files.json (scripts/showcase-index.py). Stats mirror src/shared/Enemies.luau.
+// Hand-written catalog for animated things and classes. Props and weapons are listed automatically
+// in files.json (scripts/showcase-index.py). Stats mirror src/shared/Enemies.luau.
 
 const KAYKIT = '../assets/creatures/kaykit-skeletons/';
 const KENNEY = '../assets/creatures/kenney-graveyard/';
-const ADV = '../assets/characters/kaykit-adventurers/';
+const GUNS = '../assets/weapons/kenney-weapon-pack/';
 
 // Animation names differ per pack; each entry maps the showcase's verbs to the pack's clip names.
 const KAYKIT_RUNNER = { idle: 'Idle', walk: 'Walking_A', run: 'Running_A', attack: 'Unarmed_Melee_Attack_Punch_A', hit: 'Hit_A', death: 'Death_A', spawn: 'Spawn_Ground_Skeletons' };
@@ -67,23 +67,30 @@ export const FAMILIES = [
   },
 ];
 
-// Player characters (DESIGN.md "Characters"). KayKit Adventurers share the Skeletons rig, so the
-// same animation names work.
-// The Adventurers pack has 76 of the Skeletons' 95 clips: no Spawn_*, Idle_B, Idle_Combat,
-// Running_C or *_Skeletons clips, so only names present in both packs are used here.
-const ADV_ANIMS = { idle: 'Idle', walk: 'Walking_A', run: 'Running_A', attack: '1H_Melee_Attack_Slice_Diagonal', hit: 'Hit_A', death: 'Death_A', spawn: 'Cheer' };
-export const CHARACTERS = [
-  { id: 'Trooper', model: ADV + 'Rogue.glb', scale: 1, tint: null, anims: { ...ADV_ANIMS, attack: '1H_Ranged_Shoot' }, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_concrete' },
-    stats: { tier: 'Free', role: 'All-rounder', weapon: 'Assault rifle' }, blurb: 'Stand-in: KayKit Rogue. Passive +10% reload; active: ammo crate.' },
-  { id: 'Brute', model: ADV + 'Barbarian.glb', scale: 1.2, tint: null, anims: { ...ADV_ANIMS, attack: '2H_Melee_Attack_Chop', idle: '2H_Melee_Idle' }, sounds: { hit: 'impact_plate_medium', death: 'impact_metal_heavy', attack: 'impact_wood_heavy', step: 'footstep_concrete' },
-    stats: { tier: 'Free', role: 'Blocker', weapon: 'Shotgun' }, blurb: 'Stand-in: KayKit Barbarian. Creatures cannot push past; active: taunt.' },
-  { id: 'Scout', model: ADV + 'Rogue_Hooded.glb', scale: 0.95, tint: null, anims: { ...ADV_ANIMS, run: 'Running_B', attack: 'Dualwield_Melee_Attack_Slice' }, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' },
-    stats: { tier: 'Free', role: 'Mobility', weapon: 'Dual pistols' }, blurb: 'Stand-in: KayKit Hooded Rogue. +20% move speed; active: dash.' },
-  { id: 'Medic', model: ADV + 'Mage.glb', scale: 1, tint: 0x9affb0, anims: { ...ADV_ANIMS, attack: 'Spellcast_Raise' }, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_wood' },
-    stats: { tier: 'Free', role: 'Support', weapon: 'SMG' }, blurb: 'Stand-in: KayKit Mage, green tint. Repairs the Town Hall 2x faster; active: repair pulse.' },
-  { id: 'Engineer', model: ADV + 'Knight.glb', scale: 1.05, tint: null, anims: { ...ADV_ANIMS, attack: 'Interact', idle: 'Blocking' }, sounds: { hit: 'impact_plate_light', death: 'impact_metal_heavy', attack: 'impact_wood_medium', step: 'footstep_concrete' },
-    stats: { tier: 'Free', role: 'Area control', weapon: 'Carbine' }, blurb: 'Stand-in: KayKit Knight. Spells cost 15% less; active: barricade.' },
+// Classes (DESIGN.md "Classes"). Players keep their own avatar; a class is a starting weapon,
+// a passive, an active and a gear overlay. The showcase previews the starting weapon model.
+export const CLASSES = [
+  { id: 'Trooper', tier: 'Free', role: 'All-rounder', weapon: 'Assault rifle', model: GUNS + 'machinegun.glb',
+    passive: '+10% reload speed', active: 'Ammo crate for the team (60 s)', gear: 'Light vest, cap' },
+  { id: 'Brute', tier: 'Free', role: 'Blocker', weapon: 'Shotgun', model: GUNS + 'shotgun.glb',
+    passive: 'Creatures cannot push past you', active: 'Taunt: creatures chase you for 5 s (45 s)', gear: 'Heavy pauldrons, wide stance' },
+  { id: 'Scout', tier: 'Free', role: 'Mobility', weapon: 'Dual pistols', model: GUNS + 'pistol.glb',
+    passive: '+20% move speed', active: 'Dash through enemies (20 s)', gear: 'Hood, light boots' },
+  { id: 'Medic', tier: 'Free', role: 'Support', weapon: 'SMG', model: GUNS + 'uzi.glb',
+    passive: 'Repairs the Town Hall 2x faster', active: 'Repair pulse: +150 Town Hall HP (40 s)', gear: 'Visible backpack, armband' },
+  { id: 'Engineer', tier: 'Free', role: 'Area control', weapon: 'Carbine', model: GUNS + 'machinegunLauncher.glb',
+    passive: 'Spells cost 15% less', active: 'Barricade blocks a lane for 10 s (50 s)', gear: 'Tool belt, goggles' },
+  { id: 'Pyro', tier: 'Premium', role: 'Area damage', weapon: 'Flamethrower', model: GUNS + 'flamethrower_long.glb',
+    passive: 'Burning enemies take +15% damage', active: 'Fire wall across a lane (45 s)', gear: 'Tank on back, mask' },
+  { id: 'Frost Mage', tier: 'Premium', role: 'Crowd control', weapon: 'Ice wand', model: GUNS + 'pistolSilencer.glb',
+    passive: 'Freeze spells last 25% longer', active: 'Blizzard: slows everything on screen (60 s)', gear: 'Frost cloak (placeholder weapon model)' },
+  { id: 'Sniper', tier: 'Premium', role: 'Boss killer', weapon: 'Bolt rifle', model: GUNS + 'sniper.glb',
+    passive: '+50% headshot damage', active: 'Mark a target: team deals +30% (40 s)', gear: 'Ghillie hood, scope' },
+  { id: 'Demolisher', tier: 'Premium', role: 'Burst', weapon: 'Grenade launcher', model: GUNS + 'rocketlauncherModern.glb',
+    passive: 'Carries +2 grenades', active: 'Cluster bomb (50 s)', gear: 'Bandolier, helmet' },
+  { id: 'Summoner', tier: 'Premium', role: 'Pet', weapon: 'Staff', model: GUNS + 'knifeRound_smooth.glb',
+    passive: 'Starts with a pet that attacks', active: 'Pet enrages, 2x damage for 8 s (45 s)', gear: 'Robe trim, floating pet (placeholder weapon model)' },
 ];
 
 export const STAT_ICONS = { health: 'health', speed: 'speed', damage: 'damage', coins: 'coins', firstWave: 'wave', kills: 'kills' };
-export const STAT_LABELS = { health: 'Health', speed: 'Speed (studs/s)', damage: 'Town Hall damage', coins: 'Coins per kill', firstWave: 'First wave', tier: 'Tier', role: 'Role', weapon: 'Starting weapon' };
+export const STAT_LABELS = { health: 'Health', speed: 'Speed (studs/s)', damage: 'Town Hall damage', coins: 'Coins per kill', firstWave: 'First wave', tier: 'Tier', role: 'Role', weapon: 'Starting weapon', passive: 'Passive', active: 'Active', gear: 'Gear overlay' };

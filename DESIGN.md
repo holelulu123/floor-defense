@@ -4,7 +4,7 @@ Last updated: 2026-10-28
 
 ## Overview
 
-Floor Defense is a wave-survival shooter for 1, 2 or 4 players: step on a floor pad in the lobby, pick a character, and defend your Town Hall against escalating waves of creatures using guns, grenades and floor spells. Creatures ignore the players and march on the Town Hall; the players are the towers. Every kill pays coins and score; coins buy gear mid-run, score goes on the Hall of Fame.
+Floor Defense is a wave-survival shooter for 1, 2 or 4 players: step on a floor pad in the lobby, pick a class, and defend your Town Hall against escalating waves of creatures using guns, grenades and floor spells. Creatures ignore the players and march on the Town Hall; the players are the towers. Every kill pays coins and score; coins buy gear mid-run, score goes on the Hall of Fame.
 
 Two modes from launch: **Defense** (co-op PvE) and **Siege** (PvP, two squads).
 
@@ -57,11 +57,11 @@ In-run coins are spent in the shop and reset to 0 each run. A separate persisten
 
 Both first-person and third-person, as a player setting with a hotkey to toggle mid-run. Roblox supports this natively (`CameraMode` / zoom limits), so it costs almost nothing. Third-person is the default on touch devices; first-person is the default on PC. Sniper's active zooms into first-person regardless of setting.
 
-## Characters
+## Classes
 
-Ten characters, five free and five premium, each with a starting weapon, one passive and one active ability on a cooldown. The balance rule: a premium character is never stronger than a free one, only different. A player who masters the free five should be able to top the Hall of Fame.
+Players keep their own Roblox avatar. On entering the lobby (and again on any pad before the countdown ends) they pick a **class**: a starting weapon, one passive and one active ability on a cooldown. Ten classes, five free and five premium. The balance rule: a premium class is never stronger than a free one, only different. A player who masters the free five should be able to top the Hall of Fame.
 
-| Character | Tier | Role | Starting weapon | Passive | Active (cooldown) |
+| Class | Tier | Role | Starting weapon | Passive | Active (cooldown) |
 | --- | --- | --- | --- | --- | --- |
 | Trooper | Free | All-rounder | Assault rifle | +10% reload speed | Ammo crate for the team (60 s) |
 | Brute | Free | Blocker | Shotgun | Creatures cannot push past you | Taunt: nearby creatures chase you instead of the Town Hall for 5 s (45 s) |
@@ -74,7 +74,11 @@ Ten characters, five free and five premium, each with a starting weapon, one pas
 | Demolisher | Premium | Burst | Grenade launcher | Carries +2 grenades | Cluster bomb (50 s) |
 | Summoner | Premium | Pet | Staff | Starts with a pet that attacks | Pet enrages, double damage for 8 s (45 s) |
 
-Premium characters are bought once with Robux, or slowly with Gems earned in game. Every character also has free skins unlocked by milestones (reach wave 20 as Brute) and paid skins. Team Fortress-style silhouettes make roles readable from across the map: the Brute is wide, the Scout is thin, the Medic has a visible pack.
+How a class shows on an avatar: the class adds a small **gear overlay** on top of whatever the player is wearing, applied server-side with `HumanoidDescription` accessories: Brute gets heavy pauldrons, Medic a visible pack, Scout a hood, Engineer a tool belt, plus the weapon model in hand. Bodies, faces and Marketplace items stay untouched. This is what the top Roblox games do (BedWars kits, Rivals/TDS skins on gear, never on the body).
+
+Class select UI: a panel on lobby entry with the ten classes, role, weapon, passive and active, premium ones marked with a price. The last-used class is remembered in `PlayerData`. Changing class is free and instant in the lobby; locked once a run starts.
+
+Premium classes are bought once with Robux, or slowly with Gems earned in game. Skins are **gear and weapon skins** (gold pauldrons, flaming pack, camo rifle): free ones unlocked by milestones (reach wave 20 as Brute), paid ones with Gems or Robux. Later, selling our own accessories as Roblox UGC items is a second revenue line.
 
 ## Weapons, grenades and spells
 
@@ -135,8 +139,8 @@ Both ship at launch. Siege reuses every system from Defense, so it costs the lob
 
 **Siege (PvP):** two squads of equal size, each with its own Town Hall on a mirrored half of the map. Both sides face the same waves. The extra rule: every kill you make sends a creature of the same type to the enemy's side on the next wave, so a strong squad buries the other. Last Town Hall standing wins. No direct player-vs-player shooting, which means:
 
-- No character balance pass for duels; the characters only ever shoot creatures.
-- No pay-to-win debate: premium characters change how you kill creatures, not whether you can hurt a player.
+- No class balance pass for duels; the classes only ever shoot creatures.
+- No pay-to-win debate: premium classes change how you kill creatures, not whether you can hurt a player.
 - Exploiters have less to gain; the server already owns every hit and every spawn.
 - Players can see the enemy squad across a chasm or wall, cheer and taunt, but not cross.
 
@@ -151,39 +155,39 @@ Two things persist between runs: Gems and Score. Coins do not.
 | Currency | Earned by | Spent on | Persists |
 | --- | --- | --- | --- |
 | Coins | Kills during a run (10 per Runner, up to 500 per boss), times the party multiplier | Run shop: guns, grenades, spells | No, reset each run |
-| Gems | 1 per wave cleared, 25 per boss, 10 per Siege win, daily login bonus | Characters (slowly), skins, lobby cosmetics | Yes |
+| Gems | 1 per wave cleared, 25 per boss, 10 per Siege win, daily login bonus | Classes (slowly), gear and weapon skins, lobby cosmetics | Yes |
 | Score | Sum of coins earned in a run plus a wave bonus of `wave x 100` | Nothing; it is the leaderboard number | Yes, best per mode kept |
 
-Hall of Fame: a wall in the lobby with four boards: Solo, Duo, Squad and Siege. Defense boards list the top 100 scores with player name, character used, wave reached and date; a Squad entry lists all four names so friends chase the board together. The Siege board ranks by longest win streak. Boards reset monthly with each month's top 10 engraved on a permanent "Legends" board, so new players always have a reachable board.
+Hall of Fame: a wall in the lobby with four boards: Solo, Duo, Squad and Siege. Defense boards list the top 100 scores with player name, class used, wave reached and date; a Squad entry lists all four names so friends chase the board together. The Siege board ranks by longest win streak. Boards reset monthly with each month's top 10 engraved on a permanent "Legends" board, so new players always have a reachable board.
 
 Other persistent progression:
 
 - **Player level** from total score, shown next to the name. Levels unlock free skins and lobby emotes, never power.
-- **Character mastery** per character: waves reached while playing it. Mastery 10 unlocks that character's free skin.
+- **Class mastery** per class: waves reached while playing it. Mastery 10 unlocks that class's free gear skin.
 - **Daily and weekly challenges** ("freeze 50 enemies", "reach wave 10 on Swamp") paying Gems. This is the main reason to come back on a day you weren't going to.
 
 Leaderboards use Roblox OrderedDataStores, one per board, keyed by user id, refreshed every 60 s in the lobby.
 
 ## Monetization
 
-Sell characters, cosmetics and convenience. Never sell in-run power or score.
+Sell classes, cosmetics and convenience. Never sell in-run power or score.
 
 | Product | Type | Price (Robux) | What you get |
 | --- | --- | --- | --- |
-| Premium character | Game pass, one each | 199 | Permanent access to Pyro, Frost Mage, Sniper, Demolisher or Summoner |
-| Character bundle | Game pass | 699 | All five premium characters (30% off) |
+| Premium class | Game pass, one each | 199 | Permanent access to Pyro, Frost Mage, Sniper, Demolisher or Summoner |
+| Class bundle | Game pass | 699 | All five premium classes (30% off) |
 | VIP | Game pass | 399 | +25% Gems, VIP lobby tag, one extra daily challenge, named color on the Hall of Fame |
-| Gems 500 / 1,200 / 3,000 | Developer product | 99 / 199 / 449 | Gems to spend on skins or characters |
-| Skin | Developer product or Gems | 49 to 149 | Cosmetic only |
+| Gems 500 / 1,200 / 3,000 | Developer product | 99 / 199 / 449 | Gems to spend on skins or classes |
+| Gear or weapon skin | Developer product or Gems | 49 to 149 | Cosmetic only; layered on the player's own avatar |
 | Private server | Server subscription | 99 / month | Play with a chosen group; the Hall of Fame still counts runs there |
 
 Fairness rules, written down so future decisions stay honest:
 
-1. Every premium character can also be bought with Gems earned in play, at a price that takes roughly 10 hours.
+1. Every premium class can also be bought with Gems earned in play, at a price that takes roughly 10 hours.
 2. No item sold for Robux changes damage, Town Hall health, coin gain or score. VIP's +25% Gems is the single exception, and Gems don't affect score.
-3. The Hall of Fame shows the character used, so a free character topping it is a visible proof of fairness.
+3. The Hall of Fame shows the class used, so a free class topping it is a visible proof of fairness.
 
-Where the money comes from, in expected order: Premium Payouts from engagement (free, automatic), VIP, the character bundle, then Gem packs. Roblox takes about 30% of each sale. Developer Exchange pays out earned Robux once you pass the threshold (30,000 Robux as of this plan; confirm the current number on the DevEx page).
+Where the money comes from, in expected order: Premium Payouts from engagement (free, automatic), VIP, the class bundle, then Gem packs. Roblox takes about 30% of each sale. Developer Exchange pays out earned Robux once you pass the threshold (30,000 Robux as of this plan; confirm the current number on the DevEx page).
 
 The existing code already supports this: `Config.GamePasses` holds pass ids, `Config.Products` holds product ids, and `Monetization.luau` grants products idempotently. Gems replace Coins as the persistent field in `PlayerData`.
 
@@ -199,10 +203,9 @@ The existing code already supports this: `Config.GamePasses` holds pass ids, `Co
 | Kenney Weapon Pack (37 guns, grenades, knives, ammo) | `assets/weapons/kenney-weapon-pack/` | CC0 1.0 | kenney.nl/support; glTF copies from github.com/shorepine/kenney |
 | KayKit Halloween Bits (63 graveyard props: graves, crypts, fences, dead trees, lanterns) | `assets/props/kaykit-halloween/` | CC0 1.0 | `LICENSE.txt` in the pack |
 | KayKit Dungeon Remastered, selection (chests, barrels, torches, coins, banners, sword+shield, spike trap) | `assets/props/kaykit-dungeon/` | CC0 1.0 | `LICENSE.txt` in the pack |
-| KayKit Character Pack: Adventurers (Barbarian, Knight, Mage, Rogue, Hooded Rogue; same rig as Skeletons) | `assets/characters/kaykit-adventurers/` | CC0 1.0 | `LICENSE.txt` in the pack |
 | Stat icons (health, speed, damage, coins, wave, kills) | `assets/ui/icons/` | Ours, CC0; drawn by `scripts/make-icons.py` | — |
 
-Role mapping (KayKit family): Minion = Runner, Warrior = Brute (and Boss at 2.4x, red tint), Mage = Spitter, Rogue = Elite Runner. Kenney family: Zombie = Runner, Skeleton = Elite, S-Ghost = Spitter, Vampire = Brute, Keeper = Boss. Adventurers stand in for the five free player characters. Browse everything with `scripts/showcase.sh` (`showcase/index.html`: tabs for creatures, characters, weapons, props; animations, hit/death sounds, stats with icons, auto-rendered thumbnails). `scripts/showcase-index.py` regenerates the weapons/props list from the `assets/` folders.
+Role mapping (KayKit family): Minion = Runner, Warrior = Brute (and Boss at 2.4x, red tint), Mage = Spitter, Rogue = Elite Runner. Kenney family: Zombie = Runner, Skeleton = Elite, S-Ghost = Spitter, Vampire = Brute, Keeper = Boss. Players keep their own avatar (see Classes), so no player-body packs are kept. Browse everything with `scripts/showcase.sh` (`showcase/index.html`: tabs for creatures, classes, weapons, props; animations, hit/death sounds, stats with icons, auto-rendered thumbnails). `scripts/showcase-index.py` regenerates the weapons/props list from the `assets/` folders.
 
 ### License notes per source (checked on the source pages)
 
@@ -242,7 +245,7 @@ What I cannot produce: detailed sculpted characters, hand-painted textures, or a
 
 ## MVP scope
 
-The first playable is one map, one pad size, two free characters, three enemy archetypes and a four-item shop. Everything else is layered on after a real player has survived ten waves.
+The first playable is one map, one pad size, two free classes, three enemy archetypes and a four-item shop. Everything else is layered on after a real player has survived ten waves.
 
 | Order | Milestone | What it proves | Code it touches |
 | --- | --- | --- | --- |
@@ -251,14 +254,14 @@ The first playable is one map, one pad size, two free characters, three enemy ar
 | 3 | Gun: server-authoritative hitscan with client-side feel; camera toggle | Shooting feels good and can't be spoofed | `src/server/Combat.luau`, `src/client/Weapon.client.luau`, `src/client/Camera.client.luau` |
 | 4 | Prep phase + shop with frag, ice patch, repair kit, damage tier | Buying matters | `src/server/Shop.luau`, `src/shared/Items.luau` |
 | 5 | Brute and Spitter archetypes, boss on wave 5 | Difficulty curve holds | `src/shared/Enemies.luau` |
-| 6 | Trooper and Brute characters with passives and actives | Characters are distinct | `src/shared/Characters.luau` |
+| 6 | Class select in the lobby; Trooper and Brute classes with passives, actives and gear overlays | Classes are distinct while players keep their avatar | `src/shared/Classes.luau`, `src/server/Loadout.luau` |
 | 7 | Hall of Fame board in the lobby via OrderedDataStore | Score persists and shows | `src/server/Leaderboard.luau` |
 | 8 | Duo and Squad pads with multipliers | Co-op works | `Lobby.luau`, `WaveManager.luau` |
 | 9 | Siege 1v1: mirrored map, kill-sends-creature rule, win condition | PvP works on the same systems | `src/server/Siege.luau`, `WaveManager.luau` |
 | 10 | VIP pass + Gem products wired through `Monetization.luau` | Money flows | `Config.luau`, `Monetization.luau` |
-| 11 | Remaining free characters, Swamp map, challenges, Siege 2v2/4v4 | Enough content to retain | content files |
+| 11 | Remaining free classes, Swamp map, challenges, Siege 2v2/4v4 | Enough content to retain | content files |
 
-The existing `PlayerData` and `Monetization` modules stay as they are. `Config.DefaultData` gains `Gems`, `BestScoreSolo`, `BestScoreDuo`, `BestScoreSquad`, `SiegeStreak`, `Level`, `OwnedCharacters` and `Mastery`.
+The existing `PlayerData` and `Monetization` modules stay as they are. `Config.DefaultData` gains `Gems`, `BestScoreSolo`, `BestScoreDuo`, `BestScoreSquad`, `SiegeStreak`, `Level`, `OwnedClasses` and `Mastery`.
 
 Server-authoritative rules that apply from milestone 3 on:
 
@@ -278,5 +281,5 @@ Server-authoritative rules that apply from milestone 3 on:
 
 - [ ] Endless waves or a fixed 30-wave run with a win screen? Endless is simpler and feeds the Hall of Fame; fixed gives a "beat the map" moment.
 - [ ] Art style: blocky Roblox-native or stylized low-poly (Quaternius/Synty)? Blocky is faster to build alone; low-poly looks better in thumbnails.
-- [ ] Do premium characters launch with the MVP or after the free five are proven fun?
+- [ ] Do premium classes launch with the MVP or after the free five are proven fun?
 - [ ] Should Siege use the Defense difficulty tables as-is, or a gentler curve since the kill-send rule adds pressure?

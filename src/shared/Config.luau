@@ -11,7 +11,7 @@ return {
 		BestScoreSolo = 0,
 		BestScoreDuo = 0,
 		BestScoreSquad = 0,
-		OwnedCharacters = {},
+		OwnedClasses = {},
 		Mastery = {},
 	},
 
