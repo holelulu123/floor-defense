@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-cache">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Floor Defense Assets</title>
 <style>
@@ -151,9 +152,26 @@ scene.fog = new THREE.Fog(0x1b1f26, 14, 40);
 const camera = new THREE.PerspectiveCamera(40, 1, 0.05, 200);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.zoomSpeed = 0.12; // default 1.0 jumps a third of the distance per wheel notch; this gives ~8x finer steps
 controls.rotateSpeed = 0.7;
-controls.zoomToCursor = true;
+// OrbitControls' wheel zoom is one fixed 5%-per-event step whatever the wheel reports, and some builds
+// ignore zoomSpeed for the wheel entirely. Do it ourselves: deltaY-proportional, clamped to one notch,
+// and eased over several frames so a notch glides ~6% of the distance instead of jumping.
+controls.enableZoom = false;
+let zoomPending = 0; // log-distance still to apply
+renderer.domElement.addEventListener('wheel', e => {
+  e.preventDefault();
+  let d = e.deltaY;
+  if (e.deltaMode === 1) d *= 16; else if (e.deltaMode === 2) d *= 100; // lines / pages -> pixels
+  d = Math.max(-100, Math.min(100, d)); // one mouse notch is ~100px; trackpads send many small ones
+  zoomPending += d * 0.0006;
+}, { passive: false });
+function applyZoom() {
+  if (Math.abs(zoomPending) < 1e-5) { zoomPending = 0; return; }
+  const step = zoomPending * 0.18; zoomPending -= step;
+  const offset = camera.position.clone().sub(controls.target);
+  const dist = THREE.MathUtils.clamp(offset.length() * Math.exp(step), controls.minDistance, controls.maxDistance);
+  camera.position.copy(controls.target).add(offset.setLength(dist));
+}
 
 scene.add(new THREE.HemisphereLight(0xdfe6ff, 0x4a3f36, 0.9));
 const sun = new THREE.DirectionalLight(0xfff1dc, 1.8);
@@ -540,6 +558,7 @@ function tick() {
   } else if (current && $('chk-spin').checked) {
     current.root.rotation.y += dt * 0.6;
   }
+  applyZoom();
   controls.update();
   renderer.render(scene, camera);
 }
@@ -547,6 +566,15 @@ tick();
 setTab(location.hash.slice(1) || 'creatures');
 
 // ?snapshot=<seconds>: hold the load event so `firefox --screenshot` captures a settled page.
+// ?zoomtest=1 (with ?log=1): fire one wheel notch and report how far the camera moved, for headless checks.
+if (new URLSearchParams(location.search).has('zoomtest')) {
+  await new Promise(r => setTimeout(r, 4000));
+  const d0 = camera.position.distanceTo(controls.target);
+  renderer.domElement.dispatchEvent(new WheelEvent('wheel', { deltaY: 100, deltaMode: 0, cancelable: true }));
+  await new Promise(r => setTimeout(r, 1000));
+  const d1 = camera.position.distanceTo(controls.target);
+  log(`zoomtest: one notch ${d0.toFixed(3)} -> ${d1.toFixed(3)} (${((d1 / d0 - 1) * 100).toFixed(1)}%)`);
+}
 const snap = Number(new URLSearchParams(location.search).get('snapshot'));
 if (snap > 0) await new Promise(r => setTimeout(r, snap * 1000));
 </script>
