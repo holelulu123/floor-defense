@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Arena = require(script.Parent.Arena)
+local Combat = require(script.Parent.Combat)
 local PlayerData = require(script.Parent.PlayerData)
 local TownHall = require(script.Parent.TownHall)
 local WaveManager = require(script.Parent.WaveManager)
@@ -70,6 +71,7 @@ function Run.start(mode: string, players: { Player }, onEnd: (mode: string, wave
 	for i, player in players do
 		runPlayers[player.UserId] = { coins = 0, score = 0, kills = 0 }
 		moveIn(player, arena.spawns[(i - 1) % #arena.spawns + 1])
+		Combat.setWeapon(player, Config.StartingWeapon)
 	end
 
 	local session
@@ -114,6 +116,7 @@ function Run.finish(wave: number)
 		if pr then
 			PlayerData.recordScore(player, finished.mode, pr.score)
 			PlayerData.addGems(player, wave)
+			Combat.setWeapon(player, nil)
 		end
 	end
 	finished.townHall:destroy()

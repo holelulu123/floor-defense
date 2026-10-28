@@ -189,6 +189,31 @@ The existing code already supports this: `Config.GamePasses` holds pass ids, `Co
 
 ## 3D assets
 
+### In the repo now (licenses verified 2026-10-28)
+
+| Asset | Where | License | Verified from |
+| --- | --- | --- | --- |
+| KayKit Character Pack: Skeletons 1.0 (4 animated glTF skeletons, 95 animations each, texture) | `assets/creatures/kaykit-skeletons/` | CC0 1.0, no attribution required; README lists Roblox as a supported engine | `LICENSE.txt` in the pack, github.com/KayKit-Game-Assets |
+| Kenney Impact Sounds (130 ogg: impacts, footsteps) | `assets/sounds/kenney-impact/` | CC0 1.0 | `LICENSE.txt` in the pack; kenney.nl/support states all assets are CC0 |
+
+Role mapping: Minion = Runner, Warrior = Brute (and Boss at 2.4x, red tint), Mage = Spitter, Rogue = Elite Runner. Browse them with `scripts/showcase.sh` (opens `showcase/creatures.html`: animations, hit/death sounds, stats).
+
+### License notes per source (checked on the source pages)
+
+| Source | License | Commercial | Attribution | Caveat |
+| --- | --- | --- | --- | --- |
+| Quaternius | CC0 | Yes | No | Downloads are via Google Drive / itch.io (browser only) |
+| Kenney | CC0 | Yes | No | Don't use the Kenney logo |
+| KayKit (Kay Lousberg) | CC0 | Yes | No | EXTRA/SOURCE tiers are paid; free tier is CC0 |
+| Mixamo (Adobe) | Adobe terms, royalty-free | Yes | No | Can't redistribute characters/animations as standalone assets; official FAQ page blocks automated fetch, confirm by hand before release |
+| Poly Pizza | Per model: CC0 or CC-BY | Yes | Only for CC-BY models | Record author + license per model |
+| Roblox Creator Store | Roblox Terms / Creator Terms | Within Roblox | No | Usable inside Roblox experiences only; no explicit per-asset license text; avoid models containing scripts |
+| Freesound | Per sound: CC0 / CC-BY / CC-BY-NC | CC0 and CC-BY only | CC-BY needs credit | CC-BY-NC is not allowed in a monetized game |
+| OpenGameArt | Per asset: CC0 / CC-BY / CC-BY-SA / GPL | Depends | Usually | Avoid CC-BY-SA and GPL for a closed game |
+| Sketchfab | Per model: CC variants, or Store license | Depends | Usually | Check each model; editorial licenses are non-commercial |
+
+### Other sources considered
+
 Where the units, weapons and map pieces come from, cheapest first:
 
 | Source | Cost | Fits | Notes |

@@ -7,12 +7,14 @@ local RunService = game:GetService("RunService")
 local TeleportService = game:GetService("TeleportService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Combat = require(script.Parent.Combat)
 local Lobby = require(script.Parent.Lobby)
 local Monetization = require(script.Parent.Monetization)
 local PlayerData = require(script.Parent.PlayerData)
 local Run = require(script.Parent.Run)
 
 Monetization.init()
+Combat.init()
 
 Players.PlayerAdded:Connect(PlayerData.load)
 for _, player in Players:GetPlayers() do

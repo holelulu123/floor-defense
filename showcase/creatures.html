@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Floor Defense Creatures</title>
+<style>
+  :root {
+    --bg: #14161a; --panel: #1d2026; --panel-2: #262a31; --text: #e8e9ec; --muted: #9aa0a8;
+    --accent: #ffb454; --good: #7bd88f; --bad: #ff6b6b; --border: #2f343c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, sans-serif; height: 100vh; display: grid; grid-template-columns: 300px 1fr 320px; grid-template-rows: 48px 1fr; }
+  header { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 16px; margin: 0; }
+  header nav a { color: var(--muted); margin-right: 12px; text-decoration: none; }
+  header nav a.active { color: var(--accent); }
+  aside { background: var(--panel); border-right: 1px solid var(--border); overflow: auto; padding: 12px; }
+  aside.right { border-right: 0; border-left: 1px solid var(--border); }
+  .card { border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; cursor: pointer; background: var(--panel-2); }
+  .card:hover { border-color: var(--muted); }
+  .card.active { border-color: var(--accent); }
+  .card b { display: block; }
+  .card small { color: var(--muted); }
+  #view { position: relative; min-width: 0; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #hud { position: absolute; left: 12px; top: 12px; background: rgba(0,0,0,.55); padding: 8px 10px; border-radius: 6px; font-size: 13px; }
+  #hud .hp { width: 180px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-top: 4px; }
+  #hud .hp i { display: block; height: 100%; background: var(--good); width: 100%; transition: width .15s; }
+  #flash { position: absolute; inset: 0; pointer-events: none; background: #fff; opacity: 0; transition: opacity .12s; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 14px 0 6px; }
+  button { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; margin: 0 6px 6px 0; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { border-color: var(--accent); color: var(--accent); }
+  select { width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  td { padding: 3px 0; border-bottom: 1px solid var(--border); }
+  td:last-child { text-align: right; color: var(--muted); }
+  label.row { display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--muted); }
+  .note { color: var(--muted); font-size: 12px; }
+  @media (max-width: 900px) { body { grid-template-columns: 1fr; grid-template-rows: 48px 220px 1fr auto; } aside { max-height: 260px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Floor Defense · Asset Showcase</h1>
+  <nav><a class="active" href="#">Creatures</a><a href="#" title="not yet">Weapons</a><a href="#" title="not yet">Props</a></nav>
+  <span class="note" style="margin-left:auto">Drag to orbit · wheel to zoom · click a creature, then poke it</span>
+</header>
+
+<aside id="list"></aside>
+
+<main id="view">
+  <div id="flash"></div>
+  <div id="hud"><b id="hud-name">—</b><div id="hud-state" class="note">idle</div><div class="hp"><i id="hud-hp"></i></div></div>
+</main>
+
+<aside class="right">
+  <h2>Actions</h2>
+  <div>
+    <button id="btn-walk" class="primary">Walk</button>
+    <button id="btn-run">Run</button>
+    <button id="btn-attack">Attack</button>
+    <button id="btn-hit">Take a hit (−10)</button>
+    <button id="btn-kill">Kill</button>
+    <button id="btn-spawn">Respawn</button>
+  </div>
+  <h2>Any animation</h2>
+  <select id="anim-select"></select>
+  <label class="row"><input type="checkbox" id="chk-sound" checked> Sounds</label>
+  <label class="row"><input type="checkbox" id="chk-footsteps" checked> Footsteps while walking</label>
+  <h2>Stats (from Enemies.luau)</h2>
+  <table id="stats"></table>
+  <h2>Sounds used</h2>
+  <div id="sounds" class="note"></div>
+  <h2>Source</h2>
+  <div id="source" class="note"></div>
+</aside>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const MODELS = '../assets/creatures/kaykit-skeletons/';
+const SFX = '../assets/sounds/kenney-impact/';
+
+// One entry per archetype in src/shared/Enemies.luau. Scale and tint make the four
+// skeletons read as four roles; the Boss is the Warrior, bigger and red.
+const CREATURES = [
+  { id: 'Runner', model: 'Skeleton_Minion.glb', scale: 1.0, tint: null,
+    stats: { health: 30, speed: 14, damage: 10, coins: 10, firstWave: 1 },
+    anims: { idle: 'Idle', walk: 'Walking_A', run: 'Running_A', attack: 'Unarmed_Melee_Attack_Punch_A', hit: 'Hit_A', death: 'Death_A', spawn: 'Spawn_Ground_Skeletons' },
+    sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' },
+    blurb: 'Fast, weak, swarms. The first thing you shoot.' },
+  { id: 'Brute', model: 'Skeleton_Warrior.glb', scale: 1.35, tint: null,
+    stats: { health: 150, speed: 8, damage: 40, coins: 30, firstWave: 3 },
+    anims: { idle: '2H_Melee_Idle', walk: 'Walking_B', run: 'Running_B', attack: '2H_Melee_Attack_Chop', hit: 'Hit_B', death: 'Death_B', spawn: 'Skeletons_Awaken_Standing' },
+    sounds: { hit: 'impact_plate_medium', death: 'impact_metal_heavy', attack: 'impact_wood_heavy', step: 'footstep_concrete' },
+    blurb: 'Slow and tanky. Hits the Town Hall hard.' },
+  { id: 'Spitter', model: 'Skeleton_Mage.glb', scale: 1.0, tint: null,
+    stats: { health: 60, speed: 10, damage: 20, coins: 20, firstWave: 5 },
+    anims: { idle: 'Idle_B', walk: 'Walking_C', run: 'Running_C', attack: 'Spellcast_Shoot', hit: 'Hit_A', death: 'Death_C_Skeletons', spawn: 'Spawn_Air' },
+    sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: 'footstep_wood' },
+    blurb: 'Stops at range and shoots the Town Hall.' },
+  { id: 'Elite Runner', model: 'Skeleton_Rogue.glb', scale: 1.05, tint: 0x9ad5ff,
+    stats: { health: 45, speed: 16, damage: 10, coins: 20, firstWave: 15 },
+    anims: { idle: 'Idle_Combat', walk: 'Walking_D_Skeletons', run: 'Running_Strafe_Left', attack: 'Dualwield_Melee_Attack_Slice', hit: 'Hit_B', death: 'Death_A', spawn: 'Skeletons_Awaken_Floor' },
+    sounds: { hit: 'impact_punch_heavy', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_snow' },
+    blurb: 'Wave 15+. A Runner with an extra ability (frost aura shown as a blue tint).' },
+  { id: 'Boss', model: 'Skeleton_Warrior.glb', scale: 2.4, tint: 0xff5a5a,
+    stats: { health: 1200, speed: 6, damage: 250, coins: 500, firstWave: 5 },
+    anims: { idle: '2H_Melee_Idle', walk: 'Walking_B', run: 'Running_B', attack: '2H_Melee_Attack_Spin', hit: 'Hit_A', death: 'Death_C_Skeletons', spawn: 'Skeletons_Awaken_Floor_Long' },
+    sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' },
+    blurb: 'Every 5th wave. Drops a guaranteed rare item.' },
+];
+
+// --- scene ------------------------------------------------------------------------------
+const view = document.getElementById('view');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+view.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1b1f26);
+scene.fog = new THREE.Fog(0x1b1f26, 12, 30);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+camera.position.set(3.5, 2.2, 4.5);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1, 0);
+controls.enableDamping = true;
+
+scene.add(new THREE.HemisphereLight(0xcfd8ff, 0x3a2f28, 1.1));
+const sun = new THREE.DirectionalLight(0xfff1dc, 2.2);
+sun.position.set(4, 7, 3); sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+scene.add(sun);
+const ground = new THREE.Mesh(new THREE.CircleGeometry(6, 48), new THREE.MeshStandardMaterial({ color: 0x2f3b2f, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+scene.add(new THREE.GridHelper(12, 12, 0x3b4450, 0x2a3038));
+
+function resize() {
+  const w = view.clientWidth, h = view.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize); resize();
+
+// --- audio ------------------------------------------------------------------------------
+const audioCache = new Map();
+function play(name, volume = 0.8) {
+  if (!document.getElementById('chk-sound').checked || !name) return;
+  const file = `${SFX}${name}_00${Math.floor(Math.random() * 5)}.ogg`;
+  let a = audioCache.get(file);
+  if (!a) { a = new Audio(file); audioCache.set(file, a); }
+  const clone = a.cloneNode(); clone.volume = volume; clone.play().catch(() => {});
+}
+
+// --- creature ---------------------------------------------------------------------------
+const loader = new GLTFLoader();
+const gltfCache = new Map();
+let current = null; // { def, root, mixer, actions, hp, state, stepTimer }
+const clock = new THREE.Clock();
+
+async function loadGltf(file) {
+  if (!gltfCache.has(file)) gltfCache.set(file, loader.loadAsync(MODELS + file));
+  return gltfCache.get(file);
+}
+
+async function show(def) {
+  if (current) { scene.remove(current.root); current = null; }
+  const gltf = await loadGltf(def.model);
+  const root = THREE.SkeletonUtils ? THREE.SkeletonUtils.clone(gltf.scene) : (await import('three/addons/utils/SkeletonUtils.js')).clone(gltf.scene);
+  root.scale.setScalar(def.scale);
+  root.traverse(o => {
+    if (o.isMesh) {
+      o.castShadow = true;
+      if (def.tint) { o.material = o.material.clone(); o.material.emissive = new THREE.Color(def.tint); o.material.emissiveIntensity = 0.25; }
+    }
+  });
+  scene.add(root);
+  // Frame the model: look at its mid-height from a distance that fits its full height.
+  const box = new THREE.Box3().setFromObject(root);
+  const height = box.max.y - box.min.y;
+  controls.target.set(0, height / 2, 0);
+  const dist = height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.35;
+  camera.position.set(dist * 0.7, height * 0.6, dist * 0.8);
+  controls.update();
+  const mixer = new THREE.AnimationMixer(root);
+  const actions = {};
+  for (const clip of gltf.animations) actions[clip.name] = mixer.clipAction(clip);
+  current = { def, root, mixer, actions, hp: def.stats.health, state: 'idle', stepTimer: 0 };
+
+  const sel = document.getElementById('anim-select');
+  sel.innerHTML = gltf.animations.map(c => `<option>${c.name}</option>`).join('');
+  sel.value = def.anims.idle;
+  document.getElementById('hud-name').textContent = def.id;
+  document.getElementById('stats').innerHTML = Object.entries(def.stats).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+  document.getElementById('sounds').innerHTML = Object.entries(def.sounds).map(([k, v]) => `${k}: <code>${v}_00x.ogg</code>`).join('<br>');
+  document.getElementById('source').innerHTML = `Model: <b>${def.model}</b> from KayKit Skeletons (CC0, Kay Lousberg)<br>Sounds: Kenney Impact Sounds (CC0)`;
+  for (const el of document.querySelectorAll('.card')) el.classList.toggle('active', el.dataset.id === def.id);
+  setHp(def.stats.health);
+  playAnim(def.anims.spawn, { once: true, then: () => playAnim(def.anims.idle) });
+}
+
+let active = null;
+function playAnim(name, { once = false, then = null } = {}) {
+  if (!current) return;
+  const next = current.actions[name];
+  if (!next) { console.warn('missing animation', name); return; }
+  if (active && active !== next) active.fadeOut(0.15);
+  next.reset().setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat).fadeIn(0.15).play();
+  next.clampWhenFinished = once;
+  active = next;
+  document.getElementById('hud-state').textContent = name;
+  if (once && then) {
+    const onDone = e => { if (e.action === next) { current.mixer.removeEventListener('finished', onDone); then(); } };
+    current.mixer.addEventListener('finished', onDone);
+  }
+}
+
+function setHp(v) {
+  current.hp = Math.max(0, v);
+  document.getElementById('hud-hp').style.width = `${(current.hp / current.def.stats.health) * 100}%`;
+  document.getElementById('hud-hp').style.background = current.hp > 0 ? 'var(--good)' : 'var(--bad)';
+}
+
+function flash() { const f = document.getElementById('flash'); f.style.opacity = 0.25; setTimeout(() => (f.style.opacity = 0), 60); }
+
+const actions = {
+  walk: () => { current.state = 'walk'; playAnim(current.def.anims.walk); },
+  run: () => { current.state = 'run'; playAnim(current.def.anims.run); },
+  attack: () => { current.state = 'idle'; play(current.def.sounds.attack); playAnim(current.def.anims.attack, { once: true, then: () => playAnim(current.def.anims.idle) }); },
+  hit: () => {
+    if (!current || current.hp <= 0) return;
+    flash(); play(current.def.sounds.hit); setHp(current.hp - 10);
+    if (current.hp <= 0) return actions.kill(true);
+    const resume = current.state;
+    playAnim(current.def.anims.hit, { once: true, then: () => playAnim(resume === 'walk' ? current.def.anims.walk : resume === 'run' ? current.def.anims.run : current.def.anims.idle) });
+  },
+  kill: () => { current.state = 'dead'; setHp(0); play(current.def.sounds.death, 1); playAnim(current.def.anims.death, { once: true }); },
+  spawn: () => { current.state = 'idle'; setHp(current.def.stats.health); playAnim(current.def.anims.spawn, { once: true, then: () => playAnim(current.def.anims.idle) }); },
+};
+for (const [k, fn] of Object.entries(actions)) document.getElementById(`btn-${k}`).onclick = () => current && fn();
+document.getElementById('anim-select').onchange = e => { current.state = 'idle'; playAnim(e.target.value); };
+
+// --- list -------------------------------------------------------------------------------
+const list = document.getElementById('list');
+for (const def of CREATURES) {
+  const el = document.createElement('div');
+  el.className = 'card'; el.dataset.id = def.id;
+  el.innerHTML = `<b>${def.id}</b><small>${def.blurb}</small><small><br>HP ${def.stats.health} · speed ${def.stats.speed} · wave ${def.stats.firstWave}+</small>`;
+  el.onclick = () => show(def);
+  list.appendChild(el);
+}
+
+// --- loop -------------------------------------------------------------------------------
+function tick() {
+  requestAnimationFrame(tick);
+  const dt = clock.getDelta();
+  if (current) {
+    current.mixer.update(dt);
+    if ((current.state === 'walk' || current.state === 'run') && document.getElementById('chk-footsteps').checked) {
+      current.stepTimer -= dt;
+      if (current.stepTimer <= 0) { play(current.def.sounds.step, 0.35); current.stepTimer = current.state === 'run' ? 0.28 : 0.45; }
+    }
+  }
+  controls.update();
+  renderer.render(scene, camera);
+}
+tick();
+show(CREATURES[0]);
+</script>
+</body>
+</html>

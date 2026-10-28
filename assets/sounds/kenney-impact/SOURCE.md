@@ -1,0 +1,1 @@
+Kenney "Impact Sounds" pack (kenney.nl/assets/impact-sounds), CC0 1.0. Copied from the Godot port github.com/Boyquotes/kenney-impact-sounds-for-godot. No attribution required; credit "Kenney" appreciated.

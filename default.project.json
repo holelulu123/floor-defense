@@ -7,7 +7,9 @@
       "Packages": { "$path": { "optional": "Packages" } },
       "Remotes": {
         "$className": "Folder",
-        "RunState": { "$className": "RemoteEvent" }
+        "RunState": { "$className": "RemoteEvent" },
+        "Fire": { "$className": "RemoteEvent" },
+        "HitFx": { "$className": "RemoteEvent" }
       }
     },
     "ServerScriptService": {

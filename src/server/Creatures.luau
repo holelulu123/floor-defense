@@ -121,16 +121,6 @@ function Creatures.spawn(
 	}
 	active[part] = creature
 
-	-- Studio-only stand-in for a gun until Combat lands: click a creature to hit it for 10.
-	if RunService:IsStudio() then
-		local click = Instance.new("ClickDetector")
-		click.MaxActivationDistance = 60
-		click.MouseClick:Connect(function(player)
-			Creatures.damage(creature, 10, player.UserId)
-		end)
-		click.Parent = part
-	end
-
 	if not heartbeat then
 		heartbeat = RunService.Heartbeat:Connect(step)
 	end
@@ -151,7 +141,18 @@ function Creatures.damage(creature: Creature, amount: number, byUserId: number?)
 	if creature.health == 0 then
 		creature.onDeath(creature, creature.lastHitBy)
 		Creatures.remove(creature)
+		return
 	end
+
+	-- Hit flash so damage reads at a glance before proper effects exist.
+	local part = creature.part
+	local baseColor = Color3.fromRGB(table.unpack(Enemies.get(creature.archetype).color))
+	part.Color = Color3.new(1, 1, 1)
+	task.delay(0.08, function()
+		if part.Parent then
+			part.Color = baseColor
+		end
+	end)
 end
 
 function Creatures.remove(creature: Creature)

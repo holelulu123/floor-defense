@@ -33,6 +33,14 @@ return {
 	-- Leave 0 to run inside the same place (reserved server of game.PlaceId).
 	RunPlaceId = 0,
 
+	Camera = {
+		DefaultFirstPerson = false, -- design says first person on PC; flipped to third for playtesting
+		ToggleKey = Enum.KeyCode.V,
+		MaxZoom = 30,
+	},
+
+	StartingWeapon = "AssaultRifle",
+
 	TownHallHealth = 1000,
 	PrepSeconds = 30,
 	SpawnInterval = 0.4, -- seconds between creatures in a wave
