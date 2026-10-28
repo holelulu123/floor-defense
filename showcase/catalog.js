@@ -78,7 +78,7 @@ export const FAMILIES = [
     ],
   },
   {
-    id: 'slimes', name: 'Sewer: Kenney blobs (slimes)', map: 'Sewer (future)', source: 'Kenney Platformer Kit characters (CC0)',
+    id: 'slimes', name: 'Sewer: Kenney blobs (slimes)', map: 'Sewer', source: 'Kenney Platformer Kit characters (CC0)',
     creatures: [
       c('Green Slime', 'Runner', BLOBS + 'character-oozi.glb', { sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_carpet' } }),
       c('Big Slime', 'Brute', BLOBS + 'character-oobi.glb', { scale: 1.5, sounds: { hit: 'impact_soft_heavy', death: 'impact_soft_heavy', attack: 'impact_punch_heavy', step: 'footstep_carpet' } }),
@@ -89,7 +89,7 @@ export const FAMILIES = [
     ],
   },
   {
-    id: 'bandits', name: 'Village: Kenney bandits and orcs', map: 'Village (future)', source: 'Kenney Blocky Characters + Mini Dungeon (CC0)',
+    id: 'bandits', name: 'Village: Kenney bandits and orcs', map: 'Bandit Village', source: 'Kenney Blocky Characters + Mini Dungeon (CC0)',
     creatures: [
       c('Bandit', 'Runner', BLOCKY + 'character-a.glb'),
       c('Thug', 'Runner', BLOCKY + 'character-e.glb'),
@@ -103,6 +103,51 @@ export const FAMILIES = [
     ],
   },
   {
+    id: 'farm', name: 'Haunted Farm: Kenney Cube Pets', map: 'Haunted Farm', source: 'Kenney Cube Pets (CC0)',
+    creatures: [
+      c('Chick', 'Runner', PETS + 'animal-chick.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' } }),
+      c('Pig', 'Brute', PETS + 'animal-pig.glb', { scale: 1.3, anims: KENNEY_PET, sounds: { hit: 'impact_soft_heavy', death: 'impact_plank_medium', attack: 'impact_punch_heavy', step: 'footstep_grass' } }),
+      c('Cat', 'Spitter', PETS + 'animal-cat.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_carpet' } }),
+      c('Hound', 'Elite', PETS + 'animal-dog.glb', { tint: 0x9ad5ff, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_punch_medium', step: 'footstep_grass' } }),
+      c('Mad Cow', 'Boss', PETS + 'animal-cow.glb', { scale: 2.2, tint: 0xff7a5a, anims: KENNEY_PET, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+    ],
+  },
+  {
+    id: 'frozen', name: 'Frozen Cavern: Kenney Cube Pets', map: 'Frozen Cavern', source: 'Kenney Cube Pets (CC0)',
+    creatures: [
+      c('Penguin', 'Runner', PETS + 'animal-penguin.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_snow' } }),
+      c('Polar Bear', 'Brute', PETS + 'animal-polar.glb', { scale: 1.3, anims: KENNEY_PET, sounds: { hit: 'impact_soft_heavy', death: 'impact_plank_medium', attack: 'impact_punch_heavy', step: 'footstep_snow' } }),
+      c('Ice Fish', 'Spitter', PETS + 'animal-fish.glb', { tint: 0xa0e0ff, anims: KENNEY_PET, sounds: { hit: 'impact_glass_light', death: 'impact_glass_medium', attack: 'impact_glass_light', step: 'footstep_snow' } }),
+      c('Ice Bomb', 'Exploder', PETS + 'animal-penguin.glb', { scale: 1.1, tint: 0xffa040, anims: KENNEY_PET, sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_bell_heavy', step: 'footstep_snow' } }),
+      c('Stag', 'Elite', PETS + 'animal-deer.glb', { tint: 0x9ad5ff, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_wood_medium', step: 'footstep_snow' } }),
+      c('Frost King', 'Boss', PETS + 'animal-polar.glb', { scale: 2.3, tint: 0xff7a5a, anims: KENNEY_PET, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+    ],
+  },
+  {
+    id: 'jungle', name: 'Jungle Temple: Kenney Cube Pets', map: 'Jungle Temple', source: 'Kenney Cube Pets (CC0)',
+    creatures: [
+      c('Monkey', 'Runner', PETS + 'animal-monkey.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' } }),
+      c('Lion', 'Brute', PETS + 'animal-lion.glb', { scale: 1.3, anims: KENNEY_PET, sounds: { hit: 'impact_soft_heavy', death: 'impact_plank_medium', attack: 'impact_punch_heavy', step: 'footstep_grass' } }),
+      c('Giraffe', 'Spitter', PETS + 'animal-giraffe.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' } }),
+      c('Panda', 'Shielder', PETS + 'animal-panda.glb', { scale: 1.2, tint: 0x6080c0, anims: KENNEY_PET, sounds: { hit: 'impact_wood_medium', death: 'impact_wood_heavy', attack: 'impact_wood_light', step: 'footstep_wood' } }),
+      c('Koala', 'Healer', PETS + 'animal-koala.glb', { tint: 0x80ff9a, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_wood' } }),
+      c('Tiger', 'Elite', PETS + 'animal-tiger.glb', { tint: 0x9ad5ff, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_punch_medium', step: 'footstep_grass' } }),
+      c('Temple Lion', 'Boss', PETS + 'animal-lion.glb', { scale: 2.3, tint: 0xff7a5a, anims: KENNEY_PET, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+    ],
+  },
+  {
+    id: 'pirates', name: 'Pirate Cove: Kenney blocky characters', map: 'Pirate Cove', source: 'Kenney Blocky Characters (CC0)',
+    creatures: [
+      c('Deckhand', 'Runner', BLOCKY + 'character-b.glb'),
+      c('Gunner', 'Spitter', BLOCKY + 'character-c.glb', { sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_metal_medium', step: 'footstep_wood' } }),
+      c('Powder Monkey', 'Exploder', BLOCKY + 'character-d.glb', { tint: 0xffa040, sounds: { hit: 'impact_punch_medium', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'footstep_wood' } }),
+      c('Boatswain', 'Shielder', BLOCKY + 'character-g.glb', { scale: 1.1, tint: 0x6080c0, sounds: { hit: 'impact_plate_medium', death: 'impact_metal_heavy', attack: 'impact_plate_light', step: 'footstep_wood' } }),
+      c('Surgeon', 'Healer', BLOCKY + 'character-h.glb', { tint: 0x80ff9a, sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_wood' } }),
+      c('First Mate', 'Brute', BLOCKY + 'character-l.glb', { scale: 1.25, sounds: { hit: 'impact_punch_heavy', death: 'impact_soft_heavy', attack: 'impact_wood_heavy', step: 'footstep_wood' } }),
+      c('Captain', 'Boss', BLOCKY + 'character-i.glb', { scale: 2.2, tint: 0xff5a5a, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+    ],
+  },
+  {
     id: 'invaders', name: 'Factory: Kenney UFOs (flying, static models)', map: 'Factory', source: 'Kenney Tower Defense Kit (CC0)',
     creatures: [
       c('Scout UFO', 'Flyer', UFO + 'enemy-ufo-a.glb', { anims: NONE, sounds: { hit: 'impact_metal_light', death: 'impact_metal_heavy', attack: 'impact_generic_light', step: null } }),
@@ -110,6 +155,16 @@ export const FAMILIES = [
       c('Hauler', 'Brute', UFO + 'enemy-ufo-c.glb', { scale: 1.3, anims: NONE, sounds: { hit: 'impact_metal_medium', death: 'impact_metal_heavy', attack: 'impact_plate_heavy', step: null } }),
       c('Kamikaze', 'Exploder', UFO + 'enemy-ufo-a-weapon.glb', { tint: 0xffa040, anims: NONE, sounds: { hit: 'impact_metal_light', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: null } }),
       c('Mothership', 'Boss', UFO + 'enemy-ufo-d-weapon.glb', { scale: 2.5, tint: 0xff5a5a, anims: NONE, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: null } }),
+    ],
+  },
+  {
+    id: 'aliens', name: 'Space Station: Kenney space aliens and UFOs (static models)', map: 'Space Station', source: 'Kenney Space Kit + Tower Defense Kit (CC0)',
+    creatures: [
+      c('Alien', 'Runner', '../assets/creatures/kenney-space/alien.glb', { anims: NONE, tint: 0x80ff9a, sounds: { hit: 'impact_soft_medium', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: null } }),
+      c('Drone', 'Flyer', UFO + 'enemy-ufo-a.glb', { scale: 0.8, anims: NONE, sounds: { hit: 'impact_metal_light', death: 'impact_metal_heavy', attack: 'impact_generic_light', step: null } }),
+      c('Lancer', 'Spitter', UFO + 'enemy-ufo-c-weapon.glb', { anims: NONE, sounds: { hit: 'impact_metal_medium', death: 'impact_metal_heavy', attack: 'impact_tin_medium', step: null } }),
+      c('Bulwark', 'Shielder', UFO + 'enemy-ufo-d.glb', { scale: 1.3, tint: 0x6080c0, anims: NONE, sounds: { hit: 'impact_plate_heavy', death: 'impact_metal_heavy', attack: 'impact_plate_medium', step: null } }),
+      c('Hive Alien', 'Boss', '../assets/creatures/kenney-space/alien.glb', { scale: 2.6, tint: 0xff5a5a, anims: NONE, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: null } }),
     ],
   },
 ];
@@ -145,6 +200,20 @@ export const CLASSES = [
     passive: 'Carries +2 grenades', active: 'Cluster bomb (50 s)', gear: 'Bandolier, helmet' },
   { id: 'Summoner', tier: 'Premium', role: 'Pet', weapon: 'Staff', model: GUNS + 'knifeRound_smooth.glb',
     passive: 'Starts with a pet that attacks', active: 'Pet enrages, 2x damage for 8 s (45 s)', gear: 'Robe trim, floating pet (placeholder weapon model)' },
+];
+
+// Dungeons (src/shared/Dungeons.luau): unlock level, creature family, lanes, gimmick, props kit.
+export const DUNGEONS = [
+  { id: 'Graveyard', name: 'Graveyard', unlockLevel: 1, family: 'skeletons', lanes: 3, gimmick: 'Fog rolls in on boss waves, cutting sight lines', props: 'KayKit Halloween Bits, Kenney Graveyard Kit' },
+  { id: 'Farm', name: 'Haunted Farm', unlockLevel: 3, family: 'farm', lanes: 2, gimmick: 'Hay bales can be pushed into lanes as cover; animals trample them', props: 'Kenney Farm / Nature kits (to fetch)' },
+  { id: 'Swamp', name: 'Swamp', unlockLevel: 5, family: 'swamp', lanes: 2, gimmick: 'Shallow water slows everyone; ice spells freeze it solid', props: 'Kenney Nature Kit (to fetch)' },
+  { id: 'Sewer', name: 'Sewer', unlockLevel: 10, family: 'slimes', lanes: 3, gimmick: 'Slimes split in two when killed above half health', props: 'Kenney Modular Cave / Platformer kits (to fetch)' },
+  { id: 'Village', name: 'Bandit Village', unlockLevel: 15, family: 'bandits', lanes: 4, gimmick: 'Bandits loot dropped coins before you can', props: 'KayKit Dungeon, Kenney Fantasy Town (to fetch)' },
+  { id: 'Frozen', name: 'Frozen Cavern', unlockLevel: 20, family: 'frozen', lanes: 2, gimmick: 'Everything is slippery; freeze spells last twice as long', props: 'Kenney Holiday + Modular Cave kits (to fetch)' },
+  { id: 'Jungle', name: 'Jungle Temple', unlockLevel: 25, family: 'jungle', lanes: 3, gimmick: 'Vines block sight lines until burned away', props: 'Kenney Nature Kit (to fetch)' },
+  { id: 'Pirate', name: 'Pirate Cove', unlockLevel: 30, family: 'pirates', lanes: 3, gimmick: 'Cannons on the cliffs can be captured and fired at the lanes', props: 'Kenney Pirate Kit (to fetch)' },
+  { id: 'Factory', name: 'Factory', unlockLevel: 35, family: 'invaders', lanes: 4, gimmick: 'Conveyor belts move anything on them, including grenades', props: 'Kenney Factory Kit (to fetch)' },
+  { id: 'Station', name: 'Space Station', unlockLevel: 40, family: 'aliens', lanes: 4, gimmick: 'Airlocks vent a lane for 5 s when opened', props: 'Kenney Space Station Kit (to fetch)' },
 ];
 
 export const STAT_ICONS = { health: 'health', speed: 'speed', damage: 'damage', coins: 'coins', firstWave: 'wave', kills: 'kills' };

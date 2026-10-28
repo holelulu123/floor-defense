@@ -80,6 +80,16 @@ Class select UI: a panel on lobby entry with the ten classes, role, weapon, pass
 
 Premium classes are bought once with Robux, or slowly with Gems earned in game. Skins are **gear and weapon skins** (gold pauldrons, flaming pack, camo rifle): free ones unlocked by milestones (reach wave 20 as Brute), paid ones with Gems or Robux. Later, selling our own accessories as Roblox UGC items is a second revenue line.
 
+## Turrets and class gear (to discuss)
+
+Agreed direction, numbers still open:
+
+- Each class has its own **special weapon**, abilities and stats. The Engineer's ability is **building turrets**.
+- Turrets have **levels**: each level is stronger and looks different (bigger barrel, extra armor, glow). Levels are bought **during a run** with in-run coins, like the shop.
+- Turrets also have **types** (10 or more) and **rarity tiers** (common, rare, epic, legendary, ...). Type and rarity are bought **between runs** with Gems. In a run you can level the turret you brought, but you can never change its rarity.
+- The same pattern applies to other classes' signature items (Medic's drone, Summoner's pet, Pyro's fire wall) and to **weapon spells**: enchantments bought with Gems that sit on the weapon between runs (slow on hit, chain lightning, bonus coins).
+- Open: turret prices, how many turrets an Engineer can place at once, whether rarity changes stats or only looks plus one perk, and the exact monetization (Gems only, Robux shortcuts, or passes). Fairness rules in Monetization still apply: nothing that moves the Hall of Fame can be Robux-only.
+
 ## Weapons, grenades and spells
 
 Everything in the run shop is bought with in-run coins and lost at the end of the run, so each run is a fresh build. Prices rise 10% per wave so late purchases stay meaningful.
@@ -126,15 +136,24 @@ Horde mix once everything is unlocked: Runner 58%, Brute 15%, Spitter 10%, Explo
 
 Scaling: health multiplies by `1 + 0.12 x wave`, count grows by 4 per wave, and from wave 15 some Runners spawn as elites with an extra ability (frost aura, regen, teleport). Elites keep late waves interesting without only raising numbers.
 
-Maps at launch:
+## Dungeons
 
-| Map | Theme | Lanes | Gimmick |
-| --- | --- | --- | --- |
-| Graveyard | Undead, night | 3 | Fog rolls in on boss waves, cutting sight lines |
-| Swamp | Bugs, water | 2 | Shallow water slows players and creatures; ice spells freeze it solid |
-| Factory | Robots, indoors | 4 | Conveyor belts move anything on them, including grenades |
+Each dungeon is a map with its own creature family, lane count and one gimmick. Dungeons unlock by **player level** (see Progression); `src/shared/Dungeons.luau` is the source of truth and the showcase's Dungeons tab mirrors it.
 
-One map (Graveyard) is enough for launch. Each extra map is a few days of building plus one creature family of five skins.
+| # | Dungeon | Unlock level | Creature family (models in repo) | Lanes | Gimmick |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Graveyard | 1 | Skeletons / undead | 3 | Fog rolls in on boss waves, cutting sight lines |
+| 2 | Haunted Farm | 3 | Possessed farm animals | 2 | Hay bales can be pushed into lanes as cover; animals trample them |
+| 3 | Swamp | 5 | Bugs and beasts | 2 | Shallow water slows everyone; ice spells freeze it solid |
+| 4 | Sewer | 10 | Slimes | 3 | Slimes split in two when killed above half health |
+| 5 | Bandit Village | 15 | Bandits and orcs | 4 | Bandits loot dropped coins before you can |
+| 6 | Frozen Cavern | 20 | Arctic beasts | 2 | Everything is slippery; freeze spells last twice as long |
+| 7 | Jungle Temple | 25 | Jungle beasts | 3 | Vines block sight lines until burned away |
+| 8 | Pirate Cove | 30 | Pirates | 3 | Cannons on the cliffs can be captured and fired at the lanes |
+| 9 | Factory | 35 | UFOs / robots | 4 | Conveyor belts move anything on them, including grenades |
+| 10 | Space Station | 40 | Aliens and drones | 4 | Airlocks vent a lane for 5 s when opened |
+
+One dungeon (Graveyard) is enough for the MVP. Each extra dungeon is a few days of building plus its creature family, and all ten families already have placeholder models in `assets/creatures/`. Props kits per dungeon are listed in the showcase and fetched as each map is built.
 
 ## Modes: Defense (PvE) and Siege (PvP)
 
@@ -165,11 +184,18 @@ Two things persist between runs: Gems and Score. Coins do not.
 
 Hall of Fame: a wall in the lobby with four boards: Solo, Duo, Squad and Siege. Defense boards list the top 100 scores with player name, class used, wave reached and date; a Squad entry lists all four names so friends chase the board together. The Siege board ranks by longest win streak. Boards reset monthly with each month's top 10 engraved on a permanent "Legends" board, so new players always have a reachable board.
 
+XP and levels (`src/shared/Progression.luau`):
+
+- A run pays `wave x 25 + kills` XP, plus 100 if the Town Hall is still standing when the run ends.
+- Level N to N+1 costs `100 x N^1.5` XP (100, 282, 519, 800, ... 2,700 at level 9, 8,900 at level 20), so each level takes longer than the last. Max level 60.
+- **Levels unlock dungeons** (table in Dungeons). Levels also unlock free gear skins and lobby emotes, never power.
+- Gems per run: `waves + 25 per boss`, plus 20 if the Town Hall survived (endless mode ends by wipe, so "survived" means ending the run voluntarily between waves with the Town Hall alive; still to confirm).
+
 Other persistent progression:
 
-- **Player level** from total score, shown next to the name. Levels unlock free skins and lobby emotes, never power.
 - **Class mastery** per class: waves reached while playing it. Mastery 10 unlocks that class's free gear skin.
 - **Daily and weekly challenges** ("freeze 50 enemies", "reach wave 10 on Swamp") paying Gems. This is the main reason to come back on a day you weren't going to.
+- **Gamble system (to discuss):** a Gem sink with random rewards (turret types, weapon spells, skins). Constraint: Roblox requires paid random items to disclose odds, and some countries restrict loot boxes for minors, so the safe shape is a Gems-only spin with published odds, duplicates converting to Gems, and a pity counter. Never Robux directly into a random roll.
 
 Leaderboards use Roblox OrderedDataStores, one per board, keyed by user id, refreshed every 60 s in the lobby.
 
@@ -284,7 +310,7 @@ Server-authoritative rules that apply from milestone 3 on:
 
 ## Open questions
 
-- [ ] Endless waves or a fixed 30-wave run with a win screen? Endless is simpler and feeds the Hall of Fame; fixed gives a "beat the map" moment.
+- [ ] Endless waves or a fixed 30-wave run with a win screen? (Affects what "survived" means for XP and Gems.) Endless is simpler and feeds the Hall of Fame; fixed gives a "beat the map" moment.
 - [ ] Art style: blocky Roblox-native or stylized low-poly (Quaternius/Synty)? Blocky is faster to build alone; low-poly looks better in thumbnails.
 - [ ] Do premium classes launch with the MVP or after the free five are proven fun?
 - [ ] Should Siege use the Defense difficulty tables as-is, or a gentler curve since the kill-send rule adds pressure?
