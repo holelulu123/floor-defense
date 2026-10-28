@@ -169,12 +169,47 @@ export const FAMILIES = [
   },
 ];
 
+// Variants pad every family to MIN_PER_FAMILY creatures. A variant reuses a base model with a
+// prefix, a tint, a scale and a stat twist, so it is a placeholder for a distinct model later:
+// the game can ship with recolors, but each one is a candidate for its own model or accessory.
+export const MIN_PER_FAMILY = 20;
+const VARIANTS = [
+  { prefix: 'Feral',    tint: 0xffd060, scale: 0.95, stats: { speed: 1.25, coins: 1.1 },  note: 'faster' },
+  { prefix: 'Armored',  tint: 0xb0b8c8, scale: 1.1,  stats: { health: 1.6, speed: 0.85, coins: 1.3 }, note: 'tougher, slower' },
+  { prefix: 'Shadow',   tint: 0x6040a0, scale: 1.0,  stats: { damage: 1.3, coins: 1.4 },  note: 'hits harder' },
+  { prefix: 'Giant',    tint: 0xff9060, scale: 1.4,  stats: { health: 2.2, speed: 0.75, damage: 1.5, coins: 1.8 }, note: 'much bigger' },
+  { prefix: 'Plagued',  tint: 0x80d040, scale: 1.0,  stats: { health: 0.8, coins: 1.2 },  note: 'leaves a slow pool on death' },
+  { prefix: 'Burning',  tint: 0xff5020, scale: 1.0,  stats: { damage: 1.2, coins: 1.3 },  note: 'ignites floor spells' },
+];
+
+function expandFamily(f) {
+  const base = f.creatures.slice();
+  let v = 0;
+  while (f.creatures.length < MIN_PER_FAMILY && base.length) {
+    const src = base[v % base.length];
+    const variant = VARIANTS[Math.floor(v / base.length) % VARIANTS.length];
+    if (src.type !== 'Boss') {
+      f.creatures.push({ ...src, id: `${variant.prefix} ${src.id}`, tint: variant.tint, scale: src.scale * variant.scale,
+        variantOf: src.id, variant });
+    }
+    v++;
+    if (v > base.length * VARIANTS.length) break;
+  }
+}
+
 // Fill in stats and blurb from the archetype table so each family only states what differs.
-for (const f of FAMILIES) for (const cr of f.creatures) {
-  const a = ARCHETYPES[cr.type];
-  cr.stats = { health: a.health, speed: a.speed, damage: a.damage, coins: a.coins, firstWave: a.firstWave };
-  cr.blurb = `${cr.type}. ${a.blurb}`;
-  cr.source = f.source;
+for (const f of FAMILIES) {
+  expandFamily(f);
+  for (const cr of f.creatures) {
+    const a = ARCHETYPES[cr.type];
+    const m = cr.variant?.stats ?? {};
+    cr.stats = {
+      health: Math.round(a.health * (m.health ?? 1)), speed: Math.round(a.speed * (m.speed ?? 1)),
+      damage: Math.round(a.damage * (m.damage ?? 1)), coins: Math.round(a.coins * (m.coins ?? 1)), firstWave: a.firstWave + (cr.variant ? 4 : 0),
+    };
+    cr.blurb = cr.variant ? `${cr.type} variant of ${cr.variantOf}: ${cr.variant.note}.` : `${cr.type}. ${a.blurb}`;
+    cr.source = f.source;
+  }
 }
 
 // Classes (DESIGN.md "Classes"). Players keep their own avatar; a class is a starting weapon,

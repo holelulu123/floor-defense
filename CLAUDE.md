@@ -21,8 +21,8 @@ Roblox experience developed code-first with Rojo. Developer works on Arch Linux;
 ## Conventions
 - Keep game rules (wave math, pad countdown, item data) in `src/shared` as pure modules with no Roblox API calls so Lune can test them. Roblox-coupled code lives in `src/server` / `src/client`.
 - Run `scripts/check.sh` before committing.
-- Design reference: `DESIGN.md`.
-- Third-party assets live under `assets/<kind>/<pack>/` with the pack's LICENSE file beside them; only CC0 or equivalently permissive packs. Record each pack in DESIGN.md "3D assets".
+- Design reference: `docs/DESIGN.md`.
+- Third-party assets live under `assets/<kind>/<pack>/` with the pack's LICENSE file beside them; only CC0 or equivalently permissive packs. Record each pack in docs/DESIGN.md "3D assets".
 - Server is authoritative: never trust values from RemoteEvents; validate everything server-side.
 - Developer product handling must stay idempotent (see `Monetization.luau`).
 - Tabs, 120 columns, double quotes (stylua.toml).

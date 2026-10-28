@@ -72,6 +72,19 @@
 <main id="view">
   <div id="flash"></div>
   <div id="empty">Pick something on the left</div>
+  <pre id="errors" style="position:absolute;left:12px;bottom:12px;max-width:70%;margin:0;padding:8px 10px;background:rgba(120,0,0,.75);border-radius:6px;font-size:12px;white-space:pre-wrap;display:none"></pre>
+  <script>
+    // Surface script errors on the page itself, so a blank list is never silent.
+    function showError(msg) { const el = document.getElementById('errors'); el.style.display = 'block'; el.textContent += (el.textContent ? '\n' : '') + msg; window.showcaseLog?.('ERROR ' + msg); }
+    addEventListener('error', e => showError(`${e.message} (${(e.filename || '').split('/').pop()}:${e.lineno})`));
+    addEventListener('unhandledrejection', e => showError(`unhandled: ${e.reason?.message ?? e.reason}`));
+    // With ?log in the URL, progress lines are sent to the local server as GET /__log/<msg>, so they
+    // show up in the http.server output (handy when the page runs on a machine you can't see).
+    window.showcaseLog = new URLSearchParams(location.search).has('log')
+      ? msg => fetch('/__log/' + encodeURIComponent(msg)).catch(() => {})
+      : () => {};
+    window.showcaseLog('page start ' + navigator.userAgent.split(' ').pop());
+  </script>
   <div id="hud"><b id="hud-name">—</b><div id="hud-state" class="note">idle</div><div class="hp"><i id="hud-hp"></i></div></div>
 </main>
 
@@ -121,6 +134,8 @@ import { FAMILIES, CLASSES, DUNGEONS, STAT_ICONS, STAT_LABELS } from './catalog.
 const SFX = '../assets/sounds/kenney-impact/';
 const ICONS = '../assets/ui/icons/';
 const $ = id => document.getElementById(id);
+const log = window.showcaseLog;
+log('module start');
 
 // --- scene ------------------------------------------------------------------------------
 const view = $('view');
@@ -136,7 +151,7 @@ scene.fog = new THREE.Fog(0x1b1f26, 14, 40);
 const camera = new THREE.PerspectiveCamera(40, 1, 0.05, 200);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.zoomSpeed = 0.35; // default 1.0 jumps a third of the distance per wheel notch
+controls.zoomSpeed = 0.12; // default 1.0 jumps a third of the distance per wheel notch; this gives ~8x finer steps
 controls.rotateSpeed = 0.7;
 controls.zoomToCursor = true;
 
@@ -151,8 +166,24 @@ scene.add(new THREE.GridHelper(12, 12, 0x3b4450, 0x2a3038));
 function resize() { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
 
+// Bounds from mesh geometry only. Box3.setFromObject also swallows rig bones and helper nodes,
+// which on the Kenney rigs sit far from the body and made the camera frame empty space.
+function meshBox(root) {
+  root.updateMatrixWorld(true);
+  const box = new THREE.Box3();
+  const tmp = new THREE.Box3();
+  root.traverse(o => {
+    if (!o.isMesh || !o.geometry) return;
+    if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+    tmp.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);
+    box.union(tmp);
+  });
+  if (box.isEmpty()) box.setFromObject(root);
+  return box;
+}
+
 function frame(root) {
-  const box = new THREE.Box3().setFromObject(root);
+  const box = meshBox(root);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   const radius = Math.max(size.x, size.y, size.z) / 2;
@@ -203,9 +234,10 @@ async function showAnimated(def) {
   if (seq !== loadSeq) return;
   const root = cloneSkinned(gltf.scene);
   root.scale.setScalar(def.scale);
-  root.traverse(o => { if (o.isMesh) { o.castShadow = true; if (def.tint) { o.material = o.material.clone(); o.material.emissive = new THREE.Color(def.tint); o.material.emissiveIntensity = 0.25; } } });
+  root.traverse(o => { if (o.isMesh) { o.castShadow = true; if (def.tint) { o.material = o.material.clone(); o.material.emissive = new THREE.Color(def.tint); o.material.emissiveIntensity = 0.15; } } });
   scene.add(root);
-  frame(root);
+  const fsize = frame(root);
+  log(`show ${def.id}: size ${fsize.x.toFixed(2)}x${fsize.y.toFixed(2)}x${fsize.z.toFixed(2)} clips ${gltf.animations.length}`);
   const mixer = new THREE.AnimationMixer(root);
   const actions = {};
   for (const clip of gltf.animations) actions[clip.name] = mixer.clipAction(clip);
@@ -326,41 +358,93 @@ function animatedCard(def) {
 
 // --- thumbnails: a small offscreen render of each model in its idle pose -----------------
 const THUMB = 112;
-const thumbRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+const THUMB_VERSION = 'v2'; // bump to invalidate thumbnails saved in localStorage
+const thumbRenderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 thumbRenderer.setSize(THUMB, THUMB, false);
 thumbRenderer.outputColorSpace = THREE.SRGBColorSpace;
 const thumbScene = new THREE.Scene();
+thumbScene.background = new THREE.Color(0x2c313a); // opaque: an alpha canvas left a fringe around the model
 thumbScene.add(new THREE.HemisphereLight(0xdfe6ff, 0x4a3f36, 1.2));
 const thumbSun = new THREE.DirectionalLight(0xfff1dc, 1.6); thumbSun.position.set(3, 5, 4); thumbScene.add(thumbSun);
 const thumbCamera = new THREE.PerspectiveCamera(35, 1, 0.05, 200);
 const thumbCache = new Map();
-let thumbQueue = Promise.resolve();
 
-function renderThumb(file, { scale = 1, tint = null, idle = null } = {}) {
-  const key = `${file}|${scale}|${tint}|${idle}`;
+// Thumbnails are rendered one at a time, visible cards first, and saved in localStorage so the
+// next visit shows every icon at once instead of re-rendering 200 models.
+const thumbPending = [];
+let thumbBusy = false;
+function thumbKey(file, o) { return `thumb:${THUMB_VERSION}:${file}|${o.scale}|${o.tint}|${o.idle}`; }
+function loadStoredThumb(key) { try { return localStorage.getItem(key); } catch { return null; } }
+function storeThumb(key, url) { try { localStorage.setItem(key, url); } catch { /* quota or private mode: fine */ } }
+
+// One clone per model file is kept for thumbnails; cloning a 5 MB skinned rig per variant was
+// the slow part (about one thumbnail per second).
+const thumbRoots = new Map();
+async function thumbRoot(file) {
+  if (thumbRoots.has(file)) return thumbRoots.get(file);
+  const gltf = await loadGltf(file);
+  const root = gltf.animations.length ? cloneSkinned(gltf.scene) : gltf.scene.clone(true);
+  root.traverse(o => { if (o.isMesh) o.material = o.material.clone(); });
+  const entry = { root, gltf, mixer: new THREE.AnimationMixer(root) };
+  thumbRoots.set(file, entry);
+  return entry;
+}
+
+async function drawThumb(file, { scale = 1, tint = null, idle = null }) {
+  const { root, gltf, mixer } = await thumbRoot(file);
+  root.scale.setScalar(scale);
+  root.traverse(o => { if (o.isMesh) { o.material.emissive = new THREE.Color(tint ?? 0x000000); o.material.emissiveIntensity = tint ? 0.15 : 0; } });
+  mixer.stopAllAction();
+  if (idle) { const clip = gltf.animations.find(c => c.name === idle); if (clip) { mixer.clipAction(clip).play(); mixer.update(0.4); } }
+  thumbScene.add(root);
+  const box = meshBox(root);
+  const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
+  const radius = Math.max(size.x, size.y, size.z) / 2;
+  const dist = radius / Math.tan(THREE.MathUtils.degToRad(thumbCamera.fov / 2)) * 1.25;
+  thumbCamera.position.set(center.x + dist * 0.6, center.y + dist * 0.35, center.z + dist * 0.75);
+  thumbCamera.lookAt(center);
+  thumbRenderer.render(thumbScene, thumbCamera);
+  const url = thumbRenderer.domElement.toDataURL('image/png');
+  thumbScene.remove(root);
+  return url;
+}
+
+async function pumpThumbs() {
+  if (thumbBusy) return;
+  thumbBusy = true;
+  while (thumbPending.length) {
+    // Visible cards first, so what the user is looking at fills in before the rest.
+    thumbPending.sort((a, b) => (b.visible ? 1 : 0) - (a.visible ? 1 : 0));
+    const job = thumbPending.shift();
+    try {
+      const url = await drawThumb(job.file, job.opts);
+      storeThumb(job.key, url);
+      job.resolve(url);
+      log(`thumb ok ${job.file.split('/').pop()} ${url.length}b`);
+    } catch (e) { console.warn('thumb failed', job.file, e); log(`thumb FAILED ${job.file.split('/').pop()}: ${e.message ?? e}`); job.resolve(''); }
+  }
+  thumbBusy = false;
+  log('thumb queue drained');
+}
+
+function renderThumb(file, opts = {}, img = null) {
+  opts = { scale: 1, tint: null, idle: null, ...opts };
+  const key = thumbKey(file, opts);
   if (thumbCache.has(key)) return thumbCache.get(key);
-  const p = thumbQueue.then(async () => {
-    const gltf = await loadGltf(file);
-    const root = gltf.animations.length ? cloneSkinned(gltf.scene) : gltf.scene.clone(true);
-    root.scale.setScalar(scale);
-    root.traverse(o => { if (o.isMesh && tint) { o.material = o.material.clone(); o.material.emissive = new THREE.Color(tint); o.material.emissiveIntensity = 0.25; } });
-    if (idle) { const clip = gltf.animations.find(c => c.name === idle); if (clip) { const m = new THREE.AnimationMixer(root); m.clipAction(clip).play(); m.update(0.4); } }
-    thumbScene.add(root);
-    const box = new THREE.Box3().setFromObject(root);
-    const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
-    const radius = Math.max(size.x, size.y, size.z) / 2;
-    const dist = radius / Math.tan(THREE.MathUtils.degToRad(thumbCamera.fov / 2)) * 1.25;
-    thumbCamera.position.set(center.x + dist * 0.6, center.y + dist * 0.35, center.z + dist * 0.75);
-    thumbCamera.lookAt(center);
-    thumbRenderer.render(thumbScene, thumbCamera);
-    const url = thumbRenderer.domElement.toDataURL('image/png');
-    thumbScene.remove(root);
-    return url;
-  }).catch(e => { console.warn('thumb failed', file, e); return ''; });
-  thumbQueue = p;
+  const stored = loadStoredThumb(key);
+  if (stored) { const p = Promise.resolve(stored); thumbCache.set(key, p); return p; }
+  const p = new Promise(resolve => {
+    const job = { file, opts, key, resolve, visible: false };
+    if (img) thumbObserver.observe(img), img._thumbJob = job;
+    thumbPending.push(job);
+    pumpThumbs();
+  });
   thumbCache.set(key, p);
   return p;
 }
+const thumbObserver = new IntersectionObserver(entries => {
+  for (const e of entries) if (e.target._thumbJob) e.target._thumbJob.visible = e.isIntersecting;
+}, { root: $('list') });
 
 const TABS = {
   creatures: { animated: true, groups: () => FAMILIES.map(f => ({ title: `${f.name} · ${f.map}`, items: f.creatures })) },
@@ -398,7 +482,7 @@ function renderList() {
       const thumbItem = cfg.isDungeon ? boss : item;
       if (!thumbItem) continue;
       const opts = cfg.animated ? { scale: thumbItem.scale, tint: thumbItem.tint, idle: thumbItem.anims.idle } : {};
-      renderThumb(cfg.animated || cfg.isClass ? thumbItem.model : thumbItem.file, opts).then(url => { if (url) img.src = url; });
+      renderThumb(cfg.animated || cfg.isClass ? thumbItem.model : thumbItem.file, opts, img).then(url => { if (url) img.src = url; });
     }
   }
 }
@@ -415,6 +499,7 @@ function setTab(name) {
   clear();
   loadSeq++;
   renderList();
+  log(`tab ${tab}: ${$('list').querySelectorAll('.card').length} cards`);
   const first = $('list').querySelector('.card');
   if (first) first.click();
 }
@@ -446,6 +531,10 @@ function tick() {
 }
 tick();
 setTab(location.hash.slice(1) || 'creatures');
+
+// ?snapshot=<seconds>: hold the load event so `firefox --screenshot` captures a settled page.
+const snap = Number(new URLSearchParams(location.search).get('snapshot'));
+if (snap > 0) await new Promise(r => setTimeout(r, snap * 1000));
 </script>
 </body>
 </html>
