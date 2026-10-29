@@ -61,6 +61,14 @@ const Q_BLOB = { idle: 'Idle', walk: 'Walk', run: 'Walk', attack: 'Bite_Front', 
 const Q_CUTE = { ...Q_BLOB, attack: 'Bite_InPlace' };
 const Q_CUTE_FLY = { idle: 'Flying', walk: 'Flying', run: 'Flying', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', spawn: 'Flying' };
 const Q_FLY = Q_SPACE_FLYER;
+const QAM = '../assets/creatures/quaternius-animated-monsters/';
+const QAL = '../assets/creatures/quaternius-alien/';
+const QZ = '../assets/creatures/quaternius-zombie/';
+const Q_SKEL = { idle: 'Skeleton_Idle', walk: 'Skeleton_Running', run: 'Skeleton_Running', attack: 'Skeleton_Attack', hit: 'Skeleton_Attack', death: 'Skeleton_Death', spawn: 'Skeleton_Spawn' };
+const Q_WING = n => ({ idle: `${n}_Flying`, walk: `${n}_Flying`, run: `${n}_Flying`, attack: `${n}_Attack`, hit: `${n}_Hit`, death: `${n}_Death`, spawn: `${n}_Flying` });
+const Q_SLIME = { idle: 'Slime_Idle', walk: 'Slime_Walk', run: 'Slime_Walk', attack: 'Slime_Attack', hit: 'Slime_Idle', death: 'Slime_Death', spawn: 'Slime_Idle' };
+const Q_ZOMBIE = { idle: 'ZombieIdle', walk: 'ZombieWalk', run: 'ZombieRun', attack: 'ZombieBite', hit: 'ZombieIdle', death: 'ZombieCrawl', spawn: 'ZombieIdle' };
+const Q_ALIEN = { idle: 'Alien_Idle', walk: 'Alien_Walk', run: 'Alien_Run', attack: 'Alien_Punch', hit: 'Alien_Jump', death: 'Alien_Death', spawn: 'Alien_Standing' };
 const SK = (idle, walk, run, attack, hit, death, spawn) => ({ idle, walk, run, attack, hit, death, spawn });
 const GLASS = { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: 'footstep_snow' };
 const BONE = { hit: 'impact_wood_light', death: 'impact_wood_heavy', attack: 'impact_generic_light', step: 'footstep_concrete' };
@@ -95,6 +103,8 @@ export const FAMILIES = [
       c('Blue Demon', 'Brute', QU + 'Big_BlueDemon.glb', { scale: 1.3, anims: Q_BIG, sounds: HEAVY }),
       c('Necromancer', 'Healer', QU + 'Blob_Wizard.glb', { anims: Q_BLOB, sounds: GLASS }),
       c('Hell Demon', 'Elite', QU + 'Big_Demon.glb', { scale: 1.2, anims: Q_BIG, sounds: HEAVY }),
+      c('Bone Walker', 'Runner', QAM + 'Skeleton.glb', { anims: Q_SKEL, sounds: BONE }),
+      c('Crawler', 'Runner', QZ + 'ZombieSmooth.glb', { anims: { ...Q_ZOMBIE, walk: 'ZombieCrawl', run: 'ZombieCrawl' }, sounds: SOFT }),
     ],
   },
   {
@@ -120,6 +130,7 @@ export const FAMILIES = [
       c('Cow', 'Brute', QA + 'Cow.glb', { scale: 1.2, anims: Q_ANIMAL, sounds: HEAVY }),
       c('Bull', 'Brute', QA + 'Bull.glb', { scale: 1.3, anims: Q_ANIMAL, sounds: HEAVY }),
       c('Scarecrow Tree', 'Shielder', QCU + 'Tree.glb', { scale: 1.2, anims: Q_CUTE, sounds: WOOD }),
+      c('Farmhand Zombie', 'Brute', QZ + 'Zombie.glb', { scale: 1.1, anims: Q_ZOMBIE, sounds: SOFT }),
     ],
   },
   {
@@ -164,6 +175,8 @@ export const FAMILIES = [
       c('Glub Evolved', 'Elite', QU + 'Flying_Glub_Evolved.glb', { anims: Q_FLY, sounds: FLY }),
       c('Pipe Rat', 'Runner', PETS + 'animal-bunny.glb', { anims: KENNEY_PET, sounds: SOFT }),
       c('Drain Birb', 'Flyer', QU + 'Blob_Birb.glb', { anims: Q_BLOB, sounds: FLY }),
+      c('Slime', 'Runner', QAM + 'Slime.glb', { anims: Q_SLIME, sounds: { ...SOFT, step: 'footstep_carpet' } }),
+      c('Sewer Bat', 'Flyer', QAM + 'Bat.glb', { anims: Q_WING('Bat'), sounds: FLY }),
     ],
   },
   {
@@ -256,6 +269,7 @@ export const FAMILIES = [
       c('Lookout', 'Runner', BLOCKY + 'character-q.glb'),
       c('Quartermaster', 'Elite', BLOCKY + 'character-r.glb'),
       c('Reef Crab', 'Brute', QCU + 'Crab.glb', { scale: 1.3, anims: Q_CUTE, sounds: { ...HEAVY, hit: 'impact_plate_medium' } }),
+      c('Sea Dragon', 'Boss', QAM + 'Dragon.glb', { scale: 2.0, anims: Q_WING('Dragon'), sounds: BIGMETAL }),
     ],
   },
   {
@@ -302,6 +316,8 @@ export const FAMILIES = [
       c('Bee Mech', 'Shielder', QS + 'Mech_BarbaraTheBee.glb', { scale: 1.2, anims: Q_SPACE_MECH, sounds: BIGMETAL }),
       c('Flamingo Mech', 'Spitter', QS + 'Mech_FernandoTheFlamingo.glb', { anims: Q_SPACE_MECH, sounds: METAL }),
       c('Frog Mech', 'Brute', QS + 'Mech_FinnTheFrog.glb', { scale: 1.3, anims: { ...Q_SPACE_MECH, attack: 'Kick' }, sounds: BIGMETAL }),
+      c('Visitor', 'Runner', QAL + 'Alien.glb', { anims: Q_ALIEN, sounds: GLASS }),
+      c('Helmet Visitor', 'Shielder', QAL + 'Alien_Helmet.glb', { scale: 1.1, anims: Q_ALIEN, sounds: GLASS }),
     ],
   },
 ];
