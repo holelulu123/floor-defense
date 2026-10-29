@@ -53,231 +53,268 @@ const BIGMETAL = { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack
 const c = (id, type, model, extra = {}) => ({ id, type, model, scale: 1, tint: null, anims: KENNEY_CHAR,
   sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' }, ...extra });
 
+const QU = '../assets/creatures/quaternius-monsters/';
+const QCU = '../assets/creatures/quaternius-cute-monsters/';
+const MINI = '../assets/creatures/kenney-mini-dungeon/';
+const Q_BIG = { idle: 'Idle', walk: 'Walk', run: 'Run', attack: 'Punch', hit: 'HitReact', death: 'Death', spawn: 'Wave' };
+const Q_BLOB = { idle: 'Idle', walk: 'Walk', run: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', spawn: 'Jump' };
+const Q_CUTE = { ...Q_BLOB, attack: 'Bite_InPlace' };
+const Q_CUTE_FLY = { idle: 'Flying', walk: 'Flying', run: 'Flying', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', spawn: 'Flying' };
+const Q_FLY = Q_SPACE_FLYER;
+const SK = (idle, walk, run, attack, hit, death, spawn) => ({ idle, walk, run, attack, hit, death, spawn });
+const GLASS = { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: 'footstep_snow' };
+const BONE = { hit: 'impact_wood_light', death: 'impact_wood_heavy', attack: 'impact_generic_light', step: 'footstep_concrete' };
+const WOOD = { hit: 'impact_wood_medium', death: 'impact_wood_heavy', attack: 'impact_wood_light', step: 'footstep_wood' };
+const SNOW = { ...SOFT, step: 'footstep_snow' };
+const FLY = { ...SOFT, step: null };
+const BOOM = { ...SOFT, death: 'impact_bell_heavy' };
+
+// One family per dungeon. Every entry is a distinct model (no recolors): the wave list introduces one
+// new creature per wave, bosses on waves 5, 10, ... Order inside a family is the order they appear.
 export const FAMILIES = [
   {
-    id: 'skeletons', name: 'Graveyard: KayKit Skeletons', map: 'Graveyard', source: 'KayKit Character Pack: Skeletons (CC0, Kay Lousberg)',
+    id: 'graveyard', name: 'Graveyard', map: 'Graveyard', source: 'KayKit Skeletons, Kenney Graveyard Kit, Quaternius Ultimate + Cute Monsters (all CC0)',
     creatures: [
-      c('Minion', 'Runner', KAYKIT + 'Skeleton_Minion.glb', { anims: { idle: 'Idle', walk: 'Walking_A', run: 'Running_A', attack: 'Unarmed_Melee_Attack_Punch_A', hit: 'Hit_A', death: 'Death_A', spawn: 'Spawn_Ground_Skeletons' } }),
-      c('Warrior', 'Brute', KAYKIT + 'Skeleton_Warrior.glb', { scale: 1.35, anims: { idle: '2H_Melee_Idle', walk: 'Walking_B', run: 'Running_B', attack: '2H_Melee_Attack_Chop', hit: 'Hit_B', death: 'Death_B', spawn: 'Skeletons_Awaken_Standing' },
-        sounds: { hit: 'impact_plate_medium', death: 'impact_metal_heavy', attack: 'impact_wood_heavy', step: 'footstep_concrete' } }),
-      c('Mage', 'Spitter', KAYKIT + 'Skeleton_Mage.glb', { anims: { idle: 'Idle_B', walk: 'Walking_C', run: 'Running_C', attack: 'Spellcast_Shoot', hit: 'Hit_A', death: 'Death_C_Skeletons', spawn: 'Spawn_Air' },
-        sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: 'footstep_wood' } }),
-      c('Bomber', 'Exploder', KAYKIT + 'Skeleton_Minion.glb', { scale: 1.1, tint: 0xffa040, anims: { idle: 'Idle', walk: 'Running_A', run: 'Running_B', attack: 'Jump_Full_Short', hit: 'Hit_B', death: 'Death_B', spawn: 'Spawn_Ground' },
-        sounds: { hit: 'impact_punch_medium', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'footstep_grass' } }),
-      c('Guard', 'Shielder', KAYKIT + 'Skeleton_Warrior.glb', { scale: 1.2, tint: 0x6080c0, anims: { idle: 'Blocking', walk: 'Walking_B', run: 'Running_B', attack: 'Block_Attack', hit: 'Block_Hit', death: 'Death_A', spawn: 'Skeletons_Awaken_Standing' },
-        sounds: { hit: 'impact_plate_heavy', death: 'impact_metal_heavy', attack: 'impact_plate_medium', step: 'footstep_concrete' } }),
-      c('Necromancer', 'Healer', KAYKIT + 'Skeleton_Mage.glb', { tint: 0x80ff9a, anims: { idle: 'Spellcasting', walk: 'Walking_C', run: 'Running_C', attack: 'Spellcast_Raise', hit: 'Hit_A', death: 'Death_C_Skeletons', spawn: 'Spawn_Air' },
-        sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_bell_heavy', step: 'footstep_wood' } }),
-      c('Rogue', 'Elite', KAYKIT + 'Skeleton_Rogue.glb', { scale: 1.05, tint: 0x9ad5ff, anims: { idle: 'Idle_Combat', walk: 'Walking_D_Skeletons', run: 'Running_Strafe_Left', attack: 'Dualwield_Melee_Attack_Slice', hit: 'Hit_B', death: 'Death_A', spawn: 'Skeletons_Awaken_Floor' },
-        sounds: { hit: 'impact_punch_heavy', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_snow' } }),
-      c('Lich', 'Boss', KAYKIT + 'Skeleton_Warrior.glb', { scale: 2.4, tint: 0xff5a5a, anims: { idle: '2H_Melee_Idle', walk: 'Walking_B', run: 'Running_B', attack: '2H_Melee_Attack_Spin', hit: 'Hit_A', death: 'Death_C_Skeletons', spawn: 'Skeletons_Awaken_Floor_Long' },
-        sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+      c('Zombie', 'Runner', KENNEY + 'character-zombie.glb', { sounds: SOFT }),
+      c('Minion', 'Runner', KAYKIT + 'Skeleton_Minion.glb', { anims: SK('Idle', 'Walking_A', 'Running_A', 'Unarmed_Melee_Attack_Punch_A', 'Hit_A', 'Death_A', 'Spawn_Ground_Skeletons'), sounds: BONE }),
+      c('Skull Hopper', 'Runner', QCU + 'Skull.glb', { anims: Q_CUTE, sounds: BONE }),
+      c('Bat', 'Flyer', QCU + 'Bat.glb', { anims: Q_CUTE_FLY, sounds: FLY }),
+      c('Keeper', 'Boss', KENNEY + 'character-keeper.glb', { scale: 2.0, sounds: BIGMETAL }),
+      c('S-Ghost', 'Spitter', KENNEY + 'character-ghost.glb', { sounds: GLASS }),
+      c('Rogue', 'Elite', KAYKIT + 'Skeleton_Rogue.glb', { anims: SK('Idle_Combat', 'Walking_D_Skeletons', 'Running_Strafe_Left', 'Dualwield_Melee_Attack_Slice', 'Hit_B', 'Death_A', 'Skeletons_Awaken_Floor'), sounds: BONE }),
+      c('Warrior', 'Brute', KAYKIT + 'Skeleton_Warrior.glb', { scale: 1.3, anims: SK('2H_Melee_Idle', 'Walking_B', 'Running_B', '2H_Melee_Attack_Chop', 'Hit_B', 'Death_B', 'Skeletons_Awaken_Standing'), sounds: BONE }),
+      c('Mage', 'Spitter', KAYKIT + 'Skeleton_Mage.glb', { anims: SK('Idle_B', 'Walking_C', 'Running_C', 'Spellcast_Shoot', 'Hit_A', 'Death_C_Skeletons', 'Spawn_Air'), sounds: BONE }),
+      c('Bone Dragon', 'Boss', QU + 'Flying_Dragon_Evolved.glb', { scale: 1.8, anims: Q_FLY, sounds: BIGMETAL }),
+      c('Skeleton', 'Runner', KENNEY + 'character-skeleton.glb', { sounds: BONE }),
+      c('Poltergeist', 'Healer', QCU + 'Ghost.glb', { anims: Q_CUTE, sounds: GLASS }),
+      c('Wraith', 'Flyer', QU + 'Flying_Ghost.glb', { anims: Q_FLY, sounds: GLASS }),
+      c('Vampire', 'Brute', KENNEY + 'character-vampire.glb', { scale: 1.15, sounds: { ...SOFT, death: 'impact_bell_heavy' } }),
+      c('Imp', 'Exploder', QCU + 'Demon.glb', { anims: Q_CUTE, sounds: BOOM }),
+      c('Skull Wraith', 'Flyer', QU + 'Flying_Ghost_Skull.glb', { anims: Q_FLY, sounds: GLASS }),
+      c('Orc Skull', 'Shielder', QU + 'Big_Orc_Skull.glb', { scale: 1.2, anims: Q_BIG, sounds: HEAVY }),
+      c('Blue Demon', 'Brute', QU + 'Big_BlueDemon.glb', { scale: 1.3, anims: Q_BIG, sounds: HEAVY }),
+      c('Necromancer', 'Healer', QU + 'Blob_Wizard.glb', { anims: Q_BLOB, sounds: GLASS }),
+      c('Hell Demon', 'Elite', QU + 'Big_Demon.glb', { scale: 1.2, anims: Q_BIG, sounds: HEAVY }),
     ],
   },
   {
-    id: 'kenney-graveyard', name: 'Graveyard: Kenney characters', map: 'Graveyard', source: 'Kenney Graveyard Kit (CC0)',
+    id: 'farm', name: 'Haunted Farm', map: 'Haunted Farm', source: 'Kenney Cube Pets, Quaternius Animals + Ultimate + Cute Monsters (all CC0)',
     creatures: [
-      c('Zombie', 'Runner', KENNEY + 'character-zombie.glb', { sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_punch_medium', step: 'footstep_grass' } }),
-      c('Vampire', 'Brute', KENNEY + 'character-vampire.glb', { scale: 1.15, sounds: { hit: 'impact_plate_light', death: 'impact_bell_heavy', attack: 'impact_punch_heavy', step: 'footstep_wood' } }),
-      c('S-Ghost', 'Spitter', KENNEY + 'character-ghost.glb', { tint: 0xa0e0ff, sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: 'footstep_snow' } }),
-      c('Wraith', 'Flyer', KENNEY + 'character-ghost.glb', { scale: 0.9, tint: 0xffffff, sounds: { hit: 'impact_glass_light', death: 'impact_glass_medium', attack: 'impact_generic_light', step: 'footstep_snow' } }),
-      c('Skeleton', 'Elite', KENNEY + 'character-skeleton.glb', { sounds: { hit: 'impact_wood_light', death: 'impact_wood_heavy', attack: 'impact_generic_light', step: 'footstep_concrete' } }),
-      c('Keeper', 'Boss', KENNEY + 'character-keeper.glb', { scale: 2.2, tint: 0xff7a5a, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
-    ],
-  },
-  {
-    id: 'swamp', name: 'Swamp: Kenney Cube Pets (bugs and beasts)', map: 'Swamp', source: 'Kenney Cube Pets (CC0) + Quaternius Easy Enemy Pack (CC0)',
-    creatures: [
-      c('Caterpillar', 'Runner', PETS + 'animal-caterpillar.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' } }),
-      c('Mud Hog', 'Brute', PETS + 'animal-hog.glb', { scale: 1.3, anims: KENNEY_PET, sounds: { hit: 'impact_soft_heavy', death: 'impact_plank_medium', attack: 'impact_punch_heavy', step: 'footstep_grass' } }),
-      c('Crab', 'Spitter', PETS + 'animal-crab.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_plate_light', death: 'impact_plate_medium', attack: 'impact_tin_medium', step: 'footstep_concrete' } }),
-      c('Bomb Bee', 'Exploder', PETS + 'animal-bee.glb', { tint: 0xffb000, anims: KENNEY_PET, sounds: { hit: 'impact_generic_light', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'footstep_grass' } }),
-      c('Beaver', 'Shielder', PETS + 'animal-beaver.glb', { scale: 1.2, tint: 0x6080c0, anims: KENNEY_PET, sounds: { hit: 'impact_wood_medium', death: 'impact_wood_heavy', attack: 'impact_wood_light', step: 'footstep_wood' } }),
-      c('Parrot', 'Flyer', PETS + 'animal-parrot.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_snow' } }),
-      c('Bunny', 'Healer', PETS + 'animal-bunny.glb', { tint: 0x80ff9a, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_grass' } }),
-      c('Fox', 'Elite', PETS + 'animal-fox.glb', { tint: 0x9ad5ff, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_punch_medium', step: 'footstep_snow' } }),
-      c('Elephant', 'Boss', PETS + 'animal-elephant.glb', { scale: 2.2, tint: 0xff7a5a, anims: KENNEY_PET, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
-      c('Bog Frog', 'Runner', QE + 'Frog.glb', { anims: Q_EASY('Frog', 'Frog_Jump', 'Frog_Jump'), sounds: { ...SOFT, step: 'footstep_carpet' } }),
-      c('Marsh Rat', 'Runner', QE + 'Rat.glb', { anims: Q_EASY('Rat'), sounds: SOFT }),
-      c('Swamp Snake', 'Spitter', QE + 'Snake.glb', { anims: Q_EASY('Snake', 'Snake_Walk', 'Snake_Walk'), sounds: { ...SOFT, attack: 'impact_generic_light' } }),
-      c('Viper', 'Elite', QE + 'Snake_angry.glb', { tint: 0x9ad5ff, anims: Q_EASY('Snake', 'Snake_Walk', 'Snake_Walk'), sounds: { ...SOFT, attack: 'impact_generic_light' } }),
-      c('Bog Spider', 'Brute', QE + 'Spider.glb', { scale: 1.3, anims: Q_EASY('Spider', 'Spider_Walk', 'Spider_Walk'), sounds: { ...SOFT, step: 'footstep_wood' } }),
-      c('Hornet', 'Flyer', QE + 'Wasp.glb', { anims: { ...Q_EASY('Wasp', 'Wasp_Flying', 'Wasp_Flying'), idle: 'Wasp_Flying', hit: 'Wasp_Attack', spawn: 'Wasp_Flying' }, sounds: { ...SOFT, step: null } }),
-    ],
-  },
-  {
-    id: 'slimes', name: 'Sewer: Kenney blobs (slimes)', map: 'Sewer', source: 'Kenney Platformer Kit characters (CC0)',
-    creatures: [
-      c('Green Slime', 'Runner', BLOBS + 'character-oozi.glb', { sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_carpet' } }),
-      c('Big Slime', 'Brute', BLOBS + 'character-oobi.glb', { scale: 1.5, sounds: { hit: 'impact_soft_heavy', death: 'impact_soft_heavy', attack: 'impact_punch_heavy', step: 'footstep_carpet' } }),
-      c('Spit Slime', 'Spitter', BLOBS + 'character-ooli.glb', { sounds: { hit: 'impact_soft_medium', death: 'impact_glass_light', attack: 'impact_generic_light', step: 'footstep_carpet' } }),
-      c('Boom Slime', 'Exploder', BLOBS + 'character-oopi.glb', { tint: 0xffa040, sounds: { hit: 'impact_soft_medium', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'footstep_carpet' } }),
-      c('Nurse Slime', 'Healer', BLOBS + 'character-oodi.glb', { tint: 0x80ff9a, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_carpet' } }),
-      c('King Slime', 'Boss', BLOBS + 'character-oobi.glb', { scale: 2.6, tint: 0xff5a5a, sounds: { hit: 'impact_soft_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
-    ],
-  },
-  {
-    id: 'bandits', name: 'Village: Kenney bandits and orcs', map: 'Bandit Village', source: 'Kenney Blocky Characters + Mini Dungeon (CC0)',
-    creatures: [
-      c('Bandit', 'Runner', BLOCKY + 'character-a.glb'),
-      c('Thug', 'Runner', BLOCKY + 'character-e.glb'),
-      c('Orc', 'Brute', DUNGEON + 'character-orc.glb', { scale: 1.3, sounds: { hit: 'impact_punch_heavy', death: 'impact_soft_heavy', attack: 'impact_wood_heavy', step: 'footstep_concrete' } }),
-      c('Archer', 'Spitter', BLOCKY + 'character-f.glb', { sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_wood_light', step: 'footstep_grass' } }),
-      c('Sapper', 'Exploder', BLOCKY + 'character-j.glb', { tint: 0xffa040, sounds: { hit: 'impact_punch_medium', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'footstep_grass' } }),
-      c('Shield Bearer', 'Shielder', BLOCKY + 'character-k.glb', { scale: 1.1, tint: 0x6080c0, sounds: { hit: 'impact_plate_medium', death: 'impact_metal_heavy', attack: 'impact_plate_light', step: 'footstep_concrete' } }),
-      c('Cleric', 'Healer', DUNGEON + 'character-human.glb', { tint: 0x80ff9a, sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_wood' } }),
-      c('Assassin', 'Elite', BLOCKY + 'character-r.glb', { tint: 0x9ad5ff, sounds: { hit: 'impact_punch_heavy', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_snow' } }),
-      c('Warlord', 'Boss', DUNGEON + 'character-orc.glb', { scale: 2.3, tint: 0xff5a5a, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
-    ],
-  },
-  {
-    id: 'farm', name: 'Haunted Farm: Kenney Cube Pets', map: 'Haunted Farm', source: 'Kenney Cube Pets (CC0) + Quaternius Ultimate Animated Animals (CC0)',
-    creatures: [
-      c('Chick', 'Runner', PETS + 'animal-chick.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' } }),
-      c('Pig', 'Brute', PETS + 'animal-pig.glb', { scale: 1.3, anims: KENNEY_PET, sounds: { hit: 'impact_soft_heavy', death: 'impact_plank_medium', attack: 'impact_punch_heavy', step: 'footstep_grass' } }),
-      c('Cat', 'Spitter', PETS + 'animal-cat.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_carpet' } }),
-      c('Hound', 'Elite', PETS + 'animal-dog.glb', { tint: 0x9ad5ff, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_punch_medium', step: 'footstep_grass' } }),
-      c('Mad Cow', 'Boss', PETS + 'animal-cow.glb', { scale: 2.2, tint: 0xff7a5a, anims: KENNEY_PET, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+      c('Chick', 'Runner', PETS + 'animal-chick.glb', { anims: KENNEY_PET, sounds: SOFT }),
+      c('Chicken', 'Runner', QCU + 'Chicken.glb', { anims: Q_CUTE, sounds: SOFT }),
+      c('Pig', 'Brute', PETS + 'animal-pig.glb', { scale: 1.3, anims: KENNEY_PET, sounds: HEAVY }),
+      c('Piglet', 'Runner', QCU + 'Pig.glb', { anims: Q_CUTE, sounds: SOFT }),
+      c('Mad Cow', 'Boss', PETS + 'animal-cow.glb', { scale: 2.2, anims: KENNEY_PET, sounds: BIGMETAL }),
+      c('Bomb Hen', 'Exploder', QU + 'Blob_Chicken.glb', { anims: Q_BLOB, sounds: BOOM }),
+      c('Farm Dog', 'Runner', QA + 'ShibaInu.glb', { anims: Q_CANINE, sounds: SOFT }),
+      c('Mutt', 'Elite', QU + 'Blob_Dog.glb', { anims: Q_BLOB, sounds: SOFT }),
+      c('Barn Cat', 'Spitter', PETS + 'animal-cat.glb', { anims: KENNEY_PET, sounds: SOFT }),
+      c('Monkroose', 'Boss', QU + 'Big_Monkroose.glb', { scale: 2.0, anims: Q_BIG, sounds: BIGMETAL }),
+      c('Alley Cat', 'Elite', QU + 'Blob_Cat.glb', { anims: Q_BLOB, sounds: SOFT }),
+      c('Pigeon', 'Flyer', QU + 'Flying_Pigeon.glb', { anims: Q_FLY, sounds: FLY }),
+      c('Fat Pigeon', 'Runner', QU + 'Blob_Pigeon.glb', { anims: Q_BLOB, sounds: SOFT }),
+      c('Horse', 'Runner', QA + 'Horse.glb', { anims: Q_ANIMAL, sounds: SOFT }),
+      c('Pale Horse', 'Elite', QA + 'Horse_White.glb', { anims: Q_ANIMAL, sounds: SOFT }),
+      c('Donkey', 'Shielder', QA + 'Donkey.glb', { scale: 1.1, anims: Q_ANIMAL, sounds: SOFT }),
+      c('Alpaca', 'Healer', QA + 'Alpaca.glb', { anims: Q_ANIMAL, sounds: SOFT }),
       c('Cow', 'Brute', QA + 'Cow.glb', { scale: 1.2, anims: Q_ANIMAL, sounds: HEAVY }),
       c('Bull', 'Brute', QA + 'Bull.glb', { scale: 1.3, anims: Q_ANIMAL, sounds: HEAVY }),
-      c('Horse', 'Runner', QA + 'Horse.glb', { anims: Q_ANIMAL, sounds: SOFT }),
-      c('Pale Horse', 'Elite', QA + 'Horse_White.glb', { tint: 0x9ad5ff, anims: Q_ANIMAL, sounds: SOFT }),
-      c('Donkey', 'Shielder', QA + 'Donkey.glb', { scale: 1.1, tint: 0x6080c0, anims: Q_ANIMAL, sounds: SOFT }),
-      c('Alpaca', 'Healer', QA + 'Alpaca.glb', { tint: 0x80ff9a, anims: Q_ANIMAL, sounds: SOFT }),
-      c('Farm Dog', 'Runner', QA + 'ShibaInu.glb', { anims: Q_CANINE, sounds: SOFT }),
+      c('Scarecrow Tree', 'Shielder', QCU + 'Tree.glb', { scale: 1.2, anims: Q_CUTE, sounds: WOOD }),
     ],
   },
   {
-    id: 'frozen', name: 'Frozen Cavern: Kenney Cube Pets', map: 'Frozen Cavern', source: 'Kenney Cube Pets (CC0) + Quaternius Ultimate Animated Animals (CC0)',
+    id: 'swamp', name: 'Swamp', map: 'Swamp', source: 'Kenney Cube Pets, Quaternius Easy Enemies + Ultimate + Cute Monsters (all CC0)',
     creatures: [
-      c('Penguin', 'Runner', PETS + 'animal-penguin.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_snow' } }),
-      c('Polar Bear', 'Brute', PETS + 'animal-polar.glb', { scale: 1.3, anims: KENNEY_PET, sounds: { hit: 'impact_soft_heavy', death: 'impact_plank_medium', attack: 'impact_punch_heavy', step: 'footstep_snow' } }),
-      c('Ice Fish', 'Spitter', PETS + 'animal-fish.glb', { tint: 0xa0e0ff, anims: KENNEY_PET, sounds: { hit: 'impact_glass_light', death: 'impact_glass_medium', attack: 'impact_glass_light', step: 'footstep_snow' } }),
-      c('Ice Bomb', 'Exploder', PETS + 'animal-penguin.glb', { scale: 1.1, tint: 0xffa040, anims: KENNEY_PET, sounds: { hit: 'impact_glass_light', death: 'impact_glass_heavy', attack: 'impact_bell_heavy', step: 'footstep_snow' } }),
-      c('Stag', 'Elite', PETS + 'animal-deer.glb', { tint: 0x9ad5ff, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_wood_medium', step: 'footstep_snow' } }),
-      c('Frost King', 'Boss', PETS + 'animal-polar.glb', { scale: 2.3, tint: 0xff7a5a, anims: KENNEY_PET, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
-      c('Frost Wolf', 'Runner', QA + 'Wolf.glb', { anims: Q_CANINE, sounds: { ...SOFT, step: 'footstep_snow' } }),
-      c('Husky', 'Elite', QA + 'Husky.glb', { tint: 0x9ad5ff, anims: Q_CANINE, sounds: { ...SOFT, step: 'footstep_snow' } }),
-      c('Ice Stag', 'Brute', QA + 'Stag.glb', { scale: 1.2, anims: Q_ANIMAL, sounds: { ...HEAVY, step: 'footstep_snow' } }),
-      c('Doe', 'Runner', QA + 'Deer.glb', { anims: Q_ANIMAL, sounds: { ...SOFT, step: 'footstep_snow' } }),
-      c('Arctic Fox', 'Healer', QA + 'Fox.glb', { tint: 0x80ff9a, anims: Q_CANINE, sounds: { ...SOFT, step: 'footstep_snow' } }),
+      c('Caterpillar', 'Runner', PETS + 'animal-caterpillar.glb', { anims: KENNEY_PET, sounds: SOFT }),
+      c('Bog Frog', 'Runner', QE + 'Frog.glb', { anims: Q_EASY('Frog', 'Frog_Jump', 'Frog_Jump'), sounds: SOFT }),
+      c('Marsh Rat', 'Runner', QE + 'Rat.glb', { anims: Q_EASY('Rat'), sounds: SOFT }),
+      c('Swamp Snake', 'Spitter', QE + 'Snake.glb', { anims: Q_EASY('Snake', 'Snake_Walk', 'Snake_Walk'), sounds: SOFT }),
+      c('Mushroom King', 'Boss', QU + 'Big_MushroomKing.glb', { scale: 2.0, anims: Q_BIG, sounds: BIGMETAL }),
+      c('Viper', 'Elite', QE + 'Snake_angry.glb', { anims: Q_EASY('Snake', 'Snake_Walk', 'Snake_Walk'), sounds: SOFT }),
+      c('Bog Spider', 'Brute', QE + 'Spider.glb', { scale: 1.3, anims: Q_EASY('Spider', 'Spider_Walk', 'Spider_Walk'), sounds: SOFT }),
+      c('Hornet', 'Flyer', QE + 'Wasp.glb', { anims: { ...Q_EASY('Wasp', 'Wasp_Flying', 'Wasp_Flying'), idle: 'Wasp_Flying', hit: 'Wasp_Attack', spawn: 'Wasp_Flying' }, sounds: FLY }),
+      c('Bomb Bee', 'Exploder', PETS + 'animal-bee.glb', { anims: KENNEY_PET, sounds: BOOM }),
+      c('Toad King', 'Boss', QU + 'Big_Frog.glb', { scale: 2.0, anims: Q_BIG, sounds: BIGMETAL }),
+      c('Mud Hog', 'Brute', PETS + 'animal-hog.glb', { scale: 1.3, anims: KENNEY_PET, sounds: HEAVY }),
+      c('Beaver', 'Shielder', PETS + 'animal-beaver.glb', { scale: 1.2, anims: KENNEY_PET, sounds: WOOD }),
+      c('Crab', 'Spitter', PETS + 'animal-crab.glb', { anims: KENNEY_PET, sounds: { ...SOFT, hit: 'impact_plate_light' } }),
+      c('Bog Fish', 'Runner', QU + 'Big_Fish.glb', { anims: Q_BIG, sounds: SOFT }),
+      c('Shroomling', 'Healer', QCU + 'Mushroom.glb', { anims: Q_CUTE, sounds: SOFT }),
+      c('Mushnub', 'Runner', QU + 'Blob_Mushnub.glb', { anims: Q_BLOB, sounds: SOFT }),
+      c('Mushnub Evolved', 'Elite', QU + 'Blob_Mushnub_Evolved.glb', { anims: Q_BLOB, sounds: SOFT }),
+      c('Spiky Blob', 'Exploder', QU + 'Blob_GreenSpikyBlob.glb', { anims: Q_BLOB, sounds: BOOM }),
+      c('Glub', 'Flyer', QU + 'Flying_Glub.glb', { anims: Q_FLY, sounds: FLY }),
     ],
   },
   {
-    id: 'jungle', name: 'Jungle Temple: Kenney Cube Pets', map: 'Jungle Temple', source: 'Kenney Cube Pets (CC0) + Quaternius Dinosaurs and Platformer Kit (CC0)',
+    id: 'sewer', name: 'Sewer', map: 'Sewer', source: 'Kenney Platformer Kit blobs, Quaternius Ultimate Monsters + Platformer Kit (all CC0)',
     creatures: [
-      c('Monkey', 'Runner', PETS + 'animal-monkey.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' } }),
-      c('Lion', 'Brute', PETS + 'animal-lion.glb', { scale: 1.3, anims: KENNEY_PET, sounds: { hit: 'impact_soft_heavy', death: 'impact_plank_medium', attack: 'impact_punch_heavy', step: 'footstep_grass' } }),
-      c('Giraffe', 'Spitter', PETS + 'animal-giraffe.glb', { anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_generic_light', step: 'footstep_grass' } }),
-      c('Panda', 'Shielder', PETS + 'animal-panda.glb', { scale: 1.2, tint: 0x6080c0, anims: KENNEY_PET, sounds: { hit: 'impact_wood_medium', death: 'impact_wood_heavy', attack: 'impact_wood_light', step: 'footstep_wood' } }),
-      c('Koala', 'Healer', PETS + 'animal-koala.glb', { tint: 0x80ff9a, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_wood' } }),
-      c('Tiger', 'Elite', PETS + 'animal-tiger.glb', { tint: 0x9ad5ff, anims: KENNEY_PET, sounds: { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_punch_medium', step: 'footstep_grass' } }),
-      c('Temple Lion', 'Boss', PETS + 'animal-lion.glb', { scale: 2.3, tint: 0xff7a5a, anims: KENNEY_PET, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+      c('Oozi', 'Runner', BLOBS + 'character-oozi.glb', { sounds: { ...SOFT, step: 'footstep_carpet' } }),
+      c('Green Blob', 'Runner', QU + 'Blob_GreenBlob.glb', { anims: Q_BLOB, sounds: SOFT }),
+      c('Oodi', 'Spitter', BLOBS + 'character-oodi.glb', { sounds: SOFT }),
+      c('Sewer Grub', 'Spitter', QU + 'Blob_Alien.glb', { anims: Q_BLOB, sounds: SOFT }),
+      c('Cyclops', 'Boss', QCU + 'Cyclops.glb', { scale: 2.0, anims: Q_CUTE, sounds: BIGMETAL }),
+      c('Ooli', 'Exploder', BLOBS + 'character-ooli.glb', { sounds: BOOM }),
+      c('Oobi', 'Brute', BLOBS + 'character-oobi.glb', { scale: 1.5, sounds: HEAVY }),
+      c('Pink Blob', 'Healer', QU + 'Blob_PinkBlob.glb', { anims: Q_BLOB, sounds: SOFT }),
+      c('Drain Fish', 'Runner', QU + 'Blob_Fish.glb', { anims: Q_BLOB, sounds: SOFT }),
+      c('Mutant Bunny', 'Boss', QU + 'Big_Bunny.glb', { scale: 2.0, anims: Q_BIG, sounds: BIGMETAL }),
+      c('Oopi', 'Healer', BLOBS + 'character-oopi.glb', { sounds: SOFT }),
+      c('Sewer Beast', 'Brute', QP + 'Enemy.glb', { scale: 1.3, anims: Q_MONSTER, sounds: HEAVY }),
+      c('Glub Evolved', 'Elite', QU + 'Flying_Glub_Evolved.glb', { anims: Q_FLY, sounds: FLY }),
+      c('Pipe Rat', 'Runner', PETS + 'animal-bunny.glb', { anims: KENNEY_PET, sounds: SOFT }),
+      c('Drain Birb', 'Flyer', QU + 'Blob_Birb.glb', { anims: Q_BLOB, sounds: FLY }),
+    ],
+  },
+  {
+    id: 'village', name: 'Bandit Village', map: 'Bandit Village', source: 'Kenney Blocky Characters + Mini Dungeon, Quaternius Ultimate + Cute Monsters (all CC0)',
+    creatures: [
+      c('Footpad', 'Runner', BLOCKY + 'character-a.glb'),
+      c('Cutpurse', 'Runner', BLOCKY + 'character-b.glb'),
+      c('Crossbowman', 'Spitter', BLOCKY + 'character-c.glb', { sounds: { ...SOFT, attack: 'impact_wood_light' } }),
+      c('Powder Thief', 'Exploder', BLOCKY + 'character-d.glb', { sounds: BOOM }),
+      c('Green Demon', 'Boss', QCU + 'GreenDemon.glb', { scale: 2.0, anims: Q_CUTE, sounds: BIGMETAL }),
+      c('Shield Thug', 'Shielder', BLOCKY + 'character-e.glb', { scale: 1.1, sounds: { ...SOFT, hit: 'impact_plate_medium' } }),
+      c('Quack', 'Healer', BLOCKY + 'character-f.glb'),
+      c('Bruiser', 'Brute', BLOCKY + 'character-g.glb', { scale: 1.25, sounds: HEAVY }),
+      c('Mercenary', 'Runner', MINI + 'character-human.glb'),
+      c('Bandit King', 'Boss', BLOCKY + 'character-i.glb', { scale: 1.9, sounds: BIGMETAL }),
+      c('Orc', 'Brute', MINI + 'character-orc.glb', { scale: 1.3, sounds: HEAVY }),
+      c('Orc Chief', 'Brute', QU + 'Big_Orc.glb', { scale: 1.4, anims: Q_BIG, sounds: HEAVY }),
+      c('Orc Runt', 'Runner', QU + 'Blob_Orc.glb', { anims: Q_BLOB, sounds: SOFT }),
+      c('Ninja', 'Elite', QU + 'Big_Ninja.glb', { anims: Q_BIG, sounds: SOFT }),
+      c('Ninja Runt', 'Runner', QU + 'Blob_Ninja.glb', { anims: Q_BLOB, sounds: SOFT }),
+      c('Tribal', 'Spitter', QU + 'Big_Tribal.glb', { anims: Q_BIG, sounds: SOFT }),
+      c('Tribal Flyer', 'Flyer', QU + 'Flying_Tribal.glb', { anims: Q_FLY, sounds: FLY }),
+      c('Cactoro', 'Shielder', QU + 'Big_Cactoro.glb', { scale: 1.2, anims: Q_BIG, sounds: WOOD }),
+      c('Cactoro Runt', 'Runner', QU + 'Blob_Cactoro.glb', { anims: Q_BLOB, sounds: WOOD }),
+      c('Lieutenant', 'Elite', BLOCKY + 'character-h.glb'),
+    ],
+  },
+  {
+    id: 'frozen', name: 'Frozen Cavern', map: 'Frozen Cavern', source: 'Kenney Cube Pets, Quaternius Animals + Ultimate + Cute Monsters (all CC0)',
+    creatures: [
+      c('Penguin', 'Runner', PETS + 'animal-penguin.glb', { anims: KENNEY_PET, sounds: SNOW }),
+      c('Puffin', 'Runner', QCU + 'Penguin.glb', { anims: Q_CUTE, sounds: SNOW }),
+      c('Frost Wolf', 'Runner', QA + 'Wolf.glb', { anims: Q_CANINE, sounds: SNOW }),
+      c('Ice Fish', 'Spitter', PETS + 'animal-fish.glb', { anims: KENNEY_PET, sounds: GLASS }),
+      c('Yeti', 'Boss', QU + 'Big_Yeti.glb', { scale: 2.0, anims: Q_BIG, sounds: BIGMETAL }),
+      c('Husky', 'Elite', QA + 'Husky.glb', { anims: Q_CANINE, sounds: SNOW }),
+      c('Polar Bear', 'Brute', PETS + 'animal-polar.glb', { scale: 1.3, anims: KENNEY_PET, sounds: HEAVY }),
+      c('Doe', 'Runner', QA + 'Deer.glb', { anims: Q_ANIMAL, sounds: SNOW }),
+      c('Arctic Fox', 'Spitter', QA + 'Fox.glb', { anims: Q_CANINE, sounds: SNOW }),
+      c('Frost Dragon', 'Boss', QU + 'Flying_Dragon.glb', { scale: 1.8, anims: Q_FLY, sounds: BIGMETAL }),
+      c('Ice Stag', 'Brute', QA + 'Stag.glb', { scale: 1.2, anims: Q_ANIMAL, sounds: HEAVY }),
+      c('Reindeer', 'Healer', QCU + 'Deer.glb', { anims: Q_CUTE, sounds: SNOW }),
+      c('Snow Bunny', 'Runner', PETS + 'animal-deer.glb', { anims: KENNEY_PET, sounds: SNOW }),
+      c('Yeti Cub', 'Runner', QU + 'Blob_Yeti.glb', { anims: Q_BLOB, sounds: SNOW }),
+      c('Young Yeti', 'Brute', QCU + 'Yeti.glb', { scale: 1.2, anims: Q_CUTE, sounds: HEAVY }),
+      c('Alpaking', 'Flyer', QU + 'Flying_Alpaking.glb', { anims: Q_FLY, sounds: FLY }),
+      c('Alpaking Evolved', 'Flyer', QU + 'Flying_Alpaking_Evolved.glb', { scale: 1.2, anims: Q_FLY, sounds: FLY }),
+      c('Snow Birb', 'Shielder', QU + 'Big_Birb.glb', { scale: 1.2, anims: Q_BIG, sounds: SNOW }),
+      c('Hywirl', 'Elite', QU + 'Flying_Hywirl.glb', { anims: Q_FLY, sounds: GLASS }),
+    ],
+  },
+  {
+    id: 'jungle', name: 'Jungle Temple', map: 'Jungle Temple', source: 'Kenney Cube Pets, Quaternius Dinosaurs + Ultimate + Cute Monsters (all CC0)',
+    creatures: [
+      c('Monkey', 'Runner', PETS + 'animal-monkey.glb', { anims: KENNEY_PET, sounds: SOFT }),
       c('Raptor', 'Runner', QD + 'Velociraptor.glb', { anims: Q_DINO('Velociraptor'), sounds: SOFT }),
-      c('Spitter Para', 'Spitter', QD + 'Parasaurolophus.glb', { anims: Q_DINO('Parasaurolophus'), sounds: SOFT }),
+      c('Giraffe', 'Spitter', PETS + 'animal-giraffe.glb', { anims: KENNEY_PET, sounds: SOFT }),
+      c('Lion', 'Brute', PETS + 'animal-lion.glb', { scale: 1.3, anims: KENNEY_PET, sounds: HEAVY }),
+      c('Rex', 'Boss', QD + 'Trex.glb', { scale: 1.8, anims: Q_DINO('TRex'), sounds: BIGMETAL }),
+      c('Para', 'Spitter', QD + 'Parasaurolophus.glb', { anims: Q_DINO('Parasaurolophus'), sounds: SOFT }),
+      c('Panda', 'Shielder', PETS + 'animal-panda.glb', { scale: 1.2, anims: KENNEY_PET, sounds: WOOD }),
+      c('Koala', 'Healer', PETS + 'animal-koala.glb', { anims: KENNEY_PET, sounds: SOFT }),
+      c('Tiger', 'Elite', PETS + 'animal-tiger.glb', { anims: KENNEY_PET, sounds: SOFT }),
+      c('Yellow Dragon', 'Boss', QCU + 'YellowDragon.glb', { scale: 1.8, anims: Q_CUTE_FLY, sounds: BIGMETAL }),
       c('Stego', 'Brute', QD + 'Stegosaurus.glb', { scale: 1.2, anims: Q_DINO('Stegosaurus'), sounds: HEAVY }),
-      c('Trike', 'Shielder', QD + 'Triceratops.glb', { scale: 1.2, tint: 0x6080c0, anims: Q_DINO('Triceratops'), sounds: HEAVY }),
+      c('Trike', 'Shielder', QD + 'Triceratops.glb', { scale: 1.2, anims: Q_DINO('Triceratops'), sounds: HEAVY }),
       c('Longneck', 'Brute', QD + 'Apatosaurus.glb', { scale: 1.5, anims: { ...Q_DINO('Apatosaurus'), death: 'Stegosaurus_Death' }, sounds: HEAVY }),
-      c('Rex', 'Boss', QD + 'Trex.glb', { scale: 1.8, tint: 0xff7a5a, anims: Q_DINO('TRex'), sounds: BIGMETAL }),
-      c('Temple Beast', 'Exploder', QP + 'Enemy.glb', { tint: 0xffa040, anims: Q_MONSTER, sounds: { ...SOFT, death: 'impact_bell_heavy' } }),
+      c('Dino', 'Runner', QU + 'Big_Dino.glb', { anims: Q_BIG, sounds: SOFT }),
+      c('Elephant', 'Brute', PETS + 'animal-elephant.glb', { scale: 1.6, anims: KENNEY_PET, sounds: HEAVY }),
+      c('Red Panda', 'Healer', QCU + 'Panda.glb', { anims: Q_CUTE, sounds: SOFT }),
+      c('Cactus', 'Exploder', QCU + 'Cactus.glb', { anims: Q_CUTE, sounds: BOOM }),
+      c('Armabee', 'Flyer', QU + 'Flying_Armabee.glb', { anims: Q_FLY, sounds: FLY }),
+      c('Armabee Evolved', 'Flyer', QU + 'Flying_Armabee_Evolved.glb', { scale: 1.2, anims: Q_FLY, sounds: FLY }),
+      c('Jungle Bee', 'Flyer', QCU + 'Bee.glb', { anims: Q_CUTE_FLY, sounds: FLY }),
     ],
   },
   {
-    id: 'pirates', name: 'Pirate Cove: Kenney blocky characters', map: 'Pirate Cove', source: 'Kenney Blocky Characters (CC0)',
+    id: 'pirate', name: 'Pirate Cove', map: 'Pirate Cove', source: 'Kenney Blocky Characters + Cube Pets, Quaternius Ultimate + Cute Monsters (all CC0)',
     creatures: [
-      c('Deckhand', 'Runner', BLOCKY + 'character-b.glb'),
-      c('Gunner', 'Spitter', BLOCKY + 'character-c.glb', { sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_metal_medium', step: 'footstep_wood' } }),
-      c('Powder Monkey', 'Exploder', BLOCKY + 'character-d.glb', { tint: 0xffa040, sounds: { hit: 'impact_punch_medium', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'footstep_wood' } }),
-      c('Boatswain', 'Shielder', BLOCKY + 'character-g.glb', { scale: 1.1, tint: 0x6080c0, sounds: { hit: 'impact_plate_medium', death: 'impact_metal_heavy', attack: 'impact_plate_light', step: 'footstep_wood' } }),
-      c('Surgeon', 'Healer', BLOCKY + 'character-h.glb', { tint: 0x80ff9a, sounds: { hit: 'impact_punch_medium', death: 'impact_soft_heavy', attack: 'impact_bell_heavy', step: 'footstep_wood' } }),
-      c('First Mate', 'Brute', BLOCKY + 'character-l.glb', { scale: 1.25, sounds: { hit: 'impact_punch_heavy', death: 'impact_soft_heavy', attack: 'impact_wood_heavy', step: 'footstep_wood' } }),
-      c('Captain', 'Boss', BLOCKY + 'character-i.glb', { scale: 2.2, tint: 0xff5a5a, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: 'impact_soft_heavy' } }),
+      c('Deckhand', 'Runner', BLOCKY + 'character-j.glb', { sounds: { ...SOFT, step: 'footstep_wood' } }),
+      c('Swabbie', 'Runner', BLOCKY + 'character-p.glb', { sounds: { ...SOFT, step: 'footstep_wood' } }),
+      c('Gunner', 'Spitter', BLOCKY + 'character-k.glb', { sounds: { ...SOFT, attack: 'impact_metal_medium' } }),
+      c('Powder Monkey', 'Exploder', BLOCKY + 'character-l.glb', { sounds: BOOM }),
+      c('Kraken', 'Boss', QU + 'Flying_Squidle.glb', { scale: 2.2, anims: Q_FLY, sounds: BIGMETAL }),
+      c('Boatswain', 'Shielder', BLOCKY + 'character-m.glb', { scale: 1.1, sounds: { ...SOFT, hit: 'impact_plate_medium' } }),
+      c('Surgeon', 'Healer', BLOCKY + 'character-n.glb'),
+      c('First Mate', 'Brute', BLOCKY + 'character-o.glb', { scale: 1.25, sounds: HEAVY }),
+      c('Parrot', 'Flyer', PETS + 'animal-parrot.glb', { anims: KENNEY_PET, sounds: FLY }),
+      c('Deep One', 'Boss', QCU + 'Cthulhu.glb', { scale: 2.0, anims: Q_CUTE_FLY, sounds: BIGMETAL }),
+      c('Lookout', 'Runner', BLOCKY + 'character-q.glb'),
+      c('Quartermaster', 'Elite', BLOCKY + 'character-r.glb'),
+      c('Reef Crab', 'Brute', QCU + 'Crab.glb', { scale: 1.3, anims: Q_CUTE, sounds: { ...HEAVY, hit: 'impact_plate_medium' } }),
     ],
   },
   {
-    id: 'invaders', name: 'Factory: Kenney UFOs (flying, static models)', map: 'Factory', source: 'Kenney Tower Defense Kit (CC0) + Quaternius Cyberpunk Kit and Mechs (CC0)',
+    id: 'factory', name: 'Factory', map: 'Factory', source: 'Quaternius Cyberpunk Kit + Mechs + Ultimate Monsters, Kenney Tower Defense UFOs (static) (all CC0)',
     creatures: [
-      c('Scout UFO', 'Flyer', UFO + 'enemy-ufo-a.glb', { anims: NONE, sounds: { hit: 'impact_metal_light', death: 'impact_metal_heavy', attack: 'impact_generic_light', step: null } }),
-      c('Gunship', 'Spitter', UFO + 'enemy-ufo-b-weapon.glb', { anims: NONE, sounds: { hit: 'impact_metal_medium', death: 'impact_metal_heavy', attack: 'impact_tin_medium', step: null } }),
-      c('Hauler', 'Brute', UFO + 'enemy-ufo-c.glb', { scale: 1.3, anims: NONE, sounds: { hit: 'impact_metal_medium', death: 'impact_metal_heavy', attack: 'impact_plate_heavy', step: null } }),
-      c('Kamikaze', 'Exploder', UFO + 'enemy-ufo-a-weapon.glb', { tint: 0xffa040, anims: NONE, sounds: { hit: 'impact_metal_light', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: null } }),
-      c('Mothership', 'Boss', UFO + 'enemy-ufo-d-weapon.glb', { scale: 2.5, tint: 0xff5a5a, anims: NONE, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: null } }),
       c('Walker', 'Runner', QC + 'Enemy_2Legs.glb', { anims: Q_CYBER, sounds: METAL }),
+      c('Scout Mech', 'Runner', QM + 'Leela.glb', { anims: Q_MECH, sounds: METAL }),
       c('Gun Walker', 'Spitter', QC + 'Enemy_2Legs_Gun.glb', { anims: { ...Q_CYBER, attack: 'Shoot' }, sounds: METAL }),
       c('Hover Drone', 'Flyer', QC + 'Enemy_Flying.glb', { anims: { ...Q_CYBER, death: 'Dead', hit: 'Attack', spawn: 'Idle' }, sounds: { ...METAL, step: null } }),
+      c('Siege Unit', 'Boss', QC + 'Enemy_Large_Gun.glb', { scale: 2.0, anims: { ...Q_CYBER, attack: 'Shoot' }, sounds: BIGMETAL }),
+      c('Scout UFO', 'Flyer', UFO + 'enemy-ufo-a.glb', { anims: NONE, sounds: { ...METAL, step: null } }),
       c('Gun Drone', 'Spitter', QC + 'Enemy_Flying_Gun.glb', { anims: { ...Q_CYBER, attack: 'Shoot', death: 'Dead', hit: 'Attack', spawn: 'Idle' }, sounds: { ...METAL, step: null } }),
       c('Crusher', 'Brute', QC + 'Enemy_Large.glb', { scale: 1.3, anims: Q_CYBER, sounds: BIGMETAL }),
-      c('Siege Unit', 'Boss', QC + 'Enemy_Large_Gun.glb', { scale: 2.0, tint: 0xff5a5a, anims: { ...Q_CYBER, attack: 'Shoot' }, sounds: BIGMETAL }),
-      c('Cyber Raider', 'Elite', QC + 'Character.glb', { tint: 0x9ad5ff, anims: { idle: 'Idle_Neutral', walk: 'Walk', run: 'Run', attack: 'Gun_Shoot', hit: 'HitRecieve', death: 'Death', spawn: 'Interact' }, sounds: SOFT }),
-      c('Dozer Mech', 'Brute', QM + 'George.glb', { scale: 1.3, anims: Q_MECH, sounds: BIGMETAL }),
-      c('Scout Mech', 'Runner', QM + 'Leela.glb', { anims: Q_MECH, sounds: METAL }),
-      c('Welder Mech', 'Healer', QM + 'Mike.glb', { tint: 0x80ff9a, anims: Q_MECH, sounds: METAL }),
-      c('Riot Mech', 'Shielder', QM + 'Stan.glb', { scale: 1.2, tint: 0x6080c0, anims: Q_MECH, sounds: BIGMETAL }),
+      c('Welder Mech', 'Healer', QM + 'Mike.glb', { anims: Q_MECH, sounds: METAL }),
+      c('Dozer Mech', 'Boss', QM + 'George.glb', { scale: 2.0, anims: Q_MECH, sounds: BIGMETAL }),
+      c('Riot Mech', 'Shielder', QM + 'Stan.glb', { scale: 1.2, anims: Q_MECH, sounds: BIGMETAL }),
+      c('Cyber Raider', 'Elite', QC + 'Character.glb', { anims: { idle: 'Idle_Neutral', walk: 'Walk', run: 'Run', attack: 'Gun_Shoot', hit: 'HitRecieve', death: 'Death', spawn: 'Interact' }, sounds: SOFT }),
+      c('Gunship', 'Spitter', UFO + 'enemy-ufo-b-weapon.glb', { anims: NONE, sounds: { ...METAL, step: null } }),
+      c('Hauler', 'Brute', UFO + 'enemy-ufo-c.glb', { scale: 1.3, anims: NONE, sounds: { ...BIGMETAL, step: null } }),
+      c('Kamikaze', 'Exploder', UFO + 'enemy-ufo-a-weapon.glb', { anims: NONE, sounds: { ...METAL, death: 'impact_bell_heavy', step: null } }),
+      c('Lancer', 'Spitter', UFO + 'enemy-ufo-c-weapon.glb', { anims: NONE, sounds: { ...METAL, step: null } }),
+      c('Bulwark', 'Shielder', UFO + 'enemy-ufo-d.glb', { scale: 1.3, anims: NONE, sounds: { ...BIGMETAL, step: null } }),
+      c('Goleling', 'Shielder', QU + 'Flying_Goleling.glb', { anims: Q_FLY, sounds: { ...BIGMETAL, step: null } }),
+      c('Goleling Evolved', 'Elite', QU + 'Flying_Goleling_Evolved.glb', { scale: 1.2, anims: Q_FLY, sounds: { ...BIGMETAL, step: null } }),
+      c('Mothership', 'Boss', UFO + 'enemy-ufo-d-weapon.glb', { scale: 2.5, anims: NONE, sounds: { ...BIGMETAL, step: null } }),
     ],
   },
   {
-    id: 'aliens', name: 'Space Station: Kenney space aliens and UFOs (static models)', map: 'Space Station', source: 'Kenney Space Kit + Tower Defense Kit (CC0) + Quaternius Ultimate Space Kit (CC0)',
+    id: 'station', name: 'Space Station', map: 'Space Station', source: 'Quaternius Ultimate Space Kit + Ultimate + Cute Monsters, Kenney Space Kit alien (static) (all CC0)',
     creatures: [
-      c('Alien', 'Runner', '../assets/creatures/kenney-space/alien.glb', { anims: NONE, tint: 0x80ff9a, sounds: { hit: 'impact_soft_medium', death: 'impact_glass_heavy', attack: 'impact_generic_light', step: null } }),
-      c('Drone', 'Flyer', UFO + 'enemy-ufo-a.glb', { scale: 0.8, anims: NONE, sounds: { hit: 'impact_metal_light', death: 'impact_metal_heavy', attack: 'impact_generic_light', step: null } }),
-      c('Lancer', 'Spitter', UFO + 'enemy-ufo-c-weapon.glb', { anims: NONE, sounds: { hit: 'impact_metal_medium', death: 'impact_metal_heavy', attack: 'impact_tin_medium', step: null } }),
-      c('Bulwark', 'Shielder', UFO + 'enemy-ufo-d.glb', { scale: 1.3, tint: 0x6080c0, anims: NONE, sounds: { hit: 'impact_plate_heavy', death: 'impact_metal_heavy', attack: 'impact_plate_medium', step: null } }),
-      c('Hive Alien', 'Boss', '../assets/creatures/kenney-space/alien.glb', { scale: 2.6, tint: 0xff5a5a, anims: NONE, sounds: { hit: 'impact_plate_heavy', death: 'impact_bell_heavy', attack: 'impact_metal_heavy', step: null } }),
-      c('Spore', 'Flyer', QS + 'Enemy_ExtraSmall.glb', { anims: Q_SPACE_FLYER, sounds: { ...SOFT, step: null } }),
-      c('Floater', 'Flyer', QS + 'Enemy_Small.glb', { anims: Q_SPACE_FLYER, sounds: { ...SOFT, step: null } }),
-      c('Stinger', 'Flyer', QS + 'Enemy_Flying.glb', { scale: 1.2, anims: Q_SPACE_FLYER, sounds: { ...SOFT, step: null } }),
-      c('Brood Alien', 'Brute', QS + 'Enemy_Large.glb', { scale: 1.3, anims: Q_SPACE_CHAR, sounds: HEAVY }),
+      c('Spore', 'Flyer', QS + 'Enemy_ExtraSmall.glb', { anims: Q_SPACE_FLYER, sounds: FLY }),
+      c('Alien', 'Runner', '../assets/creatures/kenney-space/alien.glb', { anims: NONE, sounds: GLASS }),
+      c('Grey', 'Runner', QCU + 'Alien.glb', { anims: Q_CUTE, sounds: GLASS }),
+      c('Floater', 'Flyer', QS + 'Enemy_Small.glb', { anims: Q_SPACE_FLYER, sounds: FLY }),
+      c('Panda Mech', 'Boss', QS + 'Mech_RaeTheRedPanda.glb', { scale: 2.0, anims: Q_SPACE_MECH, sounds: BIGMETAL }),
+      c('Tall Grey', 'Elite', QCU + 'Alien_Tall.glb', { anims: Q_CUTE, sounds: GLASS }),
+      c('Stinger', 'Flyer', QS + 'Enemy_Flying.glb', { scale: 1.2, anims: Q_SPACE_FLYER, sounds: FLY }),
       c('Rogue Bee', 'Runner', QS + 'Astronaut_BarbaraTheBee.glb', { anims: Q_SPACE_CHAR, sounds: SOFT }),
       c('Rogue Flamingo', 'Spitter', QS + 'Astronaut_FernandoTheFlamingo.glb', { anims: { ...Q_SPACE_CHAR, attack: 'Run_Gun_Shoot', idle: 'Idle_Gun' }, sounds: SOFT }),
-      c('Rogue Frog', 'Healer', QS + 'Astronaut_FinnTheFrog.glb', { tint: 0x80ff9a, anims: Q_SPACE_CHAR, sounds: SOFT }),
-      c('Rogue Panda', 'Elite', QS + 'Astronaut_RaeTheRedPanda.glb', { tint: 0x9ad5ff, anims: Q_SPACE_CHAR, sounds: SOFT }),
-      c('Bee Mech', 'Shielder', QS + 'Mech_BarbaraTheBee.glb', { scale: 1.2, tint: 0x6080c0, anims: Q_SPACE_MECH, sounds: BIGMETAL }),
+      c('Brood Alien', 'Boss', QU + 'Big_Alien.glb', { scale: 2.0, anims: Q_BIG, sounds: BIGMETAL }),
+      c('Rogue Frog', 'Healer', QS + 'Astronaut_FinnTheFrog.glb', { anims: Q_SPACE_CHAR, sounds: SOFT }),
+      c('Rogue Panda', 'Elite', QS + 'Astronaut_RaeTheRedPanda.glb', { anims: Q_SPACE_CHAR, sounds: SOFT }),
+      c('Brood Guard', 'Brute', QS + 'Enemy_Large.glb', { scale: 1.3, anims: Q_SPACE_CHAR, sounds: HEAVY }),
+      c('Bee Mech', 'Shielder', QS + 'Mech_BarbaraTheBee.glb', { scale: 1.2, anims: Q_SPACE_MECH, sounds: BIGMETAL }),
       c('Flamingo Mech', 'Spitter', QS + 'Mech_FernandoTheFlamingo.glb', { anims: Q_SPACE_MECH, sounds: METAL }),
       c('Frog Mech', 'Brute', QS + 'Mech_FinnTheFrog.glb', { scale: 1.3, anims: { ...Q_SPACE_MECH, attack: 'Kick' }, sounds: BIGMETAL }),
-      c('Panda Mech', 'Boss', QS + 'Mech_RaeTheRedPanda.glb', { scale: 2.0, tint: 0xff5a5a, anims: Q_SPACE_MECH, sounds: BIGMETAL }),
     ],
   },
 ];
 
-// Variants pad every family to MIN_PER_FAMILY creatures. A variant reuses a base model with a
-// prefix, a tint, a scale and a stat twist, so it is a placeholder for a distinct model later:
-// the game can ship with recolors, but each one is a candidate for its own model or accessory.
-export const MIN_PER_FAMILY = 20;
-const VARIANTS = [
-  { prefix: 'Feral',    tint: 0xffd060, scale: 0.95, stats: { speed: 1.25, coins: 1.1 },  note: 'faster' },
-  { prefix: 'Armored',  tint: 0xb0b8c8, scale: 1.1,  stats: { health: 1.6, speed: 0.85, coins: 1.3 }, note: 'tougher, slower' },
-  { prefix: 'Shadow',   tint: 0x6040a0, scale: 1.0,  stats: { damage: 1.3, coins: 1.4 },  note: 'hits harder' },
-  { prefix: 'Giant',    tint: 0xff9060, scale: 1.4,  stats: { health: 2.2, speed: 0.75, damage: 1.5, coins: 1.8 }, note: 'much bigger' },
-  { prefix: 'Plagued',  tint: 0x80d040, scale: 1.0,  stats: { health: 0.8, coins: 1.2 },  note: 'leaves a slow pool on death' },
-  { prefix: 'Burning',  tint: 0xff5020, scale: 1.0,  stats: { damage: 1.2, coins: 1.3 },  note: 'ignites floor spells' },
-];
-
-function expandFamily(f) {
-  const base = f.creatures.slice();
-  let v = 0;
-  while (f.creatures.length < MIN_PER_FAMILY && base.length) {
-    const src = base[v % base.length];
-    const variant = VARIANTS[Math.floor(v / base.length) % VARIANTS.length];
-    if (src.type !== 'Boss') {
-      f.creatures.push({ ...src, id: `${variant.prefix} ${src.id}`, tint: variant.tint, scale: src.scale * variant.scale,
-        variantOf: src.id, variant });
-    }
-    v++;
-    if (v > base.length * VARIANTS.length) break;
-  }
-}
-
-// Fill in stats and blurb from the archetype table so each family only states what differs.
+// Fill in stats and blurb from the archetype table. Waves: creatures appear in list order, one new
+// creature per wave; bosses take waves 5, 10, 15, 20 in the order listed.
 for (const f of FAMILIES) {
-  expandFamily(f);
+  let wave = 0, bossN = 0;
   for (const cr of f.creatures) {
     const a = ARCHETYPES[cr.type];
-    const m = cr.variant?.stats ?? {};
-    cr.stats = {
-      health: Math.round(a.health * (m.health ?? 1)), speed: Math.round(a.speed * (m.speed ?? 1)),
-      damage: Math.round(a.damage * (m.damage ?? 1)), coins: Math.round(a.coins * (m.coins ?? 1)), firstWave: a.firstWave + (cr.variant ? 4 : 0),
-    };
-    cr.blurb = cr.variant ? `${cr.type} variant of ${cr.variantOf}: ${cr.variant.note}.` : `${cr.type}. ${a.blurb}`;
+    if (cr.type === 'Boss') { bossN++; cr.firstWave = bossN * 5; } else { wave++; if (wave % 5 === 0) wave++; cr.firstWave = wave; }
+    cr.stats = { health: a.health, speed: a.speed, damage: a.damage, coins: a.coins, firstWave: cr.firstWave };
+    cr.blurb = `${cr.type}. ${a.blurb}`;
     cr.source = f.source;
   }
 }
@@ -309,17 +346,86 @@ export const CLASSES = [
 
 // Dungeons (src/shared/Dungeons.luau): unlock level, creature family, lanes, gimmick, props kit.
 export const DUNGEONS = [
-  { id: 'Graveyard', name: 'Graveyard', unlockLevel: 1, family: 'skeletons', lanes: 3, gimmick: 'Fog rolls in on boss waves, cutting sight lines', props: 'KayKit Halloween Bits, Kenney Graveyard Kit' },
-  { id: 'Farm', name: 'Haunted Farm', unlockLevel: 3, family: 'farm', lanes: 2, gimmick: 'Hay bales can be pushed into lanes as cover; animals trample them', props: 'Kenney Farm / Nature kits (to fetch)' },
-  { id: 'Swamp', name: 'Swamp', unlockLevel: 5, family: 'swamp', lanes: 2, gimmick: 'Shallow water slows everyone; ice spells freeze it solid', props: 'Kenney Nature Kit (to fetch)' },
-  { id: 'Sewer', name: 'Sewer', unlockLevel: 10, family: 'slimes', lanes: 3, gimmick: 'Slimes split in two when killed above half health', props: 'Kenney Modular Cave / Platformer kits (to fetch)' },
-  { id: 'Village', name: 'Bandit Village', unlockLevel: 15, family: 'bandits', lanes: 4, gimmick: 'Bandits loot dropped coins before you can', props: 'KayKit Dungeon, Kenney Fantasy Town (to fetch)' },
-  { id: 'Frozen', name: 'Frozen Cavern', unlockLevel: 20, family: 'frozen', lanes: 2, gimmick: 'Everything is slippery; freeze spells last twice as long', props: 'Kenney Holiday + Modular Cave kits (to fetch)' },
-  { id: 'Jungle', name: 'Jungle Temple', unlockLevel: 25, family: 'jungle', lanes: 3, gimmick: 'Vines block sight lines until burned away', props: 'Kenney Nature Kit (to fetch)' },
-  { id: 'Pirate', name: 'Pirate Cove', unlockLevel: 30, family: 'pirates', lanes: 3, gimmick: 'Cannons on the cliffs can be captured and fired at the lanes', props: 'Kenney Pirate Kit (to fetch)' },
-  { id: 'Factory', name: 'Factory', unlockLevel: 35, family: 'invaders', lanes: 4, gimmick: 'Conveyor belts move anything on them, including grenades', props: 'Kenney Factory Kit (to fetch)' },
-  { id: 'Station', name: 'Space Station', unlockLevel: 40, family: 'aliens', lanes: 4, gimmick: 'Airlocks vent a lane for 5 s when opened', props: 'Kenney Space Station Kit (to fetch)' },
+  { id: 'Graveyard', name: 'Graveyard', unlockLevel: 1, family: 'graveyard', lanes: 3, gimmick: 'Fog rolls in on boss waves, cutting sight lines', props: 'KayKit Halloween Bits' },
+  { id: 'Farm', name: 'Haunted Farm', unlockLevel: 3, family: 'farm', lanes: 2, gimmick: 'Hay bales can be pushed into lanes as cover; animals trample them', props: 'Quaternius Village + Crops + Nature' },
+  { id: 'Swamp', name: 'Swamp', unlockLevel: 5, family: 'swamp', lanes: 2, gimmick: 'Shallow water slows everyone; ice spells freeze it solid', props: 'Quaternius Nature (willows, lilypads)' },
+  { id: 'Sewer', name: 'Sewer', unlockLevel: 10, family: 'sewer', lanes: 3, gimmick: 'Slimes split in two when killed above half health', props: 'Quaternius Modular Dungeon + Platformer pipes, KayKit Dungeon' },
+  { id: 'Village', name: 'Bandit Village', unlockLevel: 15, family: 'village', lanes: 4, gimmick: 'Bandits loot dropped coins before you can', props: 'Quaternius Medieval Village' },
+  { id: 'Frozen', name: 'Frozen Cavern', unlockLevel: 20, family: 'frozen', lanes: 2, gimmick: 'Everything is slippery; freeze spells last twice as long', props: 'Quaternius Nature (snow trees, rocks) + Space dome' },
+  { id: 'Jungle', name: 'Jungle Temple', unlockLevel: 25, family: 'jungle', lanes: 3, gimmick: 'Vines block sight lines until burned away', props: 'Quaternius Nature (palms) + Modular Dungeons ruins + Crops bamboo' },
+  { id: 'Pirate', name: 'Pirate Cove', unlockLevel: 30, family: 'pirate', lanes: 3, gimmick: 'Cannons on the cliffs can be captured and fired at the lanes', props: 'Quaternius Ships + Nature palms + Village barrels' },
+  { id: 'Factory', name: 'Factory', unlockLevel: 35, family: 'factory', lanes: 4, gimmick: 'Conveyor belts move anything on them, including grenades', props: 'Quaternius Cyberpunk Game Kit' },
+  { id: 'Station', name: 'Space Station', unlockLevel: 40, family: 'station', lanes: 4, gimmick: 'Airlocks vent a lane for 5 s when opened', props: 'Quaternius Ultimate Space Kit' },
 ];
+
+
+// Map previews (Dungeons tab). A map is a themed arena: ground + lane paths from the gates to the
+// Town Hall, a hall model, a gate model per lane, scattered props, and a few of the family's creatures
+// walking the lanes. `h` is the target height in metres the prop is scaled to; `n` how many to scatter.
+const HW = '../assets/props/kaykit-halloween/';
+const PN = '../assets/props/quaternius-nature/';
+const PV = '../assets/props/quaternius-village/';
+const PD = '../assets/props/quaternius-dungeon/';
+const PR = '../assets/props/quaternius-ruins/';
+const PC = '../assets/props/quaternius-cyberpunk-props/';
+const PS = '../assets/props/quaternius-space-props/';
+const PSH = '../assets/props/quaternius-ships/';
+const PCR = '../assets/props/quaternius-crops/';
+const PP = '../assets/props/quaternius-platformer-props/';
+const KD = '../assets/props/kaykit-dungeon/';
+const pr = (file, n, h, opts = {}) => ({ file, n, h, ...opts });
+export const MAPS = {
+  Graveyard: { ground: 0x2b3a2b, path: 0x4a3f33, sky: 0x151a22, fog: 0x1b2230,
+    hall: pr(HW + 'crypt.gltf', 1, 6), gate: pr(HW + 'arch_gate.gltf', 1, 4), props: [
+      pr(HW + 'tree_dead_large.gltf', 8, 6), pr(HW + 'tree_dead_medium.gltf', 8, 4), pr(HW + 'gravestone.gltf', 14, 1.2), pr(HW + 'grave_A.gltf', 8, 0.8),
+      pr(HW + 'grave_B.gltf', 6, 0.9), pr(HW + 'coffin.gltf', 3, 0.8), pr(HW + 'fence.gltf', 16, 1.2), pr(HW + 'post_lantern.gltf', 6, 2.4),
+      pr(HW + 'pumpkin_orange_jackolantern.gltf', 6, 0.6), pr(HW + 'shrine.gltf', 2, 2.5), pr(HW + 'tree_pine_orange_large.gltf', 5, 7) ] },
+  Farm: { ground: 0x5a7a33, path: 0x8a6a3a, sky: 0x3a2f3f, fog: 0x4a3a4f,
+    hall: pr(PV + 'Stable.glb', 1, 6), gate: pr(PV + 'Fence.glb', 1, 1.6), props: [
+      pr(PV + 'Hay.glb', 10, 1.2), pr(PV + 'Cart.glb', 3, 1.6), pr(PV + 'Well.glb', 1, 2.2), pr(PV + 'Barrel.glb', 6, 1), pr(PV + 'Crate.glb', 5, 1),
+      pr(PV + 'Mill.glb', 1, 9), pr(PCR + 'Pumpkin_Crop.glb', 8, 0.7), pr(PCR + 'Corn_Crop.glb', 10, 1.8), pr(PCR + 'Wheat_Crop.glb', 10, 1.2),
+      pr(PN + 'CommonTree_1.glb', 6, 6), pr(PN + 'CommonTree_Dead_1.glb', 3, 5), pr(HW + 'pumpkin_yellow.gltf', 5, 0.6) ] },
+  Swamp: { ground: 0x2f3f24, path: 0x3f4a2a, sky: 0x1c2420, fog: 0x2a3a2e, water: 0x274a3f,
+    hall: pr(PV + 'Gazebo.glb', 1, 5), gate: pr(PN + 'Willow_Dead_1.glb', 1, 7), props: [
+      pr(PN + 'Willow_1.glb', 6, 8), pr(PN + 'Willow_2.glb', 5, 7), pr(PN + 'Lilypad.glb', 14, 0.15), pr(PN + 'Plant_1.glb', 10, 1), pr(PN + 'Plant_2.glb', 8, 1),
+      pr(PN + 'Plant_3.glb', 8, 1.2), pr(PN + 'Grass.glb', 14, 0.6), pr(PN + 'Rock_1.glb', 5, 1), pr(PN + 'Rock_2.glb', 5, 1.4), pr(PN + 'CommonTree_Dead_2.glb', 4, 5),
+      pr(PN + 'WoodLog.glb', 4, 0.6), pr(PN + 'TreeStump.glb', 4, 0.6) ] },
+  Sewer: { ground: 0x2a2d31, path: 0x3b4044, sky: 0x101214, fog: 0x1a1e22, water: 0x3a5a2a,
+    hall: pr(PD + 'Entrance.glb', 1, 6), gate: pr(PD + 'Bars.glb', 1, 3), props: [
+      pr(PD + 'Barrel.glb', 8, 1), pr(PD + 'Bones.glb', 6, 0.5), pr(PD + 'Bones2.glb', 4, 0.5), pr(PD + 'Column.glb', 10, 4), pr(PD + 'Column_Broken.glb', 5, 2.5),
+      pr(PD + 'Torch.glb', 8, 1.6), pr(PD + 'Rock1.glb', 6, 1), pr(PD + 'Rock2.glb', 5, 1.3), pr(PP + 'Pipe.glb', 6, 2.2), pr(PD + 'WallRocks.glb', 6, 2.5),
+      pr(KD + 'crates_stacked.gltf.glb', 3, 1.4), pr(PD + 'Chest.glb', 2, 0.8) ] },
+  Village: { ground: 0x5f7f3a, path: 0x8c7a5a, sky: 0x4a3a30, fog: 0x5a4a40,
+    hall: pr(PV + 'Inn.glb', 1, 8), gate: pr(PV + 'Fence.glb', 1, 1.6), props: [
+      pr(PV + 'House_1.glb', 2, 6), pr(PV + 'House_2.glb', 2, 6), pr(PV + 'House_3.glb', 2, 6.5), pr(PV + 'House_4.glb', 1, 7), pr(PV + 'Blacksmith.glb', 1, 6),
+      pr(PV + 'MarketStand_1.glb', 2, 2.5), pr(PV + 'MarketStand_2.glb', 2, 2.5), pr(PV + 'Bonfire_Lit.glb', 2, 1.2), pr(PV + 'Well.glb', 1, 2.2), pr(PV + 'Cart.glb', 2, 1.6),
+      pr(PV + 'Bell_Tower.glb', 1, 9), pr(PV + 'Barrel.glb', 6, 1), pr(PV + 'Crate.glb', 6, 1), pr(PV + 'Bench_1.glb', 3, 0.8), pr(PN + 'CommonTree_2.glb', 5, 6) ] },
+  Frozen: { ground: 0xd8e4ee, path: 0xa8bccc, sky: 0x1a2634, fog: 0x3a4a5c,
+    hall: pr(PS + 'GeodesicDome.glb', 1, 6), gate: pr(PN + 'BirchTree_Dead_Snow_1.glb', 1, 6), props: [
+      pr(PN + 'PineTree_Snow_1.glb', 8, 8), pr(PN + 'PineTree_Snow_2.glb', 8, 7), pr(PN + 'PineTree_Snow_3.glb', 6, 6), pr(PN + 'CommonTree_Snow_1.glb', 5, 6),
+      pr(PN + 'CommonTree_Snow_2.glb', 4, 5), pr(PN + 'Bush_Snow_1.glb', 8, 1), pr(PN + 'Bush_Snow_2.glb', 6, 1), pr(PN + 'Rock_Snow_1.glb', 6, 1.4),
+      pr(PN + 'Rock_Snow_2.glb', 6, 2), pr(PN + 'Rock_Snow_3.glb', 4, 2.6), pr(PN + 'BirchTree_Dead_Snow_2.glb', 4, 6) ] },
+  Jungle: { ground: 0x3f6a2f, path: 0x6a5a3a, sky: 0x1e2a1a, fog: 0x2e4a2a,
+    hall: pr(PR + 'Statue_Horse.glb', 1, 6), gate: pr(PR + 'Arch_Door.glb', 1, 4.5), props: [
+      pr(PN + 'PalmTree_1.glb', 6, 8), pr(PN + 'PalmTree_2.glb', 6, 7), pr(PN + 'PalmTree_3.glb', 4, 9), pr(PN + 'CommonTree_3.glb', 5, 7), pr(PN + 'Plant_4.glb', 10, 1.2),
+      pr(PN + 'Plant_5.glb', 10, 1.4), pr(PN + 'Flowers.glb', 8, 0.5), pr(PN + 'Grass_2.glb', 10, 0.6), pr(PR + 'Column.glb', 6, 4), pr(PR + 'Column2.glb', 4, 4),
+      pr(PR + 'Pedestal.glb', 4, 1.2), pr(PR + 'Vase.glb', 4, 1), pr(PR + 'Skull.glb', 4, 0.5), pr(PCR + 'Bamboo_Crop.glb', 8, 3) ] },
+  Pirate: { ground: 0xd8c48a, path: 0xb8a070, sky: 0x1a2a3a, fog: 0x2a3a4a, water: 0x2a6a8a,
+    hall: pr(PSH + 'Sail_ship.glb', 1, 12), gate: pr(PSH + 'Boat.glb', 1, 1.6), props: [
+      pr(PN + 'PalmTree_1.glb', 6, 7), pr(PN + 'PalmTree_4.glb', 6, 8), pr(PV + 'Barrel.glb', 8, 1), pr(PV + 'Crate.glb', 6, 1), pr(PV + 'Bonfire_Lit.glb', 2, 1.2),
+      pr(PN + 'Rock_3.glb', 6, 1.6), pr(PN + 'Rock_4.glb', 4, 2.4), pr(PSH + 'Viking_boat.glb', 1, 3), pr(PSH + 'BoatWSail.glb', 1, 4), pr(PSH + 'Lifeboat.glb', 2, 1.2),
+      pr(KD + 'chest_gold.glb', 2, 0.8), pr(PN + 'Grass_Short.glb', 10, 0.4) ] },
+  Factory: { ground: 0x33363c, path: 0x4a4e55, sky: 0x101418, fog: 0x1c2228,
+    hall: pr(PC + 'Computer_Large.glb', 1, 5), gate: pr(PC + 'Door.glb', 1, 4), props: [
+      pr(PC + 'AC.glb', 5, 1), pr(PC + 'AC_Stacked.glb', 3, 2), pr(PC + 'Antenna_1.glb', 4, 3), pr(PC + 'Antenna_2.glb', 3, 4), pr(PC + 'Cable_Thick.glb', 4, 0.6),
+      pr(PC + 'Fence.glb', 10, 1.6), pr(PC + 'Light_Street_1.glb', 6, 4), pr(PC + 'Pipe_1.glb', 6, 1.2), pr(PC + 'Platform_4x4.glb', 3, 0.8), pr(PC + 'Rail_Long.glb', 4, 1),
+      pr(PC + 'Sign_1.glb', 3, 2.4), pr(PC + 'Support_Long.glb', 6, 5), pr(PC + 'Tank.glb', 4, 2.2), pr(PC + 'Turret_Gun.glb', 3, 2), pr(PC + 'Lootbox.glb', 3, 1) ] },
+  Station: { ground: 0x4a4658, path: 0x6a6480, sky: 0x08080f, fog: 0x14121c,
+    hall: pr(PS + 'Base_Large.glb', 1, 7), gate: pr(PS + 'Ramp.glb', 1, 1.5), props: [
+      pr(PS + 'Building_L.glb', 2, 6), pr(PS + 'House_Cylinder.glb', 2, 5), pr(PS + 'House_Long.glb', 2, 4), pr(PS + 'House_Single.glb', 2, 4), pr(PS + 'MetalSupport.glb', 6, 3),
+      pr(PS + 'Roof_Antenna.glb', 3, 2), pr(PS + 'Roof_Radar.glb', 2, 2.4), pr(PS + 'Rock_Large_1.glb', 4, 3), pr(PS + 'Rock_Large_2.glb', 3, 3.5), pr(PS + 'Rock_1.glb', 6, 1),
+      pr(PS + 'SolarPanel_Ground.glb', 4, 1.6), pr(PS + 'Tree_Light_1.glb', 5, 4), pr(PS + 'Tree_Spiral_1.glb', 4, 4), pr(PS + 'Rover_1.glb', 2, 1.6), pr(PS + 'Plant_1.glb', 8, 0.8) ] },
+};
 
 export const STAT_ICONS = { health: 'health', speed: 'speed', damage: 'damage', coins: 'coins', firstWave: 'wave', kills: 'kills' };
 export const STAT_LABELS = { health: 'Health', speed: 'Speed (studs/s)', damage: 'Town Hall damage', coins: 'Coins per kill', firstWave: 'First wave', tier: 'Tier', role: 'Role', weapon: 'Starting weapon', passive: 'Passive', active: 'Active', gear: 'Gear overlay' };

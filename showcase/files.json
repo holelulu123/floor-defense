@@ -785,6 +785,820 @@
      "file": "../assets/props/kaykit-dungeon/wall_doorway_sides.gltf.glb"
     }
    ]
+  },
+  {
+   "pack": "Quaternius Ultimate Nature (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "BirchTree Dead Snow 1",
+     "file": "../assets/props/quaternius-nature/BirchTree_Dead_Snow_1.glb"
+    },
+    {
+     "name": "BirchTree Dead Snow 2",
+     "file": "../assets/props/quaternius-nature/BirchTree_Dead_Snow_2.glb"
+    },
+    {
+     "name": "Bush 1",
+     "file": "../assets/props/quaternius-nature/Bush_1.glb"
+    },
+    {
+     "name": "Bush 2",
+     "file": "../assets/props/quaternius-nature/Bush_2.glb"
+    },
+    {
+     "name": "Bush Snow 1",
+     "file": "../assets/props/quaternius-nature/Bush_Snow_1.glb"
+    },
+    {
+     "name": "Bush Snow 2",
+     "file": "../assets/props/quaternius-nature/Bush_Snow_2.glb"
+    },
+    {
+     "name": "CommonTree 1",
+     "file": "../assets/props/quaternius-nature/CommonTree_1.glb"
+    },
+    {
+     "name": "CommonTree 2",
+     "file": "../assets/props/quaternius-nature/CommonTree_2.glb"
+    },
+    {
+     "name": "CommonTree 3",
+     "file": "../assets/props/quaternius-nature/CommonTree_3.glb"
+    },
+    {
+     "name": "CommonTree Dead 1",
+     "file": "../assets/props/quaternius-nature/CommonTree_Dead_1.glb"
+    },
+    {
+     "name": "CommonTree Dead 2",
+     "file": "../assets/props/quaternius-nature/CommonTree_Dead_2.glb"
+    },
+    {
+     "name": "CommonTree Dead 3",
+     "file": "../assets/props/quaternius-nature/CommonTree_Dead_3.glb"
+    },
+    {
+     "name": "CommonTree Snow 1",
+     "file": "../assets/props/quaternius-nature/CommonTree_Snow_1.glb"
+    },
+    {
+     "name": "CommonTree Snow 2",
+     "file": "../assets/props/quaternius-nature/CommonTree_Snow_2.glb"
+    },
+    {
+     "name": "Flowers",
+     "file": "../assets/props/quaternius-nature/Flowers.glb"
+    },
+    {
+     "name": "Grass",
+     "file": "../assets/props/quaternius-nature/Grass.glb"
+    },
+    {
+     "name": "Grass 2",
+     "file": "../assets/props/quaternius-nature/Grass_2.glb"
+    },
+    {
+     "name": "Grass Short",
+     "file": "../assets/props/quaternius-nature/Grass_Short.glb"
+    },
+    {
+     "name": "Lilypad",
+     "file": "../assets/props/quaternius-nature/Lilypad.glb"
+    },
+    {
+     "name": "PalmTree 1",
+     "file": "../assets/props/quaternius-nature/PalmTree_1.glb"
+    },
+    {
+     "name": "PalmTree 2",
+     "file": "../assets/props/quaternius-nature/PalmTree_2.glb"
+    },
+    {
+     "name": "PalmTree 3",
+     "file": "../assets/props/quaternius-nature/PalmTree_3.glb"
+    },
+    {
+     "name": "PalmTree 4",
+     "file": "../assets/props/quaternius-nature/PalmTree_4.glb"
+    },
+    {
+     "name": "PineTree 1",
+     "file": "../assets/props/quaternius-nature/PineTree_1.glb"
+    },
+    {
+     "name": "PineTree 2",
+     "file": "../assets/props/quaternius-nature/PineTree_2.glb"
+    },
+    {
+     "name": "PineTree Snow 1",
+     "file": "../assets/props/quaternius-nature/PineTree_Snow_1.glb"
+    },
+    {
+     "name": "PineTree Snow 2",
+     "file": "../assets/props/quaternius-nature/PineTree_Snow_2.glb"
+    },
+    {
+     "name": "PineTree Snow 3",
+     "file": "../assets/props/quaternius-nature/PineTree_Snow_3.glb"
+    },
+    {
+     "name": "Plant 1",
+     "file": "../assets/props/quaternius-nature/Plant_1.glb"
+    },
+    {
+     "name": "Plant 2",
+     "file": "../assets/props/quaternius-nature/Plant_2.glb"
+    },
+    {
+     "name": "Plant 3",
+     "file": "../assets/props/quaternius-nature/Plant_3.glb"
+    },
+    {
+     "name": "Plant 4",
+     "file": "../assets/props/quaternius-nature/Plant_4.glb"
+    },
+    {
+     "name": "Plant 5",
+     "file": "../assets/props/quaternius-nature/Plant_5.glb"
+    },
+    {
+     "name": "Rock 1",
+     "file": "../assets/props/quaternius-nature/Rock_1.glb"
+    },
+    {
+     "name": "Rock 2",
+     "file": "../assets/props/quaternius-nature/Rock_2.glb"
+    },
+    {
+     "name": "Rock 3",
+     "file": "../assets/props/quaternius-nature/Rock_3.glb"
+    },
+    {
+     "name": "Rock 4",
+     "file": "../assets/props/quaternius-nature/Rock_4.glb"
+    },
+    {
+     "name": "Rock 5",
+     "file": "../assets/props/quaternius-nature/Rock_5.glb"
+    },
+    {
+     "name": "Rock Snow 1",
+     "file": "../assets/props/quaternius-nature/Rock_Snow_1.glb"
+    },
+    {
+     "name": "Rock Snow 2",
+     "file": "../assets/props/quaternius-nature/Rock_Snow_2.glb"
+    },
+    {
+     "name": "Rock Snow 3",
+     "file": "../assets/props/quaternius-nature/Rock_Snow_3.glb"
+    },
+    {
+     "name": "TreeStump",
+     "file": "../assets/props/quaternius-nature/TreeStump.glb"
+    },
+    {
+     "name": "Willow 1",
+     "file": "../assets/props/quaternius-nature/Willow_1.glb"
+    },
+    {
+     "name": "Willow 2",
+     "file": "../assets/props/quaternius-nature/Willow_2.glb"
+    },
+    {
+     "name": "Willow Dead 1",
+     "file": "../assets/props/quaternius-nature/Willow_Dead_1.glb"
+    },
+    {
+     "name": "WoodLog",
+     "file": "../assets/props/quaternius-nature/WoodLog.glb"
+    }
+   ]
+  },
+  {
+   "pack": "Quaternius Medieval Village (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "Bag",
+     "file": "../assets/props/quaternius-village/Bag.glb"
+    },
+    {
+     "name": "Bags",
+     "file": "../assets/props/quaternius-village/Bags.glb"
+    },
+    {
+     "name": "Barrel",
+     "file": "../assets/props/quaternius-village/Barrel.glb"
+    },
+    {
+     "name": "Bell Tower",
+     "file": "../assets/props/quaternius-village/Bell_Tower.glb"
+    },
+    {
+     "name": "Bench 1",
+     "file": "../assets/props/quaternius-village/Bench_1.glb"
+    },
+    {
+     "name": "Blacksmith",
+     "file": "../assets/props/quaternius-village/Blacksmith.glb"
+    },
+    {
+     "name": "Bonfire Lit",
+     "file": "../assets/props/quaternius-village/Bonfire_Lit.glb"
+    },
+    {
+     "name": "Cart",
+     "file": "../assets/props/quaternius-village/Cart.glb"
+    },
+    {
+     "name": "Cauldron",
+     "file": "../assets/props/quaternius-village/Cauldron.glb"
+    },
+    {
+     "name": "Crate",
+     "file": "../assets/props/quaternius-village/Crate.glb"
+    },
+    {
+     "name": "Fence",
+     "file": "../assets/props/quaternius-village/Fence.glb"
+    },
+    {
+     "name": "Gazebo",
+     "file": "../assets/props/quaternius-village/Gazebo.glb"
+    },
+    {
+     "name": "Hay",
+     "file": "../assets/props/quaternius-village/Hay.glb"
+    },
+    {
+     "name": "House 1",
+     "file": "../assets/props/quaternius-village/House_1.glb"
+    },
+    {
+     "name": "House 2",
+     "file": "../assets/props/quaternius-village/House_2.glb"
+    },
+    {
+     "name": "House 3",
+     "file": "../assets/props/quaternius-village/House_3.glb"
+    },
+    {
+     "name": "House 4",
+     "file": "../assets/props/quaternius-village/House_4.glb"
+    },
+    {
+     "name": "Inn",
+     "file": "../assets/props/quaternius-village/Inn.glb"
+    },
+    {
+     "name": "MarketStand 1",
+     "file": "../assets/props/quaternius-village/MarketStand_1.glb"
+    },
+    {
+     "name": "MarketStand 2",
+     "file": "../assets/props/quaternius-village/MarketStand_2.glb"
+    },
+    {
+     "name": "Mill",
+     "file": "../assets/props/quaternius-village/Mill.glb"
+    },
+    {
+     "name": "Path Straight",
+     "file": "../assets/props/quaternius-village/Path_Straight.glb"
+    },
+    {
+     "name": "Rock 1",
+     "file": "../assets/props/quaternius-village/Rock_1.glb"
+    },
+    {
+     "name": "Rock 2",
+     "file": "../assets/props/quaternius-village/Rock_2.glb"
+    },
+    {
+     "name": "Sawmill",
+     "file": "../assets/props/quaternius-village/Sawmill.glb"
+    },
+    {
+     "name": "Stable",
+     "file": "../assets/props/quaternius-village/Stable.glb"
+    },
+    {
+     "name": "Well",
+     "file": "../assets/props/quaternius-village/Well.glb"
+    }
+   ]
+  },
+  {
+   "pack": "Quaternius Modular Dungeon (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "Barrel",
+     "file": "../assets/props/quaternius-dungeon/Barrel.glb"
+    },
+    {
+     "name": "Bars",
+     "file": "../assets/props/quaternius-dungeon/Bars.glb"
+    },
+    {
+     "name": "Bones",
+     "file": "../assets/props/quaternius-dungeon/Bones.glb"
+    },
+    {
+     "name": "Bones2",
+     "file": "../assets/props/quaternius-dungeon/Bones2.glb"
+    },
+    {
+     "name": "Candelabrum",
+     "file": "../assets/props/quaternius-dungeon/Candelabrum.glb"
+    },
+    {
+     "name": "Chest",
+     "file": "../assets/props/quaternius-dungeon/Chest.glb"
+    },
+    {
+     "name": "Column",
+     "file": "../assets/props/quaternius-dungeon/Column.glb"
+    },
+    {
+     "name": "Column Broken",
+     "file": "../assets/props/quaternius-dungeon/Column_Broken.glb"
+    },
+    {
+     "name": "Column Broken2",
+     "file": "../assets/props/quaternius-dungeon/Column_Broken2.glb"
+    },
+    {
+     "name": "Entrance",
+     "file": "../assets/props/quaternius-dungeon/Entrance.glb"
+    },
+    {
+     "name": "ModularColumn bottom",
+     "file": "../assets/props/quaternius-dungeon/ModularColumn_bottom.glb"
+    },
+    {
+     "name": "ModularStoneWall",
+     "file": "../assets/props/quaternius-dungeon/ModularStoneWall.glb"
+    },
+    {
+     "name": "ModularStoneWall top",
+     "file": "../assets/props/quaternius-dungeon/ModularStoneWall_top.glb"
+    },
+    {
+     "name": "Rock1",
+     "file": "../assets/props/quaternius-dungeon/Rock1.glb"
+    },
+    {
+     "name": "Rock2",
+     "file": "../assets/props/quaternius-dungeon/Rock2.glb"
+    },
+    {
+     "name": "Rock3",
+     "file": "../assets/props/quaternius-dungeon/Rock3.glb"
+    },
+    {
+     "name": "Torch",
+     "file": "../assets/props/quaternius-dungeon/Torch.glb"
+    },
+    {
+     "name": "Torch wall",
+     "file": "../assets/props/quaternius-dungeon/Torch_wall.glb"
+    },
+    {
+     "name": "WallRocks",
+     "file": "../assets/props/quaternius-dungeon/WallRocks.glb"
+    }
+   ]
+  },
+  {
+   "pack": "Quaternius Modular Dungeons ruins (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "Arch",
+     "file": "../assets/props/quaternius-ruins/Arch.glb"
+    },
+    {
+     "name": "Arch Door",
+     "file": "../assets/props/quaternius-ruins/Arch_Door.glb"
+    },
+    {
+     "name": "Banner",
+     "file": "../assets/props/quaternius-ruins/Banner.glb"
+    },
+    {
+     "name": "Barrel2",
+     "file": "../assets/props/quaternius-ruins/Barrel2.glb"
+    },
+    {
+     "name": "Coin Pile",
+     "file": "../assets/props/quaternius-ruins/Coin_Pile.glb"
+    },
+    {
+     "name": "Column",
+     "file": "../assets/props/quaternius-ruins/Column.glb"
+    },
+    {
+     "name": "Column2",
+     "file": "../assets/props/quaternius-ruins/Column2.glb"
+    },
+    {
+     "name": "Crate",
+     "file": "../assets/props/quaternius-ruins/Crate.glb"
+    },
+    {
+     "name": "Pedestal",
+     "file": "../assets/props/quaternius-ruins/Pedestal.glb"
+    },
+    {
+     "name": "Pedestal2",
+     "file": "../assets/props/quaternius-ruins/Pedestal2.glb"
+    },
+    {
+     "name": "Skull",
+     "file": "../assets/props/quaternius-ruins/Skull.glb"
+    },
+    {
+     "name": "Spikes",
+     "file": "../assets/props/quaternius-ruins/Spikes.glb"
+    },
+    {
+     "name": "Statue Horse",
+     "file": "../assets/props/quaternius-ruins/Statue_Horse.glb"
+    },
+    {
+     "name": "Vase",
+     "file": "../assets/props/quaternius-ruins/Vase.glb"
+    },
+    {
+     "name": "Woodfire",
+     "file": "../assets/props/quaternius-ruins/Woodfire.glb"
+    }
+   ]
+  },
+  {
+   "pack": "Quaternius Cyberpunk Game Kit props (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "AC",
+     "file": "../assets/props/quaternius-cyberpunk-props/AC.glb"
+    },
+    {
+     "name": "AC Stacked",
+     "file": "../assets/props/quaternius-cyberpunk-props/AC_Stacked.glb"
+    },
+    {
+     "name": "Antenna 1",
+     "file": "../assets/props/quaternius-cyberpunk-props/Antenna_1.glb"
+    },
+    {
+     "name": "Antenna 2",
+     "file": "../assets/props/quaternius-cyberpunk-props/Antenna_2.glb"
+    },
+    {
+     "name": "Cable Long",
+     "file": "../assets/props/quaternius-cyberpunk-props/Cable_Long.glb"
+    },
+    {
+     "name": "Cable Thick",
+     "file": "../assets/props/quaternius-cyberpunk-props/Cable_Thick.glb"
+    },
+    {
+     "name": "Computer",
+     "file": "../assets/props/quaternius-cyberpunk-props/Computer.glb"
+    },
+    {
+     "name": "Computer Large",
+     "file": "../assets/props/quaternius-cyberpunk-props/Computer_Large.glb"
+    },
+    {
+     "name": "Door",
+     "file": "../assets/props/quaternius-cyberpunk-props/Door.glb"
+    },
+    {
+     "name": "Fence",
+     "file": "../assets/props/quaternius-cyberpunk-props/Fence.glb"
+    },
+    {
+     "name": "Light Square",
+     "file": "../assets/props/quaternius-cyberpunk-props/Light_Square.glb"
+    },
+    {
+     "name": "Light Street 1",
+     "file": "../assets/props/quaternius-cyberpunk-props/Light_Street_1.glb"
+    },
+    {
+     "name": "Light Street 2",
+     "file": "../assets/props/quaternius-cyberpunk-props/Light_Street_2.glb"
+    },
+    {
+     "name": "Lootbox",
+     "file": "../assets/props/quaternius-cyberpunk-props/Lootbox.glb"
+    },
+    {
+     "name": "Pipe 1",
+     "file": "../assets/props/quaternius-cyberpunk-props/Pipe_1.glb"
+    },
+    {
+     "name": "Pipe 2",
+     "file": "../assets/props/quaternius-cyberpunk-props/Pipe_2.glb"
+    },
+    {
+     "name": "Pipe Corner",
+     "file": "../assets/props/quaternius-cyberpunk-props/Pipe_Corner.glb"
+    },
+    {
+     "name": "Platform 2x2",
+     "file": "../assets/props/quaternius-cyberpunk-props/Platform_2x2.glb"
+    },
+    {
+     "name": "Platform 4x4",
+     "file": "../assets/props/quaternius-cyberpunk-props/Platform_4x4.glb"
+    },
+    {
+     "name": "Rail Corner",
+     "file": "../assets/props/quaternius-cyberpunk-props/Rail_Corner.glb"
+    },
+    {
+     "name": "Rail Long",
+     "file": "../assets/props/quaternius-cyberpunk-props/Rail_Long.glb"
+    },
+    {
+     "name": "Sign 1",
+     "file": "../assets/props/quaternius-cyberpunk-props/Sign_1.glb"
+    },
+    {
+     "name": "Sign 2",
+     "file": "../assets/props/quaternius-cyberpunk-props/Sign_2.glb"
+    },
+    {
+     "name": "Sign Corner Hazard",
+     "file": "../assets/props/quaternius-cyberpunk-props/Sign_Corner_Hazard.glb"
+    },
+    {
+     "name": "Support Long",
+     "file": "../assets/props/quaternius-cyberpunk-props/Support_Long.glb"
+    },
+    {
+     "name": "Support Short",
+     "file": "../assets/props/quaternius-cyberpunk-props/Support_Short.glb"
+    },
+    {
+     "name": "Tank",
+     "file": "../assets/props/quaternius-cyberpunk-props/Tank.glb"
+    },
+    {
+     "name": "Turret Cannon",
+     "file": "../assets/props/quaternius-cyberpunk-props/Turret_Cannon.glb"
+    },
+    {
+     "name": "Turret Gun",
+     "file": "../assets/props/quaternius-cyberpunk-props/Turret_Gun.glb"
+    }
+   ]
+  },
+  {
+   "pack": "Quaternius Ultimate Space Kit props (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "Base Large",
+     "file": "../assets/props/quaternius-space-props/Base_Large.glb"
+    },
+    {
+     "name": "Building L",
+     "file": "../assets/props/quaternius-space-props/Building_L.glb"
+    },
+    {
+     "name": "Connector",
+     "file": "../assets/props/quaternius-space-props/Connector.glb"
+    },
+    {
+     "name": "GeodesicDome",
+     "file": "../assets/props/quaternius-space-props/GeodesicDome.glb"
+    },
+    {
+     "name": "House Cylinder",
+     "file": "../assets/props/quaternius-space-props/House_Cylinder.glb"
+    },
+    {
+     "name": "House Long",
+     "file": "../assets/props/quaternius-space-props/House_Long.glb"
+    },
+    {
+     "name": "House Open",
+     "file": "../assets/props/quaternius-space-props/House_Open.glb"
+    },
+    {
+     "name": "House Single",
+     "file": "../assets/props/quaternius-space-props/House_Single.glb"
+    },
+    {
+     "name": "MetalSupport",
+     "file": "../assets/props/quaternius-space-props/MetalSupport.glb"
+    },
+    {
+     "name": "Plant 1",
+     "file": "../assets/props/quaternius-space-props/Plant_1.glb"
+    },
+    {
+     "name": "Plant 2",
+     "file": "../assets/props/quaternius-space-props/Plant_2.glb"
+    },
+    {
+     "name": "Ramp",
+     "file": "../assets/props/quaternius-space-props/Ramp.glb"
+    },
+    {
+     "name": "Rock 1",
+     "file": "../assets/props/quaternius-space-props/Rock_1.glb"
+    },
+    {
+     "name": "Rock 2",
+     "file": "../assets/props/quaternius-space-props/Rock_2.glb"
+    },
+    {
+     "name": "Rock Large 1",
+     "file": "../assets/props/quaternius-space-props/Rock_Large_1.glb"
+    },
+    {
+     "name": "Rock Large 2",
+     "file": "../assets/props/quaternius-space-props/Rock_Large_2.glb"
+    },
+    {
+     "name": "Roof Antenna",
+     "file": "../assets/props/quaternius-space-props/Roof_Antenna.glb"
+    },
+    {
+     "name": "Roof Radar",
+     "file": "../assets/props/quaternius-space-props/Roof_Radar.glb"
+    },
+    {
+     "name": "Rover 1",
+     "file": "../assets/props/quaternius-space-props/Rover_1.glb"
+    },
+    {
+     "name": "Rover Round",
+     "file": "../assets/props/quaternius-space-props/Rover_Round.glb"
+    },
+    {
+     "name": "SolarPanel Ground",
+     "file": "../assets/props/quaternius-space-props/SolarPanel_Ground.glb"
+    },
+    {
+     "name": "SolarPanel Structure",
+     "file": "../assets/props/quaternius-space-props/SolarPanel_Structure.glb"
+    },
+    {
+     "name": "Stairs",
+     "file": "../assets/props/quaternius-space-props/Stairs.glb"
+    },
+    {
+     "name": "Tree Blob 1",
+     "file": "../assets/props/quaternius-space-props/Tree_Blob_1.glb"
+    },
+    {
+     "name": "Tree Light 1",
+     "file": "../assets/props/quaternius-space-props/Tree_Light_1.glb"
+    },
+    {
+     "name": "Tree Light 2",
+     "file": "../assets/props/quaternius-space-props/Tree_Light_2.glb"
+    },
+    {
+     "name": "Tree Spiral 1",
+     "file": "../assets/props/quaternius-space-props/Tree_Spiral_1.glb"
+    },
+    {
+     "name": "Tree Swirl 1",
+     "file": "../assets/props/quaternius-space-props/Tree_Swirl_1.glb"
+    }
+   ]
+  },
+  {
+   "pack": "Quaternius Ships",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "Boat",
+     "file": "../assets/props/quaternius-ships/Boat.glb"
+    },
+    {
+     "name": "BoatWSail",
+     "file": "../assets/props/quaternius-ships/BoatWSail.glb"
+    },
+    {
+     "name": "Lifeboat",
+     "file": "../assets/props/quaternius-ships/Lifeboat.glb"
+    },
+    {
+     "name": "Sail ship",
+     "file": "../assets/props/quaternius-ships/Sail_ship.glb"
+    },
+    {
+     "name": "Viking boat",
+     "file": "../assets/props/quaternius-ships/Viking_boat.glb"
+    }
+   ]
+  },
+  {
+   "pack": "Quaternius Ultimate Crops (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "Bamboo 3",
+     "file": "../assets/props/quaternius-crops/Bamboo_3.glb"
+    },
+    {
+     "name": "Bamboo Crop",
+     "file": "../assets/props/quaternius-crops/Bamboo_Crop.glb"
+    },
+    {
+     "name": "Cactus Crop",
+     "file": "../assets/props/quaternius-crops/Cactus_Crop.glb"
+    },
+    {
+     "name": "Carrot Crop",
+     "file": "../assets/props/quaternius-crops/Carrot_Crop.glb"
+    },
+    {
+     "name": "Corn Crop",
+     "file": "../assets/props/quaternius-crops/Corn_Crop.glb"
+    },
+    {
+     "name": "Corn Harvested",
+     "file": "../assets/props/quaternius-crops/Corn_Harvested.glb"
+    },
+    {
+     "name": "Mushroom 3",
+     "file": "../assets/props/quaternius-crops/Mushroom_3.glb"
+    },
+    {
+     "name": "Mushroom Crop",
+     "file": "../assets/props/quaternius-crops/Mushroom_Crop.glb"
+    },
+    {
+     "name": "Pumpkin 3",
+     "file": "../assets/props/quaternius-crops/Pumpkin_3.glb"
+    },
+    {
+     "name": "Pumpkin Crop",
+     "file": "../assets/props/quaternius-crops/Pumpkin_Crop.glb"
+    },
+    {
+     "name": "Wheat 3",
+     "file": "../assets/props/quaternius-crops/Wheat_3.glb"
+    },
+    {
+     "name": "Wheat Crop",
+     "file": "../assets/props/quaternius-crops/Wheat_Crop.glb"
+    }
+   ]
+  },
+  {
+   "pack": "Quaternius Modular Platformer props (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "BearTrap Open",
+     "file": "../assets/props/quaternius-platformer-props/BearTrap_Open.glb"
+    },
+    {
+     "name": "Crate",
+     "file": "../assets/props/quaternius-platformer-props/Crate.glb"
+    },
+    {
+     "name": "Fence",
+     "file": "../assets/props/quaternius-platformer-props/Fence.glb"
+    },
+    {
+     "name": "Ladder medium",
+     "file": "../assets/props/quaternius-platformer-props/Ladder_medium.glb"
+    },
+    {
+     "name": "Mushroom",
+     "file": "../assets/props/quaternius-platformer-props/Mushroom.glb"
+    },
+    {
+     "name": "Pipe",
+     "file": "../assets/props/quaternius-platformer-props/Pipe.glb"
+    },
+    {
+     "name": "Rock1",
+     "file": "../assets/props/quaternius-platformer-props/Rock1.glb"
+    },
+    {
+     "name": "Rock2",
+     "file": "../assets/props/quaternius-platformer-props/Rock2.glb"
+    },
+    {
+     "name": "Spike Group",
+     "file": "../assets/props/quaternius-platformer-props/Spike_Group.glb"
+    }
+   ]
   }
  ]
 }

@@ -18,6 +18,15 @@ PACKS = {
     "props": [
         ("props/kaykit-halloween", "KayKit Halloween Bits", "CC0"),
         ("props/kaykit-dungeon", "KayKit Dungeon Remastered (selection)", "CC0"),
+        ("props/quaternius-nature", "Quaternius Ultimate Nature (selection)", "CC0"),
+        ("props/quaternius-village", "Quaternius Medieval Village (selection)", "CC0"),
+        ("props/quaternius-dungeon", "Quaternius Modular Dungeon (selection)", "CC0"),
+        ("props/quaternius-ruins", "Quaternius Modular Dungeons ruins (selection)", "CC0"),
+        ("props/quaternius-cyberpunk-props", "Quaternius Cyberpunk Game Kit props (selection)", "CC0"),
+        ("props/quaternius-space-props", "Quaternius Ultimate Space Kit props (selection)", "CC0"),
+        ("props/quaternius-ships", "Quaternius Ships", "CC0"),
+        ("props/quaternius-crops", "Quaternius Ultimate Crops (selection)", "CC0"),
+        ("props/quaternius-platformer-props", "Quaternius Modular Platformer props (selection)", "CC0"),
     ],
 }
 WEAPON_WORDS = re.compile(r"sword|shield|axe|bow|dagger|staff|spear|hammer|knife|gun|pistol|rifle|uzi|shotgun|sniper|rocket|flame|grenade|ammo", re.I)

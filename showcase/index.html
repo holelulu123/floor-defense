@@ -130,7 +130,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
-import { FAMILIES, CLASSES, DUNGEONS, STAT_ICONS, STAT_LABELS } from './catalog.js';
+import { FAMILIES, CLASSES, DUNGEONS, MAPS, STAT_ICONS, STAT_LABELS } from './catalog.js';
 
 const SFX = '../assets/sounds/kenney-impact/';
 const ICONS = '../assets/ui/icons/';
@@ -179,7 +179,7 @@ sun.position.set(4, 7, 3); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1
 scene.add(sun);
 const ground = new THREE.Mesh(new THREE.CircleGeometry(6, 48), new THREE.MeshStandardMaterial({ color: 0x2f3b2f, roughness: 1 }));
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
-scene.add(new THREE.GridHelper(12, 12, 0x3b4450, 0x2a3038));
+const grid = new THREE.GridHelper(12, 12, 0x3b4450, 0x2a3038); scene.add(grid);
 
 function resize() { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
@@ -239,7 +239,11 @@ let current = null; // { def, root, mixer?, actions?, hp, state, stepTimer, anim
 let active = null;
 const clock = new THREE.Clock();
 
-function clear() { if (current) { scene.remove(current.root); current = null; active = null; } }
+const DEFAULT_SKY = scene.background.clone(), DEFAULT_FOG = scene.fog.color.clone();
+function clear() {
+  if (current) { scene.remove(current.root); current = null; active = null; }
+  ground.visible = true; grid.visible = true; scene.background.copy(DEFAULT_SKY); scene.fog.color.copy(DEFAULT_FOG);
+}
 
 // Tint a material. Lit materials (KayKit) take an emissive glow; unlit ones (most Kenney kits use
 // KHR_materials_unlit, i.e. MeshBasicMaterial) have no emissive, so their color is blended instead.
@@ -317,6 +321,92 @@ async function showDungeon(d) {
     ['Lanes', d.lanes], ['Gimmick', d.gimmick], ['Props', d.props],
   ].map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
   $('source').innerHTML = `Types in this family: ${fam ? fam.creatures.map(c => `${c.id} (${c.type})`).join(', ') : '—'}<br><a href="#creatures" style="color:var(--accent)">Open in Creatures tab</a>`;
+}
+
+// Map preview: a themed arena built from the props kits. Deterministic layout per dungeon (seeded RNG)
+// so the same map looks the same every visit. Sizes are metres; the game arena is ~this at 1 m = 3.5 studs.
+function rng(seed) { let t = seed >>> 0; return () => { t = (t + 0x6D2B79F5) >>> 0; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
+function fitHeight(obj, h) { const b = meshBox(obj); const size = b.getSize(new THREE.Vector3()); const k = h / Math.max(size.y, 1e-3); obj.scale.multiplyScalar(k); const b2 = meshBox(obj); obj.position.y -= b2.min.y; obj.position.x -= (b2.min.x + b2.max.x) / 2; obj.position.z -= (b2.min.z + b2.max.z) / 2; return obj; }
+async function placeProp(spec, parent, x, z, yaw) {
+  const gltf = await loadGltf(spec.file);
+  const holder = new THREE.Group();
+  const inst = gltf.scene.clone(true);
+  inst.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  holder.add(fitHeight(inst, spec.h));
+  holder.position.set(x, 0, z); holder.rotation.y = yaw;
+  parent.add(holder);
+  return holder;
+}
+async function showMap(d) {
+  clear();
+  const seq = ++loadSeq;
+  const theme = MAPS[d.id];
+  const fam = FAMILIES.find(f => f.id === d.family);
+  if (!theme) { await showDungeon(d); return; }
+  const W = 64, D = 48, lanes = d.lanes;
+  const root = new THREE.Group();
+  const laneX = i => (i - (lanes - 1) / 2) * (W * 0.55 / Math.max(lanes - 1, 1));
+  const laneXs = Array.from({ length: lanes }, (_, i) => lanes === 1 ? 0 : laneX(i));
+  const g = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: theme.ground, roughness: 1 }));
+  g.rotation.x = -Math.PI / 2; g.receiveShadow = true; root.add(g);
+  if (theme.water) { const w = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.6, D * 1.6), new THREE.MeshStandardMaterial({ color: theme.water, roughness: 0.3, metalness: 0.1 })); w.rotation.x = -Math.PI / 2; w.position.y = -0.08; root.add(w); }
+  const hallZ = D / 2 - 7, gateZ = -D / 2 + 4;
+  for (const x of laneXs) {
+    // Each lane is a strip angled from its gate (x) toward the hall (x/2), so lanes converge.
+    const len = hallZ - gateZ - 4;
+    const strip = new THREE.Mesh(new THREE.PlaneGeometry(3.6, len), new THREE.MeshStandardMaterial({ color: theme.path, roughness: 1 }));
+    strip.rotation.x = -Math.PI / 2; strip.position.set(x * 0.75, 0.012, (hallZ + gateZ) / 2); strip.rotation.z = Math.atan2(x / 2, len); strip.receiveShadow = true;
+    root.add(strip);
+  }
+  scene.add(root);
+  ground.visible = false; grid.visible = false;
+  scene.background.set(theme.sky); scene.fog.color.set(theme.fog); scene.fog.near = 60; scene.fog.far = 160;
+  camera.far = 400; camera.updateProjectionMatrix();
+  controls.target.set(0, 0, 0); camera.position.set(W * 0.55, D * 0.75, -D * 0.95);
+  controls.minDistance = 6; controls.maxDistance = 220; controls.update();
+  const mixers = [];
+  current = { def: d, root, hp: 1, maxHp: 1, state: 'map', animated: true, bob: false, actions: {}, mixer: { update: dt => { for (const m of mixers) m.update(dt); } }, stepTimer: 0 };
+  $('hud-name').textContent = `${d.name} map`; $('hud-state').textContent = `${lanes} lanes · building…`;
+  $('dims').textContent = `Arena ${W} × ${D} m (about ${Math.round(W * 3.5)} × ${Math.round(D * 3.5)} studs). Gates at the near edge, Town Hall at the far edge.`;
+  $('stats').innerHTML = [['Unlock level', d.unlockLevel], ['Lanes', lanes], ['Creatures', fam?.creatures.length ?? 0], ['Gimmick', d.gimmick], ['Props', d.props]]
+    .map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
+  $('source').innerHTML = `Wave order: ${fam ? fam.creatures.map(c => `${c.firstWave}. ${c.id}${c.type === 'Boss' ? ' (boss)' : ''}`).join(', ') : '—'}<br><a href="#creatures" style="color:var(--accent)">Open in Creatures tab</a>`;
+  const r = rng([...d.id].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7));
+  const jobs = [];
+  jobs.push(placeProp(theme.hall, root, 0, hallZ, Math.PI));
+  for (const x of laneXs) jobs.push(placeProp(theme.gate, root, x, gateZ, 0));
+  const nearLane = (x, z) => laneXs.some(lx => { const t = (z - gateZ) / (hallZ - gateZ); const cx = lx * (1 - t) + 0 * t; return Math.abs(x - (lx + cx) / 2) < 3.2; }) || Math.abs(z - hallZ) < 5 && Math.abs(x) < 7;
+  let placed = 0;
+  for (const spec of theme.props) {
+    for (let i = 0; i < spec.n; i++) {
+      let x, z, tries = 0;
+      do { x = (r() - 0.5) * (W - 4); z = (r() - 0.5) * (D - 4); tries++; } while (nearLane(x, z) && tries < 30);
+      if (tries >= 30) continue;
+      jobs.push(placeProp(spec, root, x, z, r() * Math.PI * 2)); placed++;
+    }
+  }
+  // A few creatures from this family walk the lanes.
+  const walkers = (fam?.creatures ?? []).filter(c => c.type !== 'Boss').slice(0, Math.min(8, lanes * 3));
+  walkers.forEach((def, i) => jobs.push((async () => {
+    const gltf = await loadGltf(def.model);
+    const inst = cloneSkinned(gltf.scene);
+    inst.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    inst.scale.setScalar(def.scale);
+    const b = meshBox(inst); inst.position.y -= b.min.y;
+    const lx = laneXs[i % lanes]; const t = 0.15 + 0.7 * ((i * 7919) % 97) / 97; const z = gateZ + 3 + (hallZ - gateZ - 8) * t;
+    const holder = new THREE.Group(); holder.add(inst); holder.position.set(lx * (1 - t) + lx / 2 * t, 0, z); holder.rotation.y = Math.atan2(-lx / 2, hallZ - z);
+    const mixer = new THREE.AnimationMixer(inst);
+    const clip = gltf.animations.find(c => clipName(c) === def.anims.walk) ?? gltf.animations[0];
+    if (clip) { const a = mixer.clipAction(clip); a.play(); mixer.update(r() * 2); }
+    mixers.push(mixer);
+    return holder;
+  })().then(h => { if (seq === loadSeq) root.add(h); })));
+  const results = await Promise.allSettled(jobs);
+  if (seq !== loadSeq) return;
+  const failed = results.filter(x => x.status === 'rejected');
+  for (const f of failed) console.warn('map prop failed', f.reason);
+  $('hud-state').textContent = `${lanes} lanes · ${placed} props · ${walkers.length} creatures${failed.length ? ` · ${failed.length} failed` : ''}`;
+  log(`map ${d.id}: ${placed} props, ${walkers.length} creatures, ${failed.length} failed${failed.length ? ': ' + failed.map(f => f.reason?.message ?? f.reason).join('; ') : ''}`);
 }
 
 // A class is shown as its starting weapon plus its text; the player keeps their own avatar.
@@ -526,7 +616,7 @@ function renderList() {
         : cfg.animated ? animatedCard(item)
         : cfg.isClass ? `<img class="thumb" alt=""><div><b>${item.id}</b><small>${item.role} · ${item.weapon}</small><small><br>${item.passive}</small></div>`
         : `<img class="thumb" alt=""><b>${item.name}</b>`;
-      el.onclick = () => { for (const c of list.querySelectorAll('.card')) c.classList.remove('active'); el.classList.add('active'); cfg.isDungeon ? showDungeon(item) : cfg.animated ? showAnimated(item) : cfg.isClass ? showClass(item) : showStatic(item); };
+      el.onclick = () => { for (const c of list.querySelectorAll('.card')) c.classList.remove('active'); el.classList.add('active'); cfg.isDungeon ? showMap(item) : cfg.animated ? showAnimated(item) : cfg.isClass ? showClass(item) : showStatic(item); };
       list.appendChild(el);
       const img = el.querySelector('.thumb');
       const thumbItem = cfg.isDungeon ? boss : item;
@@ -584,6 +674,12 @@ tick();
 setTab(location.hash.slice(1) || 'creatures');
 
 // ?snapshot=<seconds>: hold the load event so `firefox --screenshot` captures a settled page.
+// ?map=<DungeonId> (with ?log=1): open that map preview and report prop/creature counts.
+const mapId = new URLSearchParams(location.search).get('map');
+if (mapId) {
+  setTab('dungeons');
+  for (const d of DUNGEONS.filter(x => mapId === 'all' || x.id === mapId)) { await showMap(d); await new Promise(r => setTimeout(r, 300)); }
+}
 // ?zoomtest=1 (with ?log=1): fire one wheel notch and report how far the camera moved, for headless checks.
 if (new URLSearchParams(location.search).has('zoomtest')) {
   await new Promise(r => setTimeout(r, 4000));

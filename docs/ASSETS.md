@@ -18,6 +18,9 @@ Moved out of DESIGN.md so the design doc stays about the game. Rule: only CC0 (o
 | Quaternius Cyberpunk Kit, enemies + character only (7) | `assets/creatures/quaternius-cyberpunk/` | CC0 1.0 | same |
 | Quaternius Animated Mechs (4) | `assets/creatures/quaternius-mechs/` | CC0 1.0 | same |
 | Quaternius Ultimate Space Kit, enemies + astronauts + mechs only (12; Draco-decoded to plain glb with gltf-transform) | `assets/creatures/quaternius-space/` | CC0 1.0 | same |
+| Quaternius Ultimate Monsters (50: 16 Big humanoids, 17 Blob, 17 Flying) | `assets/creatures/quaternius-monsters/` | CC0 1.0 | pack's own License.txt; downloaded by the owner from the author's Drive link, glTF→glb with gltf-transform |
+| Quaternius Cute Animated Monsters (21) | `assets/creatures/quaternius-cute-monsters/` | CC0 1.0 | pack page states CC0 (zip has no license file); same download path |
+| Quaternius props for map previews: Nature (46), Medieval Village (27), Modular Dungeon (19), Modular Dungeons ruins (15), Cyberpunk props (29), Space props (28), Ships (5), Crops (12), Platformer props (9) | `assets/props/quaternius-*/` | CC0 1.0 | pack pages state CC0; files via the glTF mirror; Draco-compressed ones decoded to plain glb |
 | Quaternius Platformer Kit, Enemy only (1) | `assets/creatures/quaternius-platformer/` | CC0 1.0 | same |
 | Stat icons (health, speed, damage, coins, wave, kills) | `assets/ui/icons/` | Ours, CC0; drawn by `scripts/make-icons.py` | — |
 
@@ -27,7 +30,7 @@ Role mapping (KayKit family): Minion = Runner, Warrior = Brute (and Boss at 2.4x
 
 | Source | License | Commercial | Attribution | Caveat |
 | --- | --- | --- | --- | --- |
-| Quaternius | CC0 | Yes | No | Official downloads are Google Drive folders that hit the "too many users" quota; the GitHub mirror above carries most packs as glb. Still missing from the mirror: Ultimate Monsters, Animated Monsters, Cute Monsters, Zombies, Aliens, Robots (download those by hand from the Drive links when the quota resets) |
+| Quaternius | CC0 | Yes | No | Official downloads are Google Drive folders that hit the "too many users" quota; the GitHub mirror above carries most packs as glb. Ultimate Monsters and Cute Monsters were downloaded by hand (2026-10-29). Still FBX-only and unconverted: Animated Monster Pack (Bat, Dragon, Skeleton, Slime), Alien Animated, Zombie; converting FBX needs Blender (`sudo pacman -S blender`) since no converter is installed |
 | Kenney | CC0 | Yes | No | Don't use the Kenney logo |
 | KayKit (Kay Lousberg) | CC0 | Yes | No | EXTRA/SOURCE tiers are paid; free tier is CC0 |
 | Mixamo (Adobe) | Adobe terms, royalty-free | Yes | No | Can't redistribute characters/animations as standalone assets; official FAQ page blocks automated fetch, confirm by hand before release |
