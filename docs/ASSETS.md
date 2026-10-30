@@ -1,6 +1,6 @@
 # Assets and licenses
 
-Moved out of DESIGN.md so the design doc stays about the game. Rule: only CC0 (or equivalently permissive) packs go into `assets/`, each with its LICENSE file beside it.
+Moved out of DESIGN.md so the design doc stays about the game. Rule: CC0 packs, or CC-BY packs with attribution recorded below (see "Attribution"), go into `assets/`, each with its LICENSE file beside it.
 
 ### In the repo now (licenses verified 2026-10-28)
 
@@ -70,3 +70,14 @@ What I can produce directly:
 
 What I cannot produce: detailed sculpted characters, hand-painted textures, or anything that needs an artist's eye on the result. For those, Quaternius for creatures and Synty for the world is the practical combination. Recommended plan: MVP with blocky code-built placeholders, then swap in Quaternius creatures once the loop is fun.
 
+
+## Attribution (CC-BY packs)
+
+Decision (2026-10-30): CC-BY 4.0 packs are allowed next to CC0 when no CC0 model exists (jungle animals, arctic
+animals). Each CC-BY row above must carry the author, the work name, the licence link and the changes we made
+(usually "converted to glTF/MeshParts, rescaled"). The same lines are shown on the Credits board in the lobby's
+Scoreboard plaza and in the experience description on Roblox, in this form:
+
+> "<Work>" by <Author>, licensed CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Changes: converted and rescaled.
+
+CC0 packs need no credit; we still list them above.
