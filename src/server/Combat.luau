@@ -39,12 +39,13 @@ local function classOf(player: Player): string?
 	return if type(id) == "string" then id else nil
 end
 
--- Value of a timed buff stored as `<stat>` / `<stat>Until` attributes on the player.
+-- Value of a timed buff stored as `<stat>` / `<stat>Until` attributes on the player
+-- (Until is in Workspace:GetServerTimeNow() seconds, see server Skills.luau).
 function Combat.buff(player: Player, stat: string, default: number): number
 	return Skills.buffValue(
 		player:GetAttribute(stat) :: number?,
 		player:GetAttribute(stat .. "Until") :: number?,
-		os.clock(),
+		Workspace:GetServerTimeNow(),
 		default
 	)
 end

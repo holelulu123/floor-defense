@@ -55,7 +55,7 @@ function PlayerData.load(player: Player)
 	end
 	data.ProcessedReceipts = data.ProcessedReceipts or {}
 	data.OwnedClasses = if type(data.OwnedClasses) == "table" then data.OwnedClasses else {}
-	if type(data.Class) ~= "string" or not Classes.isOwned(data.Class, data.OwnedClasses) then
+	if not Classes.find(data.Class) or not Classes.isOwned(data.Class, data.OwnedClasses) then
 		data.Class = Classes.List[1].id
 	end
 

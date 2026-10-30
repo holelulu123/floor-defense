@@ -31,19 +31,21 @@ function Damage.burn(creature: Creatures.Creature, seconds: number, byUserId: nu
 end
 
 -- Every live creature. Prefers Creatures.all when the creature module exposes it; otherwise scans
--- the workspace for parts the creature registry knows. Cached for the current frame because skills
--- and turrets often ask several times in one step.
+-- the workspace for parts the creature registry knows. Cached for the current frame (or 0.1 s when
+-- scanning) because skills and turrets often ask several times in one step.
+local SCAN_CACHE_SECONDS = 0.1
 local cachedAt = -1
 local cached: { Creatures.Creature } = {}
 
 function Damage.creatures(): { Creatures.Creature }
 	local now = os.clock()
-	if now == cachedAt then
+	local all = (Creatures :: any).all
+	local maxAge = if type(all) == "function" then 0 else SCAN_CACHE_SECONDS
+	if now - cachedAt <= maxAge then
 		return cached
 	end
 	cachedAt = now
 	local list = {}
-	local all = (Creatures :: any).all
 	if type(all) == "function" then
 		for _, c in all() do
 			table.insert(list, c)

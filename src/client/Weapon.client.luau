@@ -8,7 +8,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
-local Classes = require(ReplicatedStorage.Shared.Classes)
+local Skills = require(ReplicatedStorage.Shared.Skills)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
@@ -117,7 +117,13 @@ local function tryFire()
 		return
 	end
 	local now = os.clock()
-	if now - lastShot < Weapons.interval(def) then
+	local rateMult = Skills.buffValue(
+		player:GetAttribute("FireRateMult") :: number?,
+		player:GetAttribute("FireRateMultUntil") :: number?,
+		Workspace:GetServerTimeNow(),
+		1
+	)
+	if now - lastShot < Weapons.interval(def) / rateMult then
 		return
 	end
 	local origin, direction = aim()
@@ -281,13 +287,5 @@ skillFx.OnClientEvent:Connect(function(fx)
 			seconds,
 			Enum.PartType.Ball
 		)
-	end
-end)
-
--- Skill cooldown feedback lands in the HUD; the class in play drives which weapon fires.
-player:GetAttributeChangedSignal("Class"):Connect(function()
-	local id = player:GetAttribute("Class")
-	if type(id) == "string" and Classes.find(id) then
-		lastShot = 0
 	end
 end)

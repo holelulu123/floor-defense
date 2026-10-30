@@ -30,6 +30,7 @@ type Zone = { cframe: CFrame, size: Vector3, untilTime: number, tickDamage: numb
 type Hold = { player: Player, radius: number, untilTime: number, slowFactor: number }
 
 local used: { [Player]: { [string]: number } } = {}
+local appliedClass: { [Player]: string } = {}
 local inRun: { [Player]: boolean } = {}
 local townHall: TownHall.TownHall? = nil
 local zones: { Zone } = {}
@@ -53,16 +54,18 @@ local function classOf(player: Player): string?
 	return if Classes.find(id) then id :: string else nil
 end
 
+-- Player buffs use Workspace:GetServerTimeNow() (not os.clock) so the client can read the same
+-- `<Stat>Until` attribute for its local fire-rate feel.
 local function setBuff(player: Player, stat: string, value: number, seconds: number)
 	player:SetAttribute(stat, value)
-	player:SetAttribute(stat .. "Until", os.clock() + seconds)
+	player:SetAttribute(stat .. "Until", Workspace:GetServerTimeNow() + seconds)
 end
 
 local function buff(player: Player, stat: string, default: number): number
 	return SharedSkills.buffValue(
 		player:GetAttribute(stat) :: number?,
 		player:GetAttribute(stat .. "Until") :: number?,
-		os.clock(),
+		Workspace:GetServerTimeNow(),
 		default
 	)
 end
@@ -147,8 +150,11 @@ function Skills.applyClass(player: Player)
 	if classId ~= "Engineer" then
 		Turrets.removeFor(player)
 	end
-	used[player] = {} -- a fresh class starts with everything ready
-	skillFx:FireClient(player, { kind = "reset" })
+	if appliedClass[player] ~= classId then
+		appliedClass[player] = classId
+		used[player] = {} -- a fresh class starts with everything ready; a respawn does not
+		skillFx:FireClient(player, { kind = "reset" })
+	end
 end
 
 -- Berserker passive: kills heal. Called by Run from the wave manager's kill hook.
@@ -601,7 +607,6 @@ function Skills.beginRun(players: { Player }, hall: TownHall.TownHall)
 	townHall = hall
 	for _, player in players do
 		inRun[player] = true
-		Skills.applyClass(player)
 	end
 	startTicking()
 end
@@ -630,6 +635,7 @@ function Skills.endRun()
 	end
 	table.clear(inRun)
 	table.clear(used)
+	table.clear(appliedClass)
 	Pets.clear()
 	Turrets.clear()
 end
@@ -639,6 +645,7 @@ function Skills.init()
 	Players.PlayerRemoving:Connect(function(player)
 		inRun[player] = nil
 		used[player] = nil
+		appliedClass[player] = nil
 		Pets.remove(player)
 	end)
 end

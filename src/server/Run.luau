@@ -144,7 +144,7 @@ function Run.start(mode: string, players: { Player }, onEnd: (mode: string, wave
 		table.insert(
 			connections,
 			player.CharacterAdded:Connect(function()
-				task.defer(Run.equipClass, player)
+				task.delay(0.2, Run.equipClass, player) -- let the Humanoid and limbs finish loading
 			end)
 		)
 	end

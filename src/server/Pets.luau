@@ -48,7 +48,12 @@ local function step(dt: number)
 		local goal = pet.lungeAt or home.Position
 		local pos = pet.part.Position
 		local alpha = math.clamp(dt * 8, 0, 1)
-		pet.part.CFrame = CFrame.lookAt(pos:Lerp(goal, alpha), goal + Vector3.new(0, 0, 0.001))
+		local nextPos = pos:Lerp(goal, alpha)
+		if (goal - nextPos).Magnitude > 0.05 then
+			pet.part.CFrame = CFrame.lookAt(nextPos, goal)
+		else
+			pet.part.Position = nextPos
+		end
 		if pet.lungeAt and (pet.part.Position - pet.lungeAt).Magnitude < 1.5 then
 			pet.lungeAt = nil
 		end
