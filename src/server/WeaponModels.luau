@@ -226,7 +226,9 @@ function WeaponModels.give(player: Player, weaponName: string)
 	handle.Material = Enum.Material.SmoothPlastic
 	handle.Parent = tool
 	local gripPoint = build(handle)
-	tool.Grip = gripPoint
+	-- Builders model the muzzle/blade along the Handle's -Z; the hand's grip axis points the other way, so turn
+	-- the handle around or the weapon sits reversed in the hand (seen in the first Studio test).
+	tool.Grip = gripPoint * CFrame.Angles(0, math.pi, 0)
 
 	tool.Equipped:Connect(function()
 		attachOffhand(tool, weaponName)
