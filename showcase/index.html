@@ -161,6 +161,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { FAMILIES, CLASSES, DUNGEONS, MAPS, BLOCKY_RIGS, STAT_ICONS, STAT_LABELS } from './catalog.js';
 
 const SFX = '../assets/sounds/kenney-impact/';
@@ -913,7 +914,7 @@ function holdInHand(root, obj, { side = 'right', len = 0.4, fwd = '+z', grip = '
   holder.position.copy(hand);
   const L = len * charHeight / Math.max(ws.x, 1e-6);
   if (grip === 'gun') { holder.rotation.x = Math.PI / 2; holder.position.y += L * 0.05; inner.position.z = -L * offset; }
-  else if (grip === 'shield') { holder.position.y = ab.min.y + asz.y * 0.45; holder.position.z += asz.z * 0.5 + L * 0.03; }
+  else if (grip === 'shield') { holder.position.y = ab.min.y + asz.y * 0.45; holder.position.z += asz.z * 0.5 + L * 0.03; holder.rotation.set(-Math.PI / 2, 0, 0); } // disc upright, face forward, straps toward the arm
   else { holder.rotation.x = -1.25; inner.position.z = L * offset; } // melee: mostly up, a little forward, so it rises with the swing
   arm.add(holder);
 }
@@ -922,27 +923,53 @@ function holdInHand(root, obj, { side = 'right', len = 0.4, fwd = '+z', grip = '
 // head and arms, blue torso, green legs), 5 studs tall, facing +z. Nodes use the Kenney names so the
 // same weapon attachment and the same clip names work; the clips are small keyframe tracks.
 function makeRobloxDummy() {
+  // Looks like a current default R15 player rather than the 2008 "noob": grey skin, dark shirt, dark green
+  // jeans, brown hair (the developer's own avatar's body colours and outfit, read from the public avatar API).
+  // ?avatar=classic gives the yellow/blue/green classic look instead.
+  const classic = new URLSearchParams(location.search).get('avatar') === 'classic';
   const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, metalness: 0 });
-  const yellow = mat(0xf5cd30), blue = mat(0x0d69ac), green = mat(0x4b974b);
-  const box = (w, h, d, m) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); me.castShadow = true; return me; };
+  const skin = mat(classic ? 0xf5cd30 : 0xa3a2a5), shirt = mat(classic ? 0x0d69ac : 0x1b2436), shirtTrim = mat(0x2f6fb3), pants = mat(classic ? 0x4b974b : 0x2f4a2b), shoes = mat(0x1a1a1a), hair = mat(0x4a2e1a);
+  const box = (w, h, d, m, r = 0.07) => { const me = new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 3, Math.min(r, w / 2.5, h / 2.5, d / 2.5)), m); me.castShadow = true; return me; };
   const root = new THREE.Group(); root.name = 'roblox-dummy';
   const legH = 2, torsoH = 2, headH = 1.2;
   const torso = new THREE.Group(); torso.name = 'torso'; torso.position.y = legH; root.add(torso);
-  const torsoMesh = box(2, torsoH, 1, blue); torsoMesh.position.y = torsoH / 2; torso.add(torsoMesh);
+  // R15 proportions: upper torso wider than the hips, limbs that taper toward small hands and feet.
+  const torsoMesh = box(2, torsoH * 0.72, 1, shirt, 0.12); torsoMesh.position.y = torsoH * 0.64; torso.add(torsoMesh);
+  const hips = box(1.75, torsoH * 0.34, 0.95, classic ? shirt : pants, 0.1); hips.position.y = torsoH * 0.17; torso.add(hips);
+  if (!classic) { const stripe = box(0.5, torsoH * 0.9, 1.02, shirtTrim); stripe.position.set(-0.45, torsoH / 2, 0); torso.add(stripe); const belt = box(2.02, 0.12, 1.02, shoes); belt.position.y = 0.06; torso.add(belt); }
   const head = new THREE.Group(); head.name = 'head'; head.position.y = torsoH; torso.add(head);
   // The classic Roblox head is a rounded cylinder, not a cube; the face is the classic smile, drawn on a canvas.
   const headGeo = new THREE.CylinderGeometry(0.62, 0.62, headH, 28, 1); headGeo.scale(1, 1, 0.98);
-  const headMesh = new THREE.Mesh(headGeo, yellow); headMesh.castShadow = true; headMesh.position.y = headH / 2 + 0.05; head.add(headMesh);
-  const cap = (y) => { const c = new THREE.Mesh(new THREE.SphereGeometry(0.62, 28, 10, 0, Math.PI * 2, 0, Math.PI / 2), yellow); c.scale.set(1, 0.18, 0.98); c.position.y = y; return c; };
-  const topCap = cap(headH + 0.05); const botCap = cap(0.05); botCap.rotation.x = Math.PI; head.add(topCap, botCap);
+  const headMesh = new THREE.Mesh(headGeo, skin); headMesh.castShadow = true; headMesh.position.y = headH / 2 + 0.05; head.add(headMesh);
+  const cap = (y, m) => { const c = new THREE.Mesh(new THREE.SphereGeometry(0.62, 28, 10, 0, Math.PI * 2, 0, Math.PI / 2), m); c.scale.set(1, 0.18, 0.98); c.position.y = y; return c; };
+  const topCap = cap(headH + 0.05, skin); const botCap = cap(0.05, skin); botCap.rotation.x = Math.PI; head.add(topCap, botCap);
+  if (!classic) { // short hair: a cap over the top and back of the head with a fringe
+    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.7, 28, 12, 0, Math.PI * 2, 0, Math.PI / 2), hair); hairCap.scale.set(1, 0.5, 1); hairCap.position.y = headH * 0.92; hairCap.castShadow = true; head.add(hairCap);
+    const back = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.68, headH * 0.45, 28, 1, true, Math.PI * 0.55, Math.PI * 0.9), hair); back.position.set(0, headH * 0.72, 0); head.add(back);
+    const fringe = box(1.0, 0.14, 0.18, hair); fringe.position.set(0, headH * 1.0, 0.6); head.add(fringe);
+  }
   const fc = document.createElement('canvas'); fc.width = 256; fc.height = 256; const fg = fc.getContext('2d');
   fg.fillStyle = '#111'; fg.beginPath(); fg.ellipse(88, 96, 13, 22, 0, 0, Math.PI * 2); fg.fill(); fg.beginPath(); fg.ellipse(168, 96, 13, 22, 0, 0, Math.PI * 2); fg.fill();
   fg.lineWidth = 12; fg.strokeStyle = '#111'; fg.lineCap = 'round'; fg.beginPath(); fg.arc(128, 128, 54, Math.PI * 0.2, Math.PI * 0.8); fg.stroke();
   const faceTex = new THREE.CanvasTexture(fc); faceTex.colorSpace = THREE.SRGBColorSpace;
   const face = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.0), new THREE.MeshBasicMaterial({ map: faceTex, transparent: true })); face.position.set(0, headH / 2 + 0.05, 0.615); head.add(face);
-  const limb = (name, x, y, w, h, m) => { const g = new THREE.Group(); g.name = name; g.position.set(x, y, 0); const me = box(w, h, 1, m); me.position.y = -h / 2; g.add(me); return g; };
-  torso.add(limb('arm-right', -1.5, torsoH, 1, 2, yellow), limb('arm-left', 1.5, torsoH, 1, 2, yellow));
-  root.add(limb('leg-right', -0.5, legH, 1, legH, green), limb('leg-left', 0.5, legH, 1, legH, green));
+  // Arm: upper arm, forearm and a small hand hanging from the shoulder pivot; leg: thigh, shin and a foot.
+  const arm = (name, x, sleeve) => {
+    const g = new THREE.Group(); g.name = name; g.position.set(x, torsoH - 0.1, 0);
+    const upper = box(0.9, 0.95, 0.9, sleeve ?? skin, 0.14); upper.position.y = -0.47; g.add(upper);
+    const lower = box(0.78, 0.7, 0.78, skin, 0.12); lower.position.y = -1.3; g.add(lower);
+    const hand = box(0.7, 0.42, 0.62, skin, 0.14); hand.position.y = -1.86; g.add(hand);
+    return g;
+  };
+  const leg = (name, x) => {
+    const g = new THREE.Group(); g.name = name; g.position.set(x, legH, 0);
+    const thigh = box(0.92, 0.95, 0.95, pants, 0.12); thigh.position.y = -0.47; g.add(thigh);
+    const shin = box(0.82, 0.75, 0.85, pants, 0.1); shin.position.y = -1.32; g.add(shin);
+    const foot = box(0.9, 0.32, 1.05, classic ? pants : shoes, 0.08); foot.position.set(0, -1.84, 0.06); g.add(foot);
+    return g;
+  };
+  torso.add(arm('arm-right', -1.45, classic ? null : shirt), arm('arm-left', 1.45, classic ? null : shirt));
+  root.add(leg('leg-right', -0.5), leg('leg-left', 0.5));
   // Clips: quaternion tracks on the named nodes. x rotation: negative swings a limb forward (+z).
   const qx = a => new THREE.Quaternion().setFromEuler(new THREE.Euler(a, 0, 0));
   const track = (node, times, angles) => new THREE.QuaternionKeyframeTrack(node + '.quaternion', times, angles.flatMap(a => qx(a).toArray()));
@@ -989,6 +1016,9 @@ async function showClass(cls) {
   let fsize; try { fsize = frame(root); } catch (e) { scene.remove(root); throw e; }
   if (idle) idle.stop();
   const charHeight = meshBox(root).getSize(new THREE.Vector3()).y;
+  // A person-shaped figure is framed from its height, with room for a raised weapon; the pixel fit is for creatures.
+  { const h = charHeight * 1.35, dist = (h / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.min(1, camera.aspect / 0.9);
+    controls.target.set(0, charHeight * 0.5, 0); camera.position.set(dist * 0.55, charHeight * 0.62, dist * 0.84); controls.minDistance = charHeight * 0.4; controls.update(); }
   const extras = [];
   for (const w of cls.hold ?? []) {
     const obj = w.flail ? makeFlail() : await loadWeapon(w);
