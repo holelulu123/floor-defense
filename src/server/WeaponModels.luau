@@ -6,10 +6,14 @@
 
 local WeaponModels = {}
 
+-- Builders are authored at roughly R6 scale; R15 avatars want weapons about 1.7x bigger.
+local SCALE = 1.7
+
 local function part(parent: Instance, name: string, size: Vector3, offset: CFrame, color: Color3, shape: Enum.PartType?)
 	local p = Instance.new("Part")
 	p.Name = name
-	p.Size = size
+	p.Size = size * SCALE
+	offset = CFrame.new(offset.Position * SCALE) * offset.Rotation
 	p.Color = color
 	p.Material = Enum.Material.SmoothPlastic
 	p.Shape = shape or Enum.PartType.Block
@@ -226,6 +230,8 @@ function WeaponModels.give(player: Player, weaponName: string)
 	handle.Material = Enum.Material.SmoothPlastic
 	handle.Parent = tool
 	local gripPoint = build(handle)
+	handle.Size = handle.Size * SCALE -- builders set the handle size themselves, so scale after
+	gripPoint = CFrame.new(gripPoint.Position * SCALE) * gripPoint.Rotation
 	-- Builders model the muzzle/blade along the Handle's -Z; the hand's grip axis points the other way, so turn
 	-- the handle around or the weapon sits reversed in the hand (seen in the first Studio test).
 	tool.Grip = gripPoint * CFrame.Angles(0, math.pi, 0)
