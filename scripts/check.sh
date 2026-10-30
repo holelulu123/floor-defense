@@ -27,6 +27,9 @@ luau-lsp analyze --defs="$DEFS" --sourcemap=sourcemap.json --ignore="Packages/**
 luau-lsp analyze --defs="$DEFS" --sourcemap=sourcemap.json --ignore="Packages/**" src >/dev/null 2>&1
 echo "luau-lsp analyze: ok"
 
+python3 scripts/gen-roster.py --check
+echo "roster: up to date"
+
 lune run test
 echo "lune tests: ok"
 

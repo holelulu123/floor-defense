@@ -473,7 +473,7 @@ Roster.Families.farm = {
 		flying = false,
 	},
 	{
-		id = "Pale Horse",
+		id = "Stallion",
 		archetype = "Elite",
 		firstWave = 16,
 		health = 180,
