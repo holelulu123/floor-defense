@@ -375,7 +375,7 @@ export const CLASSES = [
   { id: 'Engineer', tier: 'Free', cost: 0, role: 'Area control', weapon: 'Carbine and wrench', idle: 'holding-right', hold: [gun('machinegunLauncher.glb', 0.52)], turret: PCY + 'Turret_Gun.glb',
     passive: 'Melee hits on a turret repair it (+25% HP per hit); turrets bought between runs with gems, upgraded in-run with coins',
     skills: [sk('Place Turret', 10, 'pick-up', 'Builds the selected turret where you aim (max 3 up; placing a 4th removes the oldest)', { repair: 'attack-melee-right' }), sk('Overclock', 30, 'emote-yes', 'All your turrets fire 2x faster for 10 s', { duration: 10 })] },
-  { id: 'Berserker', tier: 'Locked', cost: 1200, role: 'Melee damage', weapon: 'Two-handed axe', hold: [melee(QMED + 'Axe_Double.glb', 0.65, { fwd: 'auto' })],
+  { id: 'Berserker', tier: 'Locked', cost: 1200, role: 'Melee damage', weapon: 'Two-handed axe', hold: [melee(QMED + 'Axe_Double.glb', 0.9, { fwd: 'auto' })],
     passive: 'Kills heal you 5 HP; melee damage +25%',
     skills: [sk('Cleave', 4, 'attack-melee-right', 'Wide swing: hits every creature in front of you', { duration: 0.8 }), sk('Rage', 30, 'emote-yes', '+40% attack speed and move speed for 10 s', { duration: 10 })] },
   { id: 'Mage', tier: 'Locked', cost: 1200, role: 'Crowd control', weapon: 'Staff', hold: [melee(ADV + 'Mage.glb', 0.8, { node: '2H_Staff', offset: 0.05 })],

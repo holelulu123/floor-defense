@@ -1024,7 +1024,7 @@ async function showClass(cls) {
     const obj = w.flail ? makeFlail() : await loadWeapon(w);
     holdInHand(root, obj, { ...w, fwd: w.flail ? '+y' : w.fwd, charHeight });
   }
-  if (cls.turret) { const t = (await loadGltf(cls.turret)).scene.clone(true); t.traverse(o => { if (o.isMesh) o.castShadow = true; }); fitHeight(t, charHeight * 0.5); t.position.x += charHeight * 0.7; t.position.z += charHeight * 0.15; t.rotation.y = Math.PI; root.parent.add(t); extras.push(t); }
+  if (cls.turret) { const t = (await loadGltf(cls.turret)).scene.clone(true); t.traverse(o => { if (o.isMesh) o.castShadow = true; }); fitHeight(t, charHeight * 0.42); t.position.x += charHeight * 1.05; t.position.z -= charHeight * 0.1; t.rotation.y = Math.PI; root.parent.add(t); extras.push(t); }
   let petMixer = null;
   if (cls.pet) { const pg = await loadGltf(cls.pet); const pet = cloneSkinned(pg.scene); fitHeight(pet, charHeight * 0.28); pet.position.set(-charHeight * 0.55, charHeight * 0.7, charHeight * 0.15); root.parent.add(pet); extras.push(pet); petMixer = new THREE.AnimationMixer(pet); const c = pg.animations.find(c => clipName(c) === cls.petAnims.idle) ?? pg.animations[0]; if (c) petMixer.clipAction(c).play(); }
   if (seq !== loadSeq) { scene.remove(root); extras.forEach(e => scene.remove(e)); return; }
@@ -1316,6 +1316,10 @@ function renderList() {
 }
 
 function setTab(name) {
+  // "#classes/Berserker" opens the tab and selects that card (used for reviews and deep links).
+  const [tabName, ...rest] = (name ?? '').split('/'); const want = decodeURIComponent(rest.join('/'));
+  name = tabName;
+  if (want) setTimeout(() => { const card = [...$('list').querySelectorAll('.card')].find(c => c.querySelector('b')?.textContent === want); card?.click(); card?.scrollIntoView({ block: 'center' }); }, 50);
   tab = TABS[name] ? name : 'creatures';
   for (const a of document.querySelectorAll('#tabs a')) a.classList.toggle('active', a.dataset.tab === tab);
   const animated = TABS[tab].animated;
