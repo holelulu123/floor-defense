@@ -18,7 +18,7 @@ local list: { Dungeon } = {
 		name = "Graveyard",
 		unlockLevel = 1,
 		family = "graveyard",
-		lanes = 3,
+		lanes = 1,
 		gimmick = "Fog rolls in on boss waves, cutting sight lines",
 	},
 	{
@@ -26,7 +26,7 @@ local list: { Dungeon } = {
 		name = "Haunted Farm",
 		unlockLevel = 3,
 		family = "farm",
-		lanes = 2,
+		lanes = 1,
 		gimmick = "Hay bales can be pushed into lanes as cover; animals trample them",
 	},
 	{
@@ -34,7 +34,7 @@ local list: { Dungeon } = {
 		name = "Swamp",
 		unlockLevel = 5,
 		family = "swamp",
-		lanes = 2,
+		lanes = 1,
 		gimmick = "Shallow water slows everyone; ice spells freeze it solid",
 	},
 	{
@@ -42,7 +42,7 @@ local list: { Dungeon } = {
 		name = "Sewer",
 		unlockLevel = 10,
 		family = "sewer",
-		lanes = 3,
+		lanes = 1,
 		gimmick = "Slimes split in two when killed above half health",
 	},
 	{
@@ -50,7 +50,7 @@ local list: { Dungeon } = {
 		name = "Bandit Village",
 		unlockLevel = 15,
 		family = "village",
-		lanes = 4,
+		lanes = 1,
 		gimmick = "Bandits loot dropped coins before you can",
 	},
 	{
@@ -58,7 +58,7 @@ local list: { Dungeon } = {
 		name = "Frozen Cavern",
 		unlockLevel = 20,
 		family = "frozen",
-		lanes = 2,
+		lanes = 1,
 		gimmick = "Everything is slippery; freeze spells last twice as long",
 	},
 	{
@@ -66,7 +66,7 @@ local list: { Dungeon } = {
 		name = "Jungle Temple",
 		unlockLevel = 25,
 		family = "jungle",
-		lanes = 3,
+		lanes = 1,
 		gimmick = "Vines block sight lines until burned away",
 	},
 	{
@@ -74,7 +74,7 @@ local list: { Dungeon } = {
 		name = "Pirate Cove",
 		unlockLevel = 30,
 		family = "pirate",
-		lanes = 3,
+		lanes = 1,
 		gimmick = "Cannons on the cliffs can be captured and fired at the lanes",
 	},
 	{
@@ -82,7 +82,7 @@ local list: { Dungeon } = {
 		name = "Factory",
 		unlockLevel = 35,
 		family = "factory",
-		lanes = 4,
+		lanes = 1,
 		gimmick = "Conveyor belts move anything on them, including grenades",
 	},
 	{
@@ -90,7 +90,7 @@ local list: { Dungeon } = {
 		name = "Space Station",
 		unlockLevel = 40,
 		family = "station",
-		lanes = 4,
+		lanes = 1,
 		gimmick = "Airlocks vent a lane for 5 s when opened",
 	},
 }

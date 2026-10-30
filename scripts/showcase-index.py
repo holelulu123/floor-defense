@@ -14,6 +14,7 @@ PACKS = {
     "weapons": [
         ("weapons/kenney-weapon-pack", "Kenney Weapon Pack", "CC0"),
         ("props/kaykit-dungeon", "KayKit Dungeon (weapons only)", "CC0"),
+        ("weapons/quaternius-medieval", "Quaternius Modular Weapons (selection)", "CC0"),
     ],
     "props": [
         ("props/kaykit-halloween", "KayKit Halloween Bits", "CC0"),
@@ -27,6 +28,8 @@ PACKS = {
         ("props/quaternius-ships", "Quaternius Ships", "CC0"),
         ("props/quaternius-crops", "Quaternius Ultimate Crops (selection)", "CC0"),
         ("props/quaternius-platformer-props", "Quaternius Modular Platformer props (selection)", "CC0"),
+        ("props/quaternius-rts", "Quaternius Fantasy RTS towers (selection)", "CC0"),
+        ("props/quaternius-rpg-items", "Quaternius RPG items (selection)", "CC0"),
     ],
 }
 WEAPON_WORDS = re.compile(r"sword|shield|axe|bow|dagger|staff|spear|hammer|knife|gun|pistol|rifle|uzi|shotgun|sniper|rocket|flame|grenade|ammo", re.I)

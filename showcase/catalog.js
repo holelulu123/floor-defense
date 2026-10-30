@@ -104,7 +104,6 @@ export const FAMILIES = [
       c('Necromancer', 'Healer', QU + 'Blob_Wizard.glb', { anims: Q_BLOB, sounds: GLASS }),
       c('Hell Demon', 'Elite', QU + 'Big_Demon.glb', { scale: 1.2, anims: Q_BIG, sounds: HEAVY }),
       c('Bone Walker', 'Runner', QAM + 'Skeleton.glb', { anims: Q_SKEL, sounds: BONE }),
-      c('Crawler', 'Runner', QZ + 'ZombieSmooth.glb', { anims: { ...Q_ZOMBIE, walk: 'ZombieCrawl', run: 'ZombieCrawl' }, sounds: SOFT }),
     ],
   },
   {
@@ -343,50 +342,74 @@ for (const f of FAMILIES) {
   f.creatures = ordered;
   for (const cr of f.creatures) {
     const a = ARCHETYPES[cr.type]; const w = cr.firstWave;
-    cr.stats = { health: Math.round(a.health * waveMult(w, 0.12)), speed: a.speed, damage: Math.round(a.damage * waveMult(w, 0.05)),
-      coins: Math.round(a.coins * waveMult(w, 0.1)), firstWave: w };
+    // Steeper ladder: a wave-20 creature has ~5x the health and ~3.3x the coins of its wave-1 cousin.
+    cr.stats = { health: Math.round(a.health * waveMult(w, 0.2)), speed: a.speed, damage: Math.round(a.damage * waveMult(w, 0.08)),
+      coins: Math.round(a.coins * waveMult(w, 0.12)), firstWave: w };
     cr.blurb = `${cr.type}. ${a.blurb}`;
     cr.source = f.source;
   }
 }
 
-// Classes (DESIGN.md "Classes"). Players keep their own avatar; a class is a starting weapon,
-// a passive, an active and a gear overlay. The showcase previews the starting weapon model.
+// Classes (DESIGN.md "Classes"). Players keep their own Roblox avatar; a class is a weapon, a passive
+// and two skills with cooldowns (skill 1 quick, 1-10 s; skill 2 long, 25-50 s). Free classes are
+// playable at once; locked ones are bought with gems earned at the end of each run. The showcase
+// previews each class on a KayKit Adventurer dummy (CC0) so the skill animations can be checked;
+// in Roblox the same moves are played on the player's own R15 avatar with Roblox animation assets.
+const ADV = '../assets/characters/kaykit-adventurers/';
+const QMED = '../assets/weapons/quaternius-medieval/';
+const PCY = '../assets/props/quaternius-cyberpunk-props/';
+const sk = (name, cooldown, anim, desc, extra = {}) => ({ name, cooldown, anim, desc, duration: 0, ...extra });
 export const CLASSES = [
-  { id: 'Trooper', tier: 'Free', role: 'All-rounder', weapon: 'Assault rifle', model: GUNS + 'machinegun.glb',
-    passive: '+10% reload speed', active: 'Ammo crate for the team (60 s)', gear: 'Light vest, cap' },
-  { id: 'Brute', tier: 'Free', role: 'Blocker', weapon: 'Shotgun', model: GUNS + 'shotgun.glb',
-    passive: 'Creatures cannot push past you', active: 'Taunt: creatures chase you for 5 s (45 s)', gear: 'Heavy pauldrons, wide stance' },
-  { id: 'Scout', tier: 'Free', role: 'Mobility', weapon: 'Dual pistols', model: GUNS + 'pistol.glb',
-    passive: '+20% move speed', active: 'Dash through enemies (20 s)', gear: 'Hood, light boots' },
-  { id: 'Medic', tier: 'Free', role: 'Support', weapon: 'SMG', model: GUNS + 'uzi.glb',
-    passive: 'Repairs the Town Hall 2x faster', active: 'Repair pulse: +150 Town Hall HP (40 s)', gear: 'Visible backpack, armband' },
-  { id: 'Engineer', tier: 'Free', role: 'Area control', weapon: 'Carbine', model: GUNS + 'machinegunLauncher.glb',
-    passive: 'Spells cost 15% less', active: 'Barricade blocks a lane for 10 s (50 s)', gear: 'Tool belt, goggles' },
-  { id: 'Pyro', tier: 'Premium', role: 'Area damage', weapon: 'Flamethrower', model: GUNS + 'flamethrower_long.glb',
-    passive: 'Burning enemies take +15% damage', active: 'Fire wall across a lane (45 s)', gear: 'Tank on back, mask' },
-  { id: 'Frost Mage', tier: 'Premium', role: 'Crowd control', weapon: 'Ice wand', model: GUNS + 'pistolSilencer.glb',
-    passive: 'Freeze spells last 25% longer', active: 'Blizzard: slows everything on screen (60 s)', gear: 'Frost cloak (placeholder weapon model)' },
-  { id: 'Sniper', tier: 'Premium', role: 'Boss killer', weapon: 'Bolt rifle', model: GUNS + 'sniper.glb',
-    passive: '+50% headshot damage', active: 'Mark a target: team deals +30% (40 s)', gear: 'Ghillie hood, scope' },
-  { id: 'Demolisher', tier: 'Premium', role: 'Burst', weapon: 'Grenade launcher', model: GUNS + 'rocketlauncherModern.glb',
-    passive: 'Carries +2 grenades', active: 'Cluster bomb (50 s)', gear: 'Bandolier, helmet' },
-  { id: 'Summoner', tier: 'Premium', role: 'Pet', weapon: 'Staff', model: GUNS + 'knifeRound_smooth.glb',
-    passive: 'Starts with a pet that attacks', active: 'Pet enrages, 2x damage for 8 s (45 s)', gear: 'Robe trim, floating pet (placeholder weapon model)' },
+  { id: 'Trooper', tier: 'Free', cost: 0, role: 'All-rounder', weapon: 'Assault rifle', rig: ADV + 'Rogue.glb', show: [], gun: GUNS + 'machinegun.glb',
+    passive: '+10% reload speed',
+    skills: [sk('Burst Fire', 6, '2H_Ranged_Shooting', '3-round burst, double damage', { duration: 1 }), sk('Ammo Crate', 45, 'Use_Item', 'Drops a crate: team reloads instantly and gets +20% fire rate for 10 s', { duration: 10 })] },
+  { id: 'Tank', tier: 'Free', cost: 0, role: 'Blocker', weapon: 'Flail and shield', rig: ADV + 'Knight.glb', show: ['Spike_Shield'], flail: true,
+    passive: 'Creatures cannot push past you; +50% max health',
+    skills: [sk('Flail Sweep', 5, '2H_Melee_Attack_Spin', 'Spin: knocks back everything within 6 studs', { duration: 1 }), sk('Iron Wall', 30, 'Blocking', 'Raise the shield: taunts creatures and blocks 80% damage for 8 s', { duration: 8 })] },
+  { id: 'Scout', tier: 'Free', cost: 0, role: 'Mobility', weapon: 'Dual pistols', rig: ADV + 'Rogue.glb', show: [], gun: GUNS + 'pistol.glb', gun2: GUNS + 'pistol.glb',
+    passive: '+20% move speed',
+    skills: [sk('Dash', 4, 'Dodge_Forward', 'Dash 20 studs through creatures', { duration: 0.4 }), sk('Mark Target', 25, 'Throw', 'Marked creature takes +30% damage from everyone for 8 s', { duration: 8 })] },
+  { id: 'Medic', tier: 'Free', cost: 0, role: 'Support', weapon: 'SMG', rig: ADV + 'Rogue_Hooded.glb', show: [], gun: GUNS + 'uzi.glb',
+    passive: 'Repairs the Town Hall 2x faster with melee',
+    skills: [sk('Repair Pulse', 8, 'Use_Item', '+150 Town Hall HP'), sk('Overcharge', 40, 'Spellcast_Long', 'Town Hall takes no damage for 6 s', { duration: 6 })] },
+  { id: 'Engineer', tier: 'Free', cost: 0, role: 'Area control', weapon: 'Carbine and wrench', rig: ADV + 'Barbarian.glb', show: [], gun: GUNS + 'machinegunLauncher.glb', turret: PCY + 'Turret_Gun.glb',
+    passive: 'Melee hits on a turret repair it (+25% HP per hit); turrets bought between runs with gems, upgraded in-run with coins',
+    skills: [sk('Place Turret', 10, 'PickUp', 'Builds the selected turret where you aim (max 3 up; placing a 4th removes the oldest)', { repair: '1H_Melee_Attack_Chop' }), sk('Overclock', 30, 'Cheer', 'All your turrets fire 2x faster for 10 s', { duration: 10 })] },
+  { id: 'Berserker', tier: 'Locked', cost: 1200, role: 'Melee damage', weapon: 'Two-handed axe', rig: ADV + 'Barbarian.glb', show: ['2H_Axe'],
+    passive: 'Kills heal you 5 HP; melee damage +25%',
+    skills: [sk('Cleave', 4, '2H_Melee_Attack_Slice', 'Wide swing: hits every creature in front of you', { duration: 0.8 }), sk('Rage', 30, 'Cheer', '+40% attack speed and move speed for 10 s', { duration: 10 })] },
+  { id: 'Mage', tier: 'Locked', cost: 1200, role: 'Crowd control', weapon: 'Staff', rig: ADV + 'Mage.glb', show: ['2H_Staff'],
+    passive: 'Spells cost 25% less coins; freeze lasts 25% longer',
+    skills: [sk('Arcane Bolt', 2, 'Spellcast_Shoot', 'Homing bolt, 35 damage'), sk('Frost Nova', 25, 'Spellcast_Long', 'Freezes every creature within 15 studs for 3 s', { duration: 3 })] },
+  { id: 'Pyro', tier: 'Locked', cost: 1500, role: 'Area damage', weapon: 'Flamethrower', rig: ADV + 'Barbarian.glb', show: [], gun: GUNS + 'flamethrower_long.glb',
+    passive: 'Burning creatures take +15% damage',
+    skills: [sk('Flame Sweep', 7, '2H_Ranged_Shooting', 'Cone of fire, ignites for 4 s', { duration: 1.5 }), sk('Fire Wall', 40, 'Throw', 'Wall of fire across the lane for 8 s', { duration: 8 })] },
+  { id: 'Sniper', tier: 'Locked', cost: 1500, role: 'Boss killer', weapon: 'Bolt rifle', rig: ADV + 'Rogue_Hooded.glb', show: [], gun: GUNS + 'sniper.glb',
+    passive: '+50% headshot damage',
+    skills: [sk('Piercing Shot', 8, '2H_Ranged_Shoot', 'Shot goes through up to 5 creatures'), sk('Overwatch', 35, '2H_Ranged_Aiming', 'Next 5 shots in 10 s are guaranteed crits', { duration: 10 })] },
+  { id: 'Demolisher', tier: 'Locked', cost: 2000, role: 'Burst', weapon: 'Grenade launcher', rig: ADV + 'Knight.glb', show: [], gun: GUNS + 'rocketlauncherModern.glb',
+    passive: 'Carries +2 grenades; explosions 20% wider',
+    skills: [sk('Frag Toss', 6, 'Throw', 'Grenade: 120 damage in 8 studs'), sk('Cluster Bomb', 45, '2H_Ranged_Shoot', 'Shell splits into 6 bomblets along the lane', { duration: 1 })] },
+  { id: 'Summoner', tier: 'Locked', cost: 2500, role: 'Pet', weapon: 'Wand and spellbook', rig: ADV + 'Mage.glb', show: ['1H_Wand', 'Spellbook_open'], pet: QCU + 'Bat.glb', petAnims: Q_CUTE_FLY,
+    passive: 'Starts with a pet that attacks the nearest creature',
+    skills: [sk('Pet Pounce', 5, 'Spellcast_Shoot', 'Pet leaps on your target for 60 damage', { duration: 0.5 }), sk('Enrage', 45, 'Spellcast_Raise', 'Pet grows: 2x size and damage for 8 s', { duration: 8 })] },
 ];
+for (const c of CLASSES) { c.model = c.rig; c.anims = { idle: 'Idle', walk: 'Walking_A', run: 'Running_A' }; c.scale = 1; c.tint = null; c.stats = { tier: c.tier, role: c.role }; }
+// Weapon meshes built into the Adventurer rigs; everything here is hidden unless listed in `show`.
+export const RIG_WEAPONS = /Sword|Shield|Axe|Mug|Wand|Staff|Spellbook|Knife|Crossbow|Throwable/;
 
 // Dungeons (src/shared/Dungeons.luau): unlock level, creature family, lanes, gimmick, props kit.
 export const DUNGEONS = [
-  { id: 'Graveyard', name: 'Graveyard', unlockLevel: 1, family: 'graveyard', lanes: 3, gimmick: 'Fog rolls in on boss waves, cutting sight lines', props: 'KayKit Halloween Bits' },
-  { id: 'Farm', name: 'Haunted Farm', unlockLevel: 3, family: 'farm', lanes: 2, gimmick: 'Hay bales can be pushed into lanes as cover; animals trample them', props: 'Quaternius Village + Crops + Nature' },
-  { id: 'Swamp', name: 'Swamp', unlockLevel: 5, family: 'swamp', lanes: 2, gimmick: 'Shallow water slows everyone; ice spells freeze it solid', props: 'Quaternius Nature (willows, lilypads)' },
-  { id: 'Sewer', name: 'Sewer', unlockLevel: 10, family: 'sewer', lanes: 3, gimmick: 'Slimes split in two when killed above half health', props: 'Quaternius Modular Dungeon + Platformer pipes, KayKit Dungeon' },
-  { id: 'Village', name: 'Bandit Village', unlockLevel: 15, family: 'village', lanes: 4, gimmick: 'Bandits loot dropped coins before you can', props: 'Quaternius Medieval Village' },
-  { id: 'Frozen', name: 'Frozen Cavern', unlockLevel: 20, family: 'frozen', lanes: 2, gimmick: 'Everything is slippery; freeze spells last twice as long', props: 'Quaternius Nature (snow trees, rocks) + Space dome' },
-  { id: 'Jungle', name: 'Jungle Temple', unlockLevel: 25, family: 'jungle', lanes: 3, gimmick: 'Vines block sight lines until burned away', props: 'Quaternius Nature (palms) + Modular Dungeons ruins + Crops bamboo' },
-  { id: 'Pirate', name: 'Pirate Cove', unlockLevel: 30, family: 'pirate', lanes: 3, gimmick: 'Cannons on the cliffs can be captured and fired at the lanes', props: 'Quaternius Ships + Nature palms + Village barrels' },
-  { id: 'Factory', name: 'Factory', unlockLevel: 35, family: 'factory', lanes: 4, gimmick: 'Conveyor belts move anything on them, including grenades', props: 'Quaternius Cyberpunk Game Kit' },
-  { id: 'Station', name: 'Space Station', unlockLevel: 40, family: 'station', lanes: 4, gimmick: 'Airlocks vent a lane for 5 s when opened', props: 'Quaternius Ultimate Space Kit' },
+  { id: 'Graveyard', name: 'Graveyard', unlockLevel: 1, family: 'graveyard', lanes: 1, gimmick: 'Fog rolls in on boss waves, cutting sight lines', props: 'KayKit Halloween Bits' },
+  { id: 'Farm', name: 'Haunted Farm', unlockLevel: 3, family: 'farm', lanes: 1, gimmick: 'Hay bales can be pushed into lanes as cover; animals trample them', props: 'Quaternius Village + Crops + Nature' },
+  { id: 'Swamp', name: 'Swamp', unlockLevel: 5, family: 'swamp', lanes: 1, gimmick: 'Shallow water slows everyone; ice spells freeze it solid', props: 'Quaternius Nature (willows, lilypads)' },
+  { id: 'Sewer', name: 'Sewer', unlockLevel: 10, family: 'sewer', lanes: 1, gimmick: 'Slimes split in two when killed above half health', props: 'Quaternius Modular Dungeon + Platformer pipes, KayKit Dungeon' },
+  { id: 'Village', name: 'Bandit Village', unlockLevel: 15, family: 'village', lanes: 1, gimmick: 'Bandits loot dropped coins before you can', props: 'Quaternius Medieval Village' },
+  { id: 'Frozen', name: 'Frozen Cavern', unlockLevel: 20, family: 'frozen', lanes: 1, gimmick: 'Everything is slippery; freeze spells last twice as long', props: 'Quaternius Nature (snow trees, rocks) + Space dome' },
+  { id: 'Jungle', name: 'Jungle Temple', unlockLevel: 25, family: 'jungle', lanes: 1, gimmick: 'Vines block sight lines until burned away', props: 'Quaternius Nature (palms) + Modular Dungeons ruins + Crops bamboo' },
+  { id: 'Pirate', name: 'Pirate Cove', unlockLevel: 30, family: 'pirate', lanes: 1, gimmick: 'Cannons on the cliffs can be captured and fired at the lanes', props: 'Quaternius Ships + Nature palms + Village barrels' },
+  { id: 'Factory', name: 'Factory', unlockLevel: 35, family: 'factory', lanes: 1, gimmick: 'Conveyor belts move anything on them, including grenades', props: 'Quaternius Cyberpunk Game Kit' },
+  { id: 'Station', name: 'Space Station', unlockLevel: 40, family: 'station', lanes: 1, gimmick: 'Airlocks vent a lane for 5 s when opened', props: 'Quaternius Ultimate Space Kit' },
 ];
 
 
@@ -404,54 +427,66 @@ const PSH = '../assets/props/quaternius-ships/';
 const PCR = '../assets/props/quaternius-crops/';
 const PP = '../assets/props/quaternius-platformer-props/';
 const KD = '../assets/props/kaykit-dungeon/';
+const PRTS = '../assets/props/quaternius-rts/';
+
 const pr = (file, n, h, opts = {}) => ({ file, n, h, ...opts });
 export const MAPS = {
   Graveyard: { ground: 0x2b3a2b, path: 0x4a3f33, sky: 0x151a22, fog: 0x1b2230,
+    tower: pr(HW + 'crypt.gltf', 1, 7),
     hall: pr(HW + 'crypt.gltf', 1, 6), gate: pr(HW + 'arch_gate.gltf', 1, 4), props: [
       pr(HW + 'tree_dead_large.gltf', 8, 6), pr(HW + 'tree_dead_medium.gltf', 8, 4), pr(HW + 'gravestone.gltf', 14, 1.2), pr(HW + 'grave_A.gltf', 8, 0.8),
       pr(HW + 'grave_B.gltf', 6, 0.9), pr(HW + 'coffin.gltf', 3, 0.8), pr(HW + 'fence.gltf', 16, 1.2), pr(HW + 'post_lantern.gltf', 6, 2.4),
       pr(HW + 'pumpkin_orange_jackolantern.gltf', 6, 0.6), pr(HW + 'shrine.gltf', 2, 2.5), pr(HW + 'tree_pine_orange_large.gltf', 5, 7) ] },
   Farm: { ground: 0x5a7a33, path: 0x8a6a3a, sky: 0x3a2f3f, fog: 0x4a3a4f,
+    tower: pr(PV + 'Mill.glb', 1, 10),
     hall: pr(PV + 'Stable.glb', 1, 6), gate: pr(PV + 'Fence.glb', 1, 1.6), props: [
       pr(PV + 'Hay.glb', 10, 1.2), pr(PV + 'Cart.glb', 3, 1.6), pr(PV + 'Well.glb', 1, 2.2), pr(PV + 'Barrel.glb', 6, 1), pr(PV + 'Crate.glb', 5, 1),
-      pr(PV + 'Mill.glb', 1, 9), pr(PCR + 'Pumpkin_Crop.glb', 8, 0.7), pr(PCR + 'Corn_Crop.glb', 10, 1.8), pr(PCR + 'Wheat_Crop.glb', 10, 1.2),
+      pr(PCR + 'Pumpkin_Crop.glb', 8, 0.7), pr(PCR + 'Corn_Crop.glb', 10, 1.8), pr(PCR + 'Wheat_Crop.glb', 10, 1.2),
       pr(PN + 'CommonTree_1.glb', 6, 6), pr(PN + 'CommonTree_Dead_1.glb', 3, 5), pr(HW + 'pumpkin_yellow.gltf', 5, 0.6) ] },
   Swamp: { ground: 0x2f3f24, path: 0x3f4a2a, sky: 0x1c2420, fog: 0x2a3a2e, water: 0x274a3f,
+    tower: pr(PRTS + 'Temple_FirstAge_Level3.glb', 1, 9),
     hall: pr(PV + 'Gazebo.glb', 1, 5), gate: pr(PN + 'Willow_Dead_1.glb', 1, 7), props: [
       pr(PN + 'Willow_1.glb', 6, 8), pr(PN + 'Willow_2.glb', 5, 7), pr(PN + 'Lilypad.glb', 14, 0.15), pr(PN + 'Plant_1.glb', 10, 1), pr(PN + 'Plant_2.glb', 8, 1),
       pr(PN + 'Plant_3.glb', 8, 1.2), pr(PN + 'Grass.glb', 14, 0.6), pr(PN + 'Rock_1.glb', 5, 1), pr(PN + 'Rock_2.glb', 5, 1.4), pr(PN + 'CommonTree_Dead_2.glb', 4, 5),
       pr(PN + 'WoodLog.glb', 4, 0.6), pr(PN + 'TreeStump.glb', 4, 0.6) ] },
   Sewer: { ground: 0x2a2d31, path: 0x3b4044, sky: 0x101214, fog: 0x1a1e22, water: 0x3a5a2a,
+    tower: pr(PRTS + 'WatchTower_FirstAge_Level3.glb', 1, 10),
     hall: pr(PD + 'Entrance.glb', 1, 6), gate: pr(PD + 'Bars.glb', 1, 3), props: [
       pr(PD + 'Barrel.glb', 8, 1), pr(PD + 'Bones.glb', 6, 0.5), pr(PD + 'Bones2.glb', 4, 0.5), pr(PD + 'Column.glb', 10, 4), pr(PD + 'Column_Broken.glb', 5, 2.5),
       pr(PD + 'Torch.glb', 8, 1.6), pr(PD + 'Rock1.glb', 6, 1), pr(PD + 'Rock2.glb', 5, 1.3), pr(PP + 'Pipe.glb', 6, 2.2), pr(PD + 'WallRocks.glb', 6, 2.5),
       pr(KD + 'crates_stacked.gltf.glb', 3, 1.4), pr(PD + 'Chest.glb', 2, 0.8) ] },
   Village: { ground: 0x5f7f3a, path: 0x8c7a5a, sky: 0x4a3a30, fog: 0x5a4a40,
+    tower: pr(PRTS + 'TownCenter_SecondAge_Level3.glb', 1, 10),
     hall: pr(PV + 'Inn.glb', 1, 8), gate: pr(PV + 'Fence.glb', 1, 1.6), props: [
       pr(PV + 'House_1.glb', 2, 6), pr(PV + 'House_2.glb', 2, 6), pr(PV + 'House_3.glb', 2, 6.5), pr(PV + 'House_4.glb', 1, 7), pr(PV + 'Blacksmith.glb', 1, 6),
       pr(PV + 'MarketStand_1.glb', 2, 2.5), pr(PV + 'MarketStand_2.glb', 2, 2.5), pr(PV + 'Bonfire_Lit.glb', 2, 1.2), pr(PV + 'Well.glb', 1, 2.2), pr(PV + 'Cart.glb', 2, 1.6),
       pr(PV + 'Bell_Tower.glb', 1, 9), pr(PV + 'Barrel.glb', 6, 1), pr(PV + 'Crate.glb', 6, 1), pr(PV + 'Bench_1.glb', 3, 0.8), pr(PN + 'CommonTree_2.glb', 5, 6) ] },
   Frozen: { ground: 0xd8e4ee, path: 0xa8bccc, sky: 0x1a2634, fog: 0x3a4a5c,
+    tower: pr(PRTS + 'Wonder_SecondAge_Level3.glb', 1, 11),
     hall: pr(PS + 'GeodesicDome.glb', 1, 6), gate: pr(PN + 'BirchTree_Dead_Snow_1.glb', 1, 6), props: [
       pr(PN + 'PineTree_Snow_1.glb', 8, 8), pr(PN + 'PineTree_Snow_2.glb', 8, 7), pr(PN + 'PineTree_Snow_3.glb', 6, 6), pr(PN + 'CommonTree_Snow_1.glb', 5, 6),
       pr(PN + 'CommonTree_Snow_2.glb', 4, 5), pr(PN + 'Bush_Snow_1.glb', 8, 1), pr(PN + 'Bush_Snow_2.glb', 6, 1), pr(PN + 'Rock_Snow_1.glb', 6, 1.4),
       pr(PN + 'Rock_Snow_2.glb', 6, 2), pr(PN + 'Rock_Snow_3.glb', 4, 2.6), pr(PN + 'BirchTree_Dead_Snow_2.glb', 4, 6) ] },
   Jungle: { ground: 0x3f6a2f, path: 0x6a5a3a, sky: 0x1e2a1a, fog: 0x2e4a2a,
+    tower: pr(PRTS + 'Temple_SecondAge_Level3.glb', 1, 10),
     hall: pr(PR + 'Statue_Horse.glb', 1, 6), gate: pr(PR + 'Arch_Door.glb', 1, 4.5), props: [
       pr(PN + 'PalmTree_1.glb', 6, 8), pr(PN + 'PalmTree_2.glb', 6, 7), pr(PN + 'PalmTree_3.glb', 4, 9), pr(PN + 'CommonTree_3.glb', 5, 7), pr(PN + 'Plant_4.glb', 10, 1.2),
       pr(PN + 'Plant_5.glb', 10, 1.4), pr(PN + 'Flowers.glb', 8, 0.5), pr(PN + 'Grass_2.glb', 10, 0.6), pr(PR + 'Column.glb', 6, 4), pr(PR + 'Column2.glb', 4, 4),
       pr(PR + 'Pedestal.glb', 4, 1.2), pr(PR + 'Vase.glb', 4, 1), pr(PR + 'Skull.glb', 4, 0.5), pr(PCR + 'Bamboo_Crop.glb', 8, 3) ] },
   Pirate: { ground: 0xd8c48a, path: 0xb8a070, sky: 0x1a2a3a, fog: 0x2a3a4a, water: 0x2a6a8a,
+    tower: pr(PSH + 'Sail_ship.glb', 1, 14),
     hall: pr(PSH + 'Sail_ship.glb', 1, 12), gate: pr(PSH + 'Boat.glb', 1, 1.6), props: [
       pr(PN + 'PalmTree_1.glb', 6, 7), pr(PN + 'PalmTree_4.glb', 6, 8), pr(PV + 'Barrel.glb', 8, 1), pr(PV + 'Crate.glb', 6, 1), pr(PV + 'Bonfire_Lit.glb', 2, 1.2),
       pr(PN + 'Rock_3.glb', 6, 1.6), pr(PN + 'Rock_4.glb', 4, 2.4), pr(PSH + 'Viking_boat.glb', 1, 3), pr(PSH + 'BoatWSail.glb', 1, 4), pr(PSH + 'Lifeboat.glb', 2, 1.2),
       pr(KD + 'chest_gold.glb', 2, 0.8), pr(PN + 'Grass_Short.glb', 10, 0.4) ] },
   Factory: { ground: 0x33363c, path: 0x4a4e55, sky: 0x101418, fog: 0x1c2228,
+    tower: pr(PC + 'Turret_Cannon.glb', 1, 9),
     hall: pr(PC + 'Computer_Large.glb', 1, 5), gate: pr(PC + 'Door.glb', 1, 4), props: [
       pr(PC + 'AC.glb', 5, 1), pr(PC + 'AC_Stacked.glb', 3, 2), pr(PC + 'Antenna_1.glb', 4, 3), pr(PC + 'Antenna_2.glb', 3, 4), pr(PC + 'Cable_Thick.glb', 4, 0.6),
       pr(PC + 'Fence.glb', 10, 1.6), pr(PC + 'Light_Street_1.glb', 6, 4), pr(PC + 'Pipe_1.glb', 6, 1.2), pr(PC + 'Platform_4x4.glb', 3, 0.8), pr(PC + 'Rail_Long.glb', 4, 1),
       pr(PC + 'Sign_1.glb', 3, 2.4), pr(PC + 'Support_Long.glb', 6, 5), pr(PC + 'Tank.glb', 4, 2.2), pr(PC + 'Turret_Gun.glb', 3, 2), pr(PC + 'Lootbox.glb', 3, 1) ] },
-  Station: { ground: 0x4a4658, path: 0x6a6480, sky: 0x08080f, fog: 0x14121c,
+  Station: { ground: 0x9a4a30, path: 0xc07a58, sky: 0x06060e, fog: 0x3a1a16, space: true, planets: [pr(PS + 'Planet_1.glb', 1, 60), pr(PS + 'Planet_3.glb', 1, 40), pr(PS + 'Planet_7.glb', 1, 28)],
+    tower: pr(PS + 'Base_Large.glb', 1, 9),
     hall: pr(PS + 'Base_Large.glb', 1, 7), gate: pr(PS + 'Ramp.glb', 1, 1.5), props: [
       pr(PS + 'Building_L.glb', 2, 6), pr(PS + 'House_Cylinder.glb', 2, 5), pr(PS + 'House_Long.glb', 2, 4), pr(PS + 'House_Single.glb', 2, 4), pr(PS + 'MetalSupport.glb', 6, 3),
       pr(PS + 'Roof_Antenna.glb', 3, 2), pr(PS + 'Roof_Radar.glb', 2, 2.4), pr(PS + 'Rock_Large_1.glb', 4, 3), pr(PS + 'Rock_Large_2.glb', 3, 3.5), pr(PS + 'Rock_1.glb', 6, 1),
@@ -459,4 +494,4 @@ export const MAPS = {
 };
 
 export const STAT_ICONS = { health: 'health', speed: 'speed', damage: 'damage', coins: 'coins', firstWave: 'wave', kills: 'kills' };
-export const STAT_LABELS = { health: 'Health', speed: 'Speed (studs/s)', damage: 'Town Hall damage', coins: 'Coins per kill', firstWave: 'First wave', tier: 'Tier', role: 'Role', weapon: 'Starting weapon', passive: 'Passive', active: 'Active', gear: 'Gear overlay' };
+export const STAT_LABELS = { health: 'Health', speed: 'Speed (studs/s)', damage: 'Town Hall damage', coins: 'Coins per kill', firstWave: 'First wave', tier: 'Tier', role: 'Role', weapon: 'Weapon', passive: 'Passive' };

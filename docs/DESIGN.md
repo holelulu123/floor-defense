@@ -59,26 +59,27 @@ Both first-person and third-person, as a player setting with a hotkey to toggle 
 
 ## Classes
 
-Players keep their own Roblox avatar. On entering the lobby (and again on any pad before the countdown ends) they pick a **class**: a starting weapon, one passive and one active ability on a cooldown. Ten classes, five free and five premium. The balance rule: a premium class is never stronger than a free one, only different. A player who masters the free five should be able to top the Hall of Fame.
+Players keep their own Roblox avatar. A class is a weapon, a passive and **two skills with cooldowns**: skill 1 is quick (1 to 10 s), skill 2 is a long cooldown (25 to 50 s) and usually a timed buff. Every class is playable; five are free and six are **locked** and bought once with gems, which players earn at the end of each run (see Progression). Skills are server-validated: the server owns the cooldown clock (`Classes.canUse`) and rejects early casts.
 
-| Class | Tier | Role | Starting weapon | Passive | Active (cooldown) |
+| Class | Unlock | Weapon | Passive | Skill 1 (quick) | Skill 2 (long) |
 | --- | --- | --- | --- | --- | --- |
-| Trooper | Free | All-rounder | Assault rifle | +10% reload speed | Ammo crate for the team (60 s) |
-| Brute | Free | Blocker | Shotgun | Creatures cannot push past you | Taunt: nearby creatures chase you instead of the Town Hall for 5 s (45 s) |
-| Scout | Free | Mobility | Dual pistols | +20% move speed | Dash through enemies (20 s) |
-| Medic | Free | Support | SMG | Repairs the Town Hall 2x faster | Repair pulse: +150 Town Hall health (40 s) |
-| Engineer | Free | Area control | Carbine | Spells cost 15% less | Drop a barricade that blocks a lane for 10 s (50 s) |
-| Pyro | Premium | Area damage | Flamethrower | Burning enemies take +15% damage | Fire wall across a lane (45 s) |
-| Frost Mage | Premium | Crowd control | Ice wand | Freeze spells last 25% longer | Blizzard: slows everything on screen (60 s) |
-| Sniper | Premium | Boss killer | Bolt rifle | +50% headshot damage | Mark a target: team deals +30% to it (40 s) |
-| Demolisher | Premium | Burst | Grenade launcher | Carries +2 grenades | Cluster bomb (50 s) |
-| Summoner | Premium | Pet | Staff | Starts with a pet that attacks | Pet enrages, double damage for 8 s (45 s) |
+| Trooper | Free | Assault rifle | +10% reload | Burst Fire, 6 s: 3-round burst, 2x damage | Ammo Crate, 45 s: team reload + 20% fire rate for 10 s |
+| Tank | Free | Flail and shield | Blocks creatures; +50% HP | Flail Sweep, 5 s: knockback in 6 studs | Iron Wall, 30 s: taunt + 80% block for 8 s |
+| Scout | Free | Dual pistols | +20% speed | Dash, 4 s: 20 studs through creatures | Mark Target, 25 s: +30% damage taken for 8 s |
+| Medic | Free | SMG | Melee repairs the Town Hall 2x | Repair Pulse, 8 s: +150 Town Hall HP | Overcharge, 40 s: Town Hall immune 6 s |
+| Engineer | Free | Carbine and wrench | Melee on a turret repairs it (+25% HP/hit) | Place Turret, 10 s: builds the selected turret (max 3; a 4th replaces the oldest) | Overclock, 30 s: all your turrets fire 2x for 10 s |
+| Berserker | 1200 gems | Two-handed axe | Kills heal 5 HP; melee +25% | Cleave, 4 s: hits everything in front | Rage, 30 s: +40% attack and move speed for 10 s |
+| Mage | 1200 gems | Staff | Spells cost 25% less; freeze +25% | Arcane Bolt, 2 s: homing bolt, 35 dmg | Frost Nova, 25 s: freeze 15 studs for 3 s |
+| Pyro | 1500 gems | Flamethrower | Burning creatures take +15% | Flame Sweep, 7 s: cone, ignites 4 s | Fire Wall, 40 s: wall across the lane for 8 s |
+| Sniper | 1500 gems | Bolt rifle | +50% headshot | Piercing Shot, 8 s: through 5 creatures | Overwatch, 35 s: next 5 shots crit (10 s) |
+| Demolisher | 2000 gems | Grenade launcher | +2 grenades, 20% wider blasts | Frag Toss, 6 s: 120 dmg in 8 studs | Cluster Bomb, 45 s: 6 bomblets along the lane |
+| Summoner | 2500 gems | Wand and spellbook | Starts with an attacking pet | Pet Pounce, 5 s: pet leaps for 60 dmg | Enrage, 45 s: pet 2x size and damage for 8 s |
 
-How a class shows on an avatar: the class adds a small **gear overlay** on top of whatever the player is wearing, applied server-side with `HumanoidDescription` accessories: Brute gets heavy pauldrons, Medic a visible pack, Scout a hood, Engineer a tool belt, plus the weapon model in hand. Bodies, faces and Marketplace items stay untouched. This is what the top Roblox games do (BedWars kits, Rivals/TDS skins on gear, never on the body).
+Turrets (Engineer): turret **types and rarities** are bought between runs with gems and never change in a run; turret **levels** are bought in-run with coins. Placed turrets have HP; creatures that bump into them damage them, the Engineer's melee repairs them. Overclock doubles fire rate for 10 s. More classes are easy to add later (the data lives in `src/shared/Classes.luau` and `showcase/catalog.js`).
 
-Class select UI: a panel on lobby entry with the ten classes, role, weapon, passive and active, premium ones marked with a price. The last-used class is remembered in `PlayerData`. Changing class is free and instant in the lobby; locked once a run starts.
+Animations: the showcase previews every skill on a KayKit Adventurer dummy (CC0) with the clip named in the table's source (for example Tank's Flail Sweep is `2H_Melee_Attack_Spin`). In Roblox the moves are played on the player's own R15 avatar, which needs Roblox animation assets: either re-created in the Animation Editor using these previews as reference, or retargeted from the KayKit clips in Blender onto the R15 rig and uploaded. The flail model is a placeholder until a CC0 flail is found.
 
-Premium classes are bought once with Robux, or slowly with Gems earned in game. Skins are **gear and weapon skins** (gold pauldrons, flaming pack, camo rifle): free ones unlocked by milestones (reach wave 20 as Brute), paid ones with Gems or Robux. Later, selling our own accessories as Roblox UGC items is a second revenue line.
+Class select: on entering the lobby a panel shows the classes with their two skills and unlock cost; locked ones show a Buy button (gems). The choice is kept per player and can be changed in the lobby at any time.
 
 ## Turrets and class gear (to discuss)
 

@@ -112,6 +112,18 @@
     <label class="row"><input type="checkbox" id="chk-sound" checked> Sounds</label>
     <label class="row"><input type="checkbox" id="chk-footsteps" checked> Footsteps while walking</label>
   </div>
+  <div id="class-controls" class="hidden">
+    <h2>Skills</h2>
+    <div>
+      <button id="btn-skill1" class="primary">Skill 1</button>
+      <button id="btn-skill2" class="primary">Skill 2</button>
+      <button id="btn-cls-repair" class="hidden">Repair turret</button>
+    </div>
+    <div class="note" id="cooldowns"></div>
+    <div><button id="btn-cls-walk">Walk</button><button id="btn-cls-run">Run</button><button id="btn-cls-idle">Idle</button></div>
+    <h2>Any animation</h2>
+    <select id="cls-anim-select"></select>
+  </div>
   <div id="static-controls" class="hidden">
     <h2>View</h2>
     <label class="row"><input type="checkbox" id="chk-spin" checked> Auto-rotate</label>
@@ -137,7 +149,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
-import { FAMILIES, CLASSES, DUNGEONS, MAPS, STAT_ICONS, STAT_LABELS } from './catalog.js';
+import { FAMILIES, CLASSES, DUNGEONS, MAPS, RIG_WEAPONS, STAT_ICONS, STAT_LABELS } from './catalog.js';
 
 const SFX = '../assets/sounds/kenney-impact/';
 const ICONS = '../assets/ui/icons/';
@@ -180,7 +192,7 @@ function applyZoom() {
   camera.position.copy(controls.target).add(offset.setLength(dist));
 }
 
-scene.add(new THREE.HemisphereLight(0xdfe6ff, 0x4a3f36, 0.9));
+const hemi = new THREE.HemisphereLight(0xdfe6ff, 0x4a3f36, 0.9); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff1dc, 1.8);
 sun.position.set(4, 7, 3); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
 scene.add(sun);
@@ -352,8 +364,8 @@ const clock = new THREE.Clock();
 
 const DEFAULT_SKY = scene.background.clone(), DEFAULT_FOG = scene.fog.color.clone(), DEFAULT_FOG_RANGE = [scene.fog.near, scene.fog.far];
 function clear() {
-  if (current) { scene.remove(current.root); current = null; active = null; }
-  ground.visible = true; grid.visible = true; scene.background = DEFAULT_SKY.clone(); scene.fog.color.copy(DEFAULT_FOG); [scene.fog.near, scene.fog.far] = DEFAULT_FOG_RANGE;
+  if (current) { scene.remove(current.root); for (const e of current.extras ?? []) scene.remove(e); current = null; active = null; }
+  ground.visible = true; grid.visible = true; controls.maxPolarAngle = Math.PI; hemi.intensity = 0.9; sun.intensity = 1.8; scene.background = DEFAULT_SKY.clone(); scene.fog.color.copy(DEFAULT_FOG); [scene.fog.near, scene.fog.far] = DEFAULT_FOG_RANGE;
 }
 
 // Tint a material. Lit materials (KayKit) take an emissive glow; unlit ones (most Kenney kits use
@@ -465,8 +477,14 @@ function skyTexture(theme, key) {
   const grad = g.createLinearGradient(0, 0, 0, H * 0.55);
   grad.addColorStop(0, '#' + top.getHexString()); grad.addColorStop(1, '#' + hor.getHexString());
   g.fillStyle = grad; g.fillRect(0, 0, W, H);
-  g.fillStyle = '#' + new THREE.Color(theme.ground).multiplyScalar(0.55).getHexString(); g.fillRect(0, H * 0.5, W, H * 0.5);
-  if (night) { g.fillStyle = '#ffffff'; for (let i = 0; i < 700; i++) { const y = r() * H * 0.45; g.globalAlpha = 0.3 + r() * 0.7; g.fillRect(r() * W, y, r() < 0.1 ? 3 : 1.5, r() < 0.1 ? 3 : 1.5); } g.globalAlpha = 1; }
+  const farTone = new THREE.Color(theme.ground).multiplyScalar(0.75);
+  const gg = g.createLinearGradient(0, H * 0.5, 0, H * 0.62); gg.addColorStop(0, '#' + hor.clone().lerp(farTone, 0.5).getHexString()); gg.addColorStop(1, '#' + farTone.getHexString());
+  g.fillStyle = gg; g.fillRect(0, H * 0.5, W, H * 0.5);
+  if (theme.space) { // nebula glow + a dense star field + two distant planets painted into the sky
+    for (let i = 0; i < 6; i++) { const nx = r() * W, ny = H * (0.1 + r() * 0.3), nr = 150 + r() * 300; const ng = g.createRadialGradient(nx, ny, 0, nx, ny, nr); ng.addColorStop(0, `rgba(${120 + r() * 100 | 0},${40 + r() * 60 | 0},${140 + r() * 100 | 0},0.35)`); ng.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = ng; g.fillRect(nx - nr, ny - nr, nr * 2, nr * 2); }
+    for (const [px, py, pr_, col] of [[W * 0.3, H * 0.22, 70, '#d9a066'], [W * 0.55, H * 0.14, 38, '#8fb7d9']]) { g.beginPath(); g.arc(px, py, pr_, 0, Math.PI * 2); g.fillStyle = col; g.fill(); g.beginPath(); g.arc(px - pr_ * 0.3, py - pr_ * 0.2, pr_ * 0.7, 0, Math.PI * 2); g.fillStyle = 'rgba(255,255,255,0.12)'; g.fill(); }
+  }
+  if (night) { g.fillStyle = '#ffffff'; for (let i = 0; i < (theme.space ? 2200 : 700); i++) { const y = r() * H * 0.45; g.globalAlpha = 0.3 + r() * 0.7; g.fillRect(r() * W, y, r() < 0.1 ? 3 : 1.5, r() < 0.1 ? 3 : 1.5); } g.globalAlpha = 1; }
   // sun or moon
   const sx = W * 0.72, sy = H * 0.2;
   const glow = g.createRadialGradient(sx, sy, 10, sx, sy, night ? 160 : 260);
@@ -481,8 +499,8 @@ function skyTexture(theme, key) {
   for (let layer = 0; layer < 2; layer++) {
     g.fillStyle = '#' + hill.clone().multiplyScalar(layer ? 0.8 : 1).getHexString();
     g.beginPath(); g.moveTo(0, H * 0.5);
-    let y = H * (0.44 + layer * 0.02);
-    for (let x = 0; x <= W; x += 24) { y += (r() - 0.5) * 18 * (layer + 1); y = Math.min(H * 0.5, Math.max(H * (0.36 + layer * 0.04), y)); g.lineTo(x, y); }
+    let y = H * (0.42 + layer * 0.03);
+    for (let x = 0; x <= W; x += 20) { y += (r() - 0.5) * 26 * (layer + 1); y = Math.min(H * 0.5, Math.max(H * (0.3 + layer * 0.05), y)); g.lineTo(x, y); }
     g.lineTo(W, H * 0.5); g.closePath(); g.fill();
   }
   const tex = new THREE.CanvasTexture(c); tex.mapping = THREE.EquirectangularReflectionMapping; tex.colorSpace = THREE.SRGBColorSpace;
@@ -491,52 +509,102 @@ function skyTexture(theme, key) {
 
 // Builds a themed arena into `parent`. Used at full size for a dungeon map and at diorama size in
 // the lobby. Returns { jobs, laneXs, placed, hallZ, gateZ } so callers can await the prop loads.
-function buildArena(theme, d, parent, { W = 110, D = 80, propMult = 2, withWalkers = true, mixers = [], seed = d.id } = {}) {
-  const lanes = d.lanes;
+// Lane: one winding route from the gate (near edge) to the tower (far edge). Seeded zig-zag
+// waypoints through a centripetal Catmull-Rom spline, so every dungeon has its own bends.
+function laneCurve(W, D, r, gateZ, towerZ) {
+  const pts = [new THREE.Vector3((r() - 0.5) * W * 0.3, 0, gateZ)];
+  const bends = 4 + Math.floor(r() * 3);
+  let side = r() < 0.5 ? 1 : -1;
+  for (let i = 1; i <= bends; i++) {
+    const t = i / (bends + 1);
+    pts.push(new THREE.Vector3(side * W * (0.18 + r() * 0.2), 0, gateZ + (towerZ - gateZ) * t + (r() - 0.5) * D * 0.06));
+    side = -side;
+  }
+  pts.push(new THREE.Vector3(0, 0, towerZ - 6));
+  return new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
+}
+function laneRibbon(curve, width, color) {
+  const N = 240, pos = [], idx = [], up = new THREE.Vector3(0, 1, 0);
+  for (let i = 0; i <= N; i++) {
+    const t = i / N, p = curve.getPoint(t), tan = curve.getTangent(t).normalize();
+    const side = new THREE.Vector3().crossVectors(up, tan).normalize().multiplyScalar(width / 2);
+    pos.push(p.x + side.x, 0.015, p.z + side.z, p.x - side.x, 0.015, p.z - side.z);
+    if (i < N) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color, roughness: 1, side: THREE.DoubleSide })); m.receiveShadow = true; return m;
+}
+
+// Builds a themed arena into `parent`: ground, one winding lane, the dungeon's tower at the far end,
+// a gate at the near end, scattered props off the lane, and creatures walking the lane. Used at full
+// size for a dungeon map and at diorama size in the lobby. Returns { jobs, placed, curve, ... }.
+function buildArena(theme, d, parent, { W = 160, D = 110, propMult = 3, withWalkers = true, mixers = [], seed = d.id, maxWalkers = 14 } = {}) {
   const fam = FAMILIES.find(f => f.id === d.family);
-  const laneXs = Array.from({ length: lanes }, (_, i) => lanes === 1 ? 0 : (i - (lanes - 1) / 2) * (W * 0.55 / Math.max(lanes - 1, 1)));
+  const r = rng([...seed].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7));
   const g = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: theme.ground, roughness: 1 }));
   g.rotation.x = -Math.PI / 2; g.receiveShadow = true; parent.add(g);
   if (theme.water) { const w = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.6, D * 1.6), new THREE.MeshStandardMaterial({ color: theme.water, roughness: 0.3, metalness: 0.1 })); w.rotation.x = -Math.PI / 2; w.position.y = -0.08; parent.add(w); }
-  const hallZ = D / 2 - D * 0.14, gateZ = -D / 2 + D * 0.08;
-  const laneW = Math.max(3.6, W * 0.045);
-  for (const x of laneXs) {
-    const len = hallZ - gateZ - 4;
-    const strip = new THREE.Mesh(new THREE.PlaneGeometry(laneW, len), new THREE.MeshStandardMaterial({ color: theme.path, roughness: 1 }));
-    strip.rotation.x = -Math.PI / 2; strip.position.set(x * 0.75, 0.012, (hallZ + gateZ) / 2); strip.rotation.z = Math.atan2(x / 2, len); strip.receiveShadow = true;
-    parent.add(strip);
+  // The world does not end at the arena: a wide terrain disc in a darker tone reaches the horizon,
+  // with a ring of far props (bigger, cheaper) so the skyline has something in front of it.
+  if (propMult >= 1) {
+  const far = new THREE.Mesh(new THREE.CircleGeometry(W * 6, 64), new THREE.MeshStandardMaterial({ color: new THREE.Color(theme.ground).multiplyScalar(0.75), roughness: 1 }));
+  far.rotation.x = -Math.PI / 2; far.position.y = -0.03; far.receiveShadow = true; parent.add(far);
   }
-  const r = rng([...seed].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7));
+  const towerZ = D / 2 - D * 0.12, gateZ = -D / 2 + D * 0.07;
+  const laneW = Math.max(3.5, W * 0.05);
+  const curve = laneCurve(W, D, r, gateZ, towerZ);
+  parent.add(laneRibbon(curve, laneW, theme.path));
+  const samples = curve.getSpacedPoints(160);
+  const laneDist = (x, z) => { let m = Infinity; for (const p of samples) { const dx = p.x - x, dz = p.z - z; const q = dx * dx + dz * dz; if (q < m) m = q; } return Math.sqrt(m); };
   const jobs = [];
-  const hallScale = W / 64;
-  jobs.push(placeProp({ ...theme.hall, h: theme.hall.h * hallScale }, parent, 0, hallZ, Math.PI));
-  for (const x of laneXs) jobs.push(placeProp({ ...theme.gate, h: theme.gate.h * Math.max(1, hallScale * 0.8) }, parent, x, gateZ, 0));
-  const nearLane = (x, z) => laneXs.some(lx => { const t = (z - gateZ) / (hallZ - gateZ); const cx = lx * (1 - t); return Math.abs(x - (lx + cx) / 2) < laneW * 0.9; }) || (Math.abs(z - hallZ) < 7 * hallScale && Math.abs(x) < 9 * hallScale);
+  const k = W / 64; // size factor relative to the first map version the prop heights were tuned on
+  const tower = theme.tower ?? theme.hall;
+  const towerPos = curve.getPoint(1); const gatePos = curve.getPoint(0), gateDir = curve.getTangent(0);
+  jobs.push(placeProp({ ...tower, h: tower.h * Math.max(1, k * 0.9) }, parent, 0, towerZ, Math.PI));
+  jobs.push(placeProp({ ...theme.gate, h: theme.gate.h * Math.max(1, k * 0.7) }, parent, gatePos.x, gatePos.z, Math.atan2(gateDir.x, gateDir.z)));
+  const blocked = (x, z) => laneDist(x, z) < laneW * 0.9 || (Math.abs(z - towerZ) < 9 * k && Math.abs(x) < 11 * k) || (Math.hypot(x - gatePos.x, z - gatePos.z) < 6 * k);
   let placed = 0;
   for (const spec of theme.props) {
     for (let i = 0; i < Math.round(spec.n * propMult); i++) {
       let x, z, tries = 0;
-      do { x = (r() - 0.5) * (W - 4); z = (r() - 0.5) * (D - 4); tries++; } while (nearLane(x, z) && tries < 30);
-      if (tries >= 30) continue;
+      do { x = (r() - 0.5) * (W - 4); z = (r() - 0.5) * (D - 4); tries++; } while (blocked(x, z) && tries < 40);
+      if (tries >= 40) continue;
       jobs.push(placeProp(spec, parent, x, z, r() * Math.PI * 2)); placed++;
     }
   }
-  const walkers = withWalkers ? (fam?.creatures ?? []).filter(c => c.type !== 'Boss').slice(0, Math.min(12, lanes * 4)) : [];
+  if (propMult >= 1) { // far ring (maps only, not dioramas)
+    const big = theme.props.filter(p => p.h >= 3);
+    for (let i = 0; i < 70 && big.length; i++) {
+      const spec = big[Math.floor(r() * big.length)], a = r() * Math.PI * 2, dist = Math.max(W, D) * (0.75 + r() * 0.9);
+      jobs.push(placeProp({ ...spec, h: spec.h * (1.6 + r() * 1.4) }, parent, Math.cos(a) * dist, Math.sin(a) * dist, r() * Math.PI * 2));
+    }
+    for (const [i, pl] of (theme.planets ?? []).entries()) {
+      jobs.push(placeProp(pl, parent, (i - 1) * W * 0.9, D * 2.4 + i * D * 0.6, 0).then(h => { h.position.y = 55 + i * 30; return h; }));
+    }
+  }
+  // Creatures walk the lane from gate to tower and loop; speed follows their stat (1 stud = 0.28 m).
+  const walkers = withWalkers ? (fam?.creatures ?? []).filter(c => c.type !== 'Boss').slice(0, maxWalkers) : [];
+  const laneLen = curve.getLength();
   walkers.forEach((def, i) => jobs.push((async () => {
     const gltf = await loadGltf(def.model);
     const inst = cloneSkinned(gltf.scene);
     inst.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
     inst.scale.setScalar(def.scale);
-    const b = meshBox(inst); inst.position.y -= b.min.y;
-    const lx = laneXs[i % lanes]; const t = 0.15 + 0.7 * ((i * 7919) % 97) / 97; const z = gateZ + 3 + (hallZ - gateZ - 8) * t;
-    const holder = new THREE.Group(); holder.add(inst); holder.position.set(lx * (1 - t) + lx / 2 * t, 0, z); holder.rotation.y = Math.atan2(-lx / 2, hallZ - z);
     const mixer = new THREE.AnimationMixer(inst);
     const clip = gltf.animations.find(c => clipName(c) === def.anims.walk) ?? gltf.animations[0];
-    if (clip) { const a = mixer.clipAction(clip); a.play(); mixer.update(r() * 2); }
-    mixers.push(mixer);
-    parent.add(holder);
+    if (clip) { mixer.clipAction(clip).play(); mixer.update(r() * 2); }
+    const b = posedBox(inst); inst.position.y -= b.min.y; inst.position.x -= (b.min.x + b.max.x) / 2; inst.position.z -= (b.min.z + b.max.z) / 2;
+    const holder = new THREE.Group(); holder.add(inst); parent.add(holder);
+    let t = 0.06 + 0.86 * ((i * 7919) % 97) / 97;
+    const speed = (def.stats.speed * 0.28) / laneLen; // fraction of the lane per second
+    const step = { update: dt => {
+      mixer.update(dt); t += dt * speed * 0.6; if (t > 0.97) t = 0.03;
+      const p = curve.getPoint(t), ahead = curve.getPoint(Math.min(1, t + 0.01));
+      holder.position.copy(p); holder.lookAt(ahead.x, 0, ahead.z);
+    } };
+    step.update(0); mixers.push(step);
   })()));
-  return { jobs, laneXs, placed, hallZ, gateZ, walkers, W, D };
+  return { jobs, placed, walkers, W, D, curve, towerZ, gateZ, laneLen };
 }
 
 // Text label floating above a point (canvas sprite).
@@ -564,9 +632,9 @@ async function showLobby() {
   scene.add(root);
   ground.visible = false; grid.visible = false;
   scene.background = skyTexture({ sky: 0x5f9fe0, fog: 0xbcd6f0, ground: 0x5c6b4a }, 'lobby');
-  scene.fog.color.set(0xbcd6f0); scene.fog.near = 180; scene.fog.far = 420;
-  camera.far = 900; camera.updateProjectionMatrix();
-  controls.target.set(0, 0, 0); camera.position.set(90, 95, 140); controls.minDistance = 10; controls.maxDistance = 400; controls.update();
+  scene.fog.color.set(0xbcd6f0); scene.fog.near = 260; scene.fog.far = 1000;
+  camera.far = 2500; camera.updateProjectionMatrix();
+  controls.target.set(0, 3, 0); camera.position.set(70, 55, 150); controls.minDistance = 10; controls.maxDistance = 600; controls.maxPolarAngle = Math.PI / 2 - 0.03; controls.update();
   const mixers = [];
   current = { def: { id: 'Lobby' }, root, hp: 1, maxHp: 1, state: 'map', animated: true, bob: false, actions: {}, mixer: { update: dt => { for (const m of mixers) m.update(dt); } }, stepTimer: 0 };
   $('hud-name').textContent = 'Lobby'; $('hud-state').textContent = 'building…';
@@ -587,7 +655,7 @@ async function showLobby() {
     holder.position.set(Math.cos(a) * R, 0.02, Math.sin(a) * R);
     holder.rotation.y = -a - Math.PI / 2; // gates face the plaza, hall on the far side
     root.add(holder);
-    const built = buildArena(theme, { ...d, lanes: Math.min(d.lanes, 2) }, holder, { W: 30, D: 24, propMult: 0.25, withWalkers: true, mixers, seed: d.id + 'lobby' });
+    const built = buildArena(theme, d, holder, { W: 34, D: 26, propMult: 0.3, withWalkers: true, mixers, seed: d.id + 'lobby', maxWalkers: 4 });
     jobs.push(...built.jobs);
     const lab = labelSprite(d.name, `Level ${d.unlockLevel}`); lab.position.set(0, 14, 0); lab.scale.multiplyScalar(1.5); holder.add(lab);
   });
@@ -611,34 +679,115 @@ async function showMap(d) {
   scene.add(root);
   ground.visible = false; grid.visible = false;
   scene.background = skyTexture(theme, d.id);
-  scene.fog.color.set(theme.fog); scene.fog.near = 140; scene.fog.far = 360;
-  camera.far = 900; camera.updateProjectionMatrix();
+  scene.fog.color.set(theme.fog); scene.fog.near = 220; scene.fog.far = 900;
+  camera.far = 2500; camera.updateProjectionMatrix();
   const mixers = [];
   const built = buildArena(theme, d, root, { mixers });
-  const { W, D, placed, walkers } = built;
-  controls.target.set(0, 0, 0); camera.position.set(W * 0.55, D * 0.8, -D * 1.05);
-  controls.minDistance = 6; controls.maxDistance = 420; controls.update();
+  const { W, D, placed, walkers, laneLen } = built;
+  hemi.intensity = 1.4; sun.intensity = 2.2;
+  controls.target.set(0, 6, 0); camera.position.set(W * 0.42, D * 0.34, -D * 1.0);
+  controls.minDistance = 6; controls.maxDistance = 600; controls.maxPolarAngle = Math.PI / 2 - 0.03; controls.update();
   current = { def: d, root, hp: 1, maxHp: 1, state: 'map', animated: true, bob: false, actions: {}, mixer: { update: dt => { for (const m of mixers) m.update(dt); } }, stepTimer: 0 };
-  $('hud-name').textContent = `${d.name} map`; $('hud-state').textContent = `${d.lanes} lanes · building…`;
-  $('dims').textContent = `Arena ${W} × ${D} m (about ${Math.round(W * 3.5)} × ${Math.round(D * 3.5)} studs). Gates at the near edge, Town Hall at the far edge.`;
-  $('stats').innerHTML = [['Unlock level', d.unlockLevel], ['Lanes', d.lanes], ['Creatures', fam?.creatures.length ?? 0], ['Gimmick', d.gimmick], ['Props', d.props]]
+  $('hud-name').textContent = `${d.name} map`; $('hud-state').textContent = 'building…';
+  $('dims').textContent = `Arena ${W} × ${D} m (about ${Math.round(W * 3.5)} × ${Math.round(D * 3.5)} studs). One lane, ${Math.round(laneLen)} m from the gate to the tower.`;
+  $('stats').innerHTML = [['Unlock level', d.unlockLevel], ['Lane', `${Math.round(laneLen)} m winding route`], ['Tower', (MAPS[d.id].tower ?? MAPS[d.id].hall).file.split('/').pop().replace('.glb', '').replace('.gltf', '')], ['Creatures', fam?.creatures.length ?? 0], ['Gimmick', d.gimmick], ['Props', d.props]]
     .map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
   $('source').innerHTML = `Wave order: ${fam ? fam.creatures.map(c => `${c.firstWave}. ${c.id}${c.type === 'Boss' ? ' (boss)' : ''}`).join(', ') : '—'}<br><a href="#creatures" style="color:var(--accent)">Open in Creatures tab</a>`;
   const results = await Promise.allSettled(built.jobs);
   if (seq !== loadSeq) return;
   const failed = results.filter(x => x.status === 'rejected');
   for (const f of failed) console.warn('map prop failed', f.reason);
-  $('hud-state').textContent = `${d.lanes} lanes · ${placed} props · ${walkers.length} creatures${failed.length ? ` · ${failed.length} failed` : ''}`;
+  $('hud-state').textContent = `${placed} props · ${walkers.length} creatures on the lane${failed.length ? ` · ${failed.length} failed` : ''}`;
   log(`map ${d.id}: ${placed} props, ${walkers.length} creatures, ${failed.length} failed${failed.length ? ': ' + failed.map(f => f.reason?.message ?? f.reason).join('; ') : ''}`);
 }
 
-// A class is shown as its starting weapon plus its text; the player keeps their own avatar.
-async function showClass(cls) {
-  await showStatic({ file: cls.model, name: `${cls.id} · ${cls.weapon}`, pack: `${cls.tier} class · ${cls.role}`, license: 'CC0 (Kenney Weapon Pack)' });
-  if (!current || current.def.file !== cls.model) return;
-  $('stats').innerHTML = ['tier', 'role', 'weapon', 'passive', 'active', 'gear'].map(k => `<tr><td>${STAT_LABELS[k]}</td><td>${cls[k]}</td></tr>`).join('');
-  $('source').innerHTML = 'Weapon model: Kenney Weapon Pack (CC0). Gear overlays are added on top of the player\'s own avatar in game.';
+// A class is previewed on a KayKit Adventurer dummy: the rig's built-in weapons are hidden unless the
+// class lists them, a Kenney gun or a procedural flail is attached to the right hand slot, and the two
+// skills play their clips with a simulated cooldown. The player keeps their own avatar in game.
+function makeFlail() {
+  const g = new THREE.Group();
+  const wood = new THREE.MeshStandardMaterial({ color: 0x6b4a2b, roughness: 0.9 }), iron = new THREE.MeshStandardMaterial({ color: 0x8a8f99, metalness: 0.6, roughness: 0.4 });
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 0.6, 10), wood); handle.position.y = 0.3; g.add(handle);
+  for (let i = 0; i < 7; i++) { const link = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.012, 6, 10), iron); link.position.set(0, 0.62 + i * 0.065, 0); link.rotation.y = i % 2 ? Math.PI / 2 : 0; g.add(link); }
+  const ball = new THREE.Mesh(new THREE.IcosahedronGeometry(0.13, 1), iron); ball.position.y = 1.2; g.add(ball);
+  for (let i = 0; i < 14; i++) { const spike = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.09, 6), iron); const dir = new THREE.Vector3().randomDirection(); spike.position.copy(dir.clone().multiplyScalar(0.15)).add(ball.position); spike.lookAt(ball.position.clone().add(dir.multiplyScalar(2))); spike.rotateX(Math.PI / 2); g.add(spike); }
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  return g;
 }
+// GLTFLoader strips dots from node names ("handslot.r" -> "handslotr"), so match loosely.
+function findBone(root, re) { let hit = null; root.traverse(o => { if (!hit && re.test(o.name)) hit = o; }); return hit; }
+const RIGHT_SLOT = /^handslot[._]?r$/i, LEFT_SLOT = /^handslot[._]?l$/i, RIGHT_HAND = /^hand[._]?r$/i;
+async function attachToHand(root, obj, { length = 0.9, forwardZ = true } = {}) {
+  const slot = findBone(root, RIGHT_SLOT) ?? findBone(root, RIGHT_HAND);
+  if (!slot) { root.add(obj); return; }
+  const box = new THREE.Box3().setFromObject(obj); const size = box.getSize(new THREE.Vector3()); const longest = Math.max(size.x, size.y, size.z);
+  const ws = new THREE.Vector3(); slot.getWorldScale(ws);
+  obj.scale.setScalar(length / Math.max(longest, 1e-3) / Math.max(ws.x, 1e-6));
+  const c = box.getCenter(new THREE.Vector3()).multiplyScalar(obj.scale.x); obj.position.sub(c);
+  if (forwardZ) obj.rotation.set(0, Math.PI / 2, 0); // Kenney guns point along +x; the hand slot's forward is +z
+  const holder = new THREE.Group(); holder.add(obj); slot.add(holder);
+}
+let classCooldowns = {};
+async function showClass(cls) {
+  clear();
+  const seq = ++loadSeq;
+  const gltf = await loadGltf(cls.rig);
+  if (seq !== loadSeq) return;
+  const root = cloneSkinned(gltf.scene);
+  root.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; if (RIG_WEAPONS.test(o.name) && !cls.show.includes(o.name)) o.visible = false; } });
+  // Hidden weapon meshes may hang off bones; parents named like weapons are hidden too.
+  root.traverse(o => { if (RIG_WEAPONS.test(o.name) && !cls.show.includes(o.name) && !o.isMesh) o.visible = false; });
+  scene.add(root);
+  const mixer = new THREE.AnimationMixer(root);
+  const actions = {};
+  for (const clip of gltf.animations) actions[clipName(clip)] = mixer.clipAction(clip);
+  const idle = actions.Idle; if (idle) { idle.play(); mixer.update(0.5); }
+  let fsize; try { fsize = frame(root); } catch (e) { scene.remove(root); throw e; }
+  if (idle) idle.stop();
+  const extras = [];
+  if (cls.gun) { const g = (await loadGltf(cls.gun)).scene.clone(true); g.traverse(o => { if (o.isMesh) o.castShadow = true; }); await attachToHand(root, g, { length: cls.gun.includes('pistol') ? 0.45 : 0.95 }); }
+  if (cls.gun2) { const g = (await loadGltf(cls.gun2)).scene.clone(true); const slot = findBone(root, LEFT_SLOT); if (slot) { const b = new THREE.Box3().setFromObject(g); const sz = b.getSize(new THREE.Vector3()); const ws = new THREE.Vector3(); slot.getWorldScale(ws); g.scale.setScalar(0.45 / Math.max(sz.x, sz.y, sz.z) / Math.max(ws.x, 1e-6)); g.position.sub(b.getCenter(new THREE.Vector3()).multiplyScalar(g.scale.x)); g.rotation.set(0, Math.PI / 2, 0); slot.add(g); } }
+  if (cls.flail) { const f = makeFlail(); const slot = findBone(root, RIGHT_SLOT); if (slot) { const ws = new THREE.Vector3(); slot.getWorldScale(ws); f.scale.setScalar(1 / Math.max(ws.x, 1e-6)); f.rotation.x = Math.PI / 2; slot.add(f); } else root.add(f); }
+  if (cls.turret) { const t = (await loadGltf(cls.turret)).scene.clone(true); t.traverse(o => { if (o.isMesh) o.castShadow = true; }); fitHeight(t, 0.9); t.position.x += 1.4; t.position.z += 0.3; t.rotation.y = Math.PI; root.parent.add(t); extras.push(t); }
+  let petMixer = null;
+  if (cls.pet) { const pg = await loadGltf(cls.pet); const pet = cloneSkinned(pg.scene); fitHeight(pet, 0.5); pet.position.set(-1.1, 1.3, 0.3); root.parent.add(pet); extras.push(pet); petMixer = new THREE.AnimationMixer(pet); const c = pg.animations.find(c => clipName(c) === cls.petAnims.idle) ?? pg.animations[0]; if (c) petMixer.clipAction(c).play(); }
+  if (seq !== loadSeq) { scene.remove(root); extras.forEach(e => scene.remove(e)); return; }
+  log(`class ${cls.id}: size ${fsize.x.toFixed(2)}x${fsize.y.toFixed(2)}x${fsize.z.toFixed(2)} clips ${gltf.animations.length}`);
+  classCooldowns = {};
+  current = { def: cls, root, mixer, extraMixers: petMixer ? [petMixer] : [], actions, hp: 1, maxHp: 1, state: 'idle', stepTimer: 0, animated: true, bob: false, extras, isClass: true };
+  playAnim('Idle');
+  $('hud-name').textContent = `${cls.id} · ${cls.weapon}`;
+  $('hud-state').textContent = cls.tier === 'Free' ? 'Free class' : `Locked · ${cls.cost} gems`;
+  $('cls-anim-select').innerHTML = gltf.animations.map(c => `<option>${clipName(c)}</option>`).join('');
+  $('cls-anim-select').value = 'Idle';
+  $('btn-skill1').textContent = `${cls.skills[0].name} (${cls.skills[0].cooldown}s)`;
+  $('btn-skill2').textContent = `${cls.skills[1].name} (${cls.skills[1].cooldown}s)`;
+  $('btn-cls-repair').classList.toggle('hidden', !cls.skills[0].repair);
+  $('cooldowns').textContent = 'Both skills ready.';
+  $('stats').innerHTML = [
+    ['Tier', cls.tier === 'Free' ? 'Free' : `Locked · ${cls.cost} gems`], ['Role', cls.role], ['Weapon', cls.weapon + (cls.flail ? ' (flail is a placeholder model)' : '')], ['Passive', cls.passive],
+    [`Skill 1 · ${cls.skills[0].name}`, `${cls.skills[0].desc}. Cooldown ${cls.skills[0].cooldown} s${cls.skills[0].duration ? `, lasts ${cls.skills[0].duration} s` : ''}. Anim: ${cls.skills[0].anim}${cls.skills[0].repair ? `; repair swing: ${cls.skills[0].repair}` : ''}`],
+    [`Skill 2 · ${cls.skills[1].name}`, `${cls.skills[1].desc}. Cooldown ${cls.skills[1].cooldown} s${cls.skills[1].duration ? `, lasts ${cls.skills[1].duration} s` : ''}. Anim: ${cls.skills[1].anim}`],
+  ].map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
+  $('source').innerHTML = `Preview dummy: KayKit Adventurers (CC0). ${cls.gun ? 'Gun: Kenney Weapon Pack (CC0). ' : ''}${cls.turret ? 'Turret: Quaternius Cyberpunk Kit (CC0). ' : ''}${cls.pet ? 'Pet: Quaternius Cute Monsters (CC0). ' : ''}In game the player keeps their own avatar; these clips are the reference for the Roblox animations.`;
+}
+function useSkill(i) {
+  const cls = current?.def; if (!current?.isClass || !cls) return;
+  const skill = cls.skills[i];
+  if (classCooldowns[i] > 0) { $('cooldowns').textContent = `${skill.name} is cooling down: ${classCooldowns[i].toFixed(1)} s left.`; return; }
+  classCooldowns[i] = skill.cooldown;
+  current.state = 'idle';
+  play('impact_generic_light', 0.5);
+  playAnim(skill.anim, { once: !skill.anim.endsWith('ing') && skill.anim !== 'Blocking', then: () => playAnim('Idle') });
+  if (skill.duration >= 3) setTimeout(() => { if (current?.def === cls && current.state !== 'walk' && current.state !== 'run') playAnim('Idle'); }, skill.duration * 1000);
+}
+$('btn-skill1').onclick = () => useSkill(0);
+$('btn-skill2').onclick = () => useSkill(1);
+$('btn-cls-repair').onclick = () => { if (current?.isClass) { play('impact_metal_light', 0.6); playAnim(current.def.skills[0].repair, { once: true, then: () => playAnim('Idle') }); } };
+$('btn-cls-walk').onclick = () => { if (current?.isClass) { current.state = 'walk'; playAnim('Walking_A'); } };
+$('btn-cls-run').onclick = () => { if (current?.isClass) { current.state = 'run'; playAnim('Running_A'); } };
+$('btn-cls-idle').onclick = () => { if (current?.isClass) { current.state = 'idle'; playAnim('Idle'); } };
+$('cls-anim-select').onchange = e => { if (current?.isClass) { current.state = 'idle'; playAnim(e.target.value); } };
 
 // Quaternius exports clips as "<Armature>|<Name>"; the catalog uses the bare name.
 function clipName(clip) { return clip.name.includes('|') ? clip.name.split('|').pop() : clip.name; }
@@ -698,6 +847,7 @@ try { files = await (await fetch('./files.json')).json(); } catch (e) { console.
 
 const statIcon = k => STAT_ICONS[k] ? `<img src="${ICONS}${STAT_ICONS[k]}@64.png" alt="${k}">` : '';
 function animatedCard(def) {
+  if (def.skills) return `<img class="thumb" alt=""><div><b>${def.id}</b><small>${def.role} · ${def.weapon}</small><small>${def.tier === 'Free' ? 'Free' : `${def.cost} gems`} · ${def.skills[0].name} ${def.skills[0].cooldown}s · ${def.skills[1].name} ${def.skills[1].cooldown}s</small></div>`;
   const stats = def.stats.health !== undefined
     ? ['health', 'speed', 'damage', 'coins', 'firstWave'].map(k => `<span>${statIcon(k)}${def.stats[k]}</span>`).join('')
     : `<span>${def.stats.tier} · ${def.stats.role}</span>`;
@@ -841,9 +991,9 @@ const TABS = {
   creatures: { animated: true, groups: () => FAMILIES.map(f => ({ title: `${f.name} · ${f.map}`, items: f.creatures })) },
   dungeons: { animated: true, isDungeon: true, groups: () => [{ title: 'Unlock order (player level)', items: DUNGEONS }] },
   lobby: { animated: true, isLobby: true, groups: () => [{ title: 'Lobby', items: [{ id: 'Lobby', name: 'Lobby', blurb: 'Three floor pads (solo, duo, squad) in the plaza, one diorama per dungeon around it.' }] }] },
-  classes: { animated: false, isClass: true, groups: () => [
+  classes: { animated: true, isClass: true, groups: () => [
     { title: 'Free classes', items: CLASSES.filter(c => c.tier === 'Free') },
-    { title: 'Premium classes', items: CLASSES.filter(c => c.tier === 'Premium') },
+    { title: 'Locked classes (bought with gems)', items: CLASSES.filter(c => c.tier !== 'Free') },
   ] },
   weapons: { animated: false, groups: () => files.weapons.map(p => ({ title: `${p.pack} · ${p.license}`, items: p.items.map(i => ({ ...i, pack: p.pack, license: p.license })) })) },
   props: { animated: false, groups: () => files.props.map(p => ({ title: `${p.pack} · ${p.license}`, items: p.items.map(i => ({ ...i, pack: p.pack, license: p.license })) })) },
@@ -883,7 +1033,9 @@ function setTab(name) {
   tab = TABS[name] ? name : 'creatures';
   for (const a of document.querySelectorAll('#tabs a')) a.classList.toggle('active', a.dataset.tab === tab);
   const animated = TABS[tab].animated;
-  $('animated-controls').classList.toggle('hidden', !animated);
+  const isClass = !!TABS[tab].isClass;
+  $('animated-controls').classList.toggle('hidden', !animated || isClass);
+  $('class-controls').classList.toggle('hidden', !isClass);
   $('static-controls').classList.toggle('hidden', animated);
   $('sounds-h').classList.toggle('hidden', !animated);
   $('sounds').classList.toggle('hidden', !animated);
@@ -903,8 +1055,15 @@ addEventListener('hashchange', () => setTab(location.hash.slice(1)));
 function tick() {
   requestAnimationFrame(tick);
   const dt = clock.getDelta();
+  if (current?.isClass) {
+    let txt = [];
+    for (const [i, cd] of Object.entries(classCooldowns)) { if (cd > 0) { classCooldowns[i] = Math.max(0, cd - dt); txt.push(`${current.def.skills[i].name}: ${classCooldowns[i].toFixed(1)} s`); } }
+    $('cooldowns').textContent = txt.length ? 'Cooling down · ' + txt.join(' · ') : 'Both skills ready.';
+    $('btn-skill1').classList.toggle('primary', !(classCooldowns[0] > 0)); $('btn-skill2').classList.toggle('primary', !(classCooldowns[1] > 0));
+  }
   if (current?.animated) {
     current.mixer.update(dt);
+    for (const m of current.extraMixers ?? []) m.update(dt);
     if (current.bob) {
       const t = performance.now() / 1000;
       current.root.position.y = current.baseY + (current.state === 'dead' ? -0.5 : Math.sin(t * 2.2) * 0.12);
@@ -970,6 +1129,11 @@ if (new URLSearchParams(location.search).has('walk')) {
     } catch (e) { log(`walk ${f.id}/${def.id}: ERROR ${e.message ?? e}`); }
   }
   log('walk done');
+}
+if (new URLSearchParams(location.search).has('cls')) {
+  setTab('classes');
+  for (const c of CLASSES) { await showClass(c); await new Promise(r => setTimeout(r, 200)); useSkill(0); current?.mixer.update(0.45); await postShot('class__' + c.id + '__skill1'); useSkill(1); classCooldowns = {}; useSkill(1); current?.mixer.update(0.6); await postShot('class__' + c.id + '__skill2'); }
+  log('classes done');
 }
 if (new URLSearchParams(location.search).has('lobby')) { setTab('lobby'); await showLobby(); await new Promise(r => setTimeout(r, 500)); await postShot('lobby'); }
 async function postShot(name) {

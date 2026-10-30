@@ -171,6 +171,60 @@
      "file": "../assets/props/kaykit-dungeon/sword_shield_gold.gltf.glb"
     }
    ]
+  },
+  {
+   "pack": "Quaternius Modular Weapons (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "Arrow",
+     "file": "../assets/weapons/quaternius-medieval/Arrow.glb"
+    },
+    {
+     "name": "Axe Double",
+     "file": "../assets/weapons/quaternius-medieval/Axe_Double.glb"
+    },
+    {
+     "name": "Bow Wooden",
+     "file": "../assets/weapons/quaternius-medieval/Bow_Wooden.glb"
+    },
+    {
+     "name": "Claymore",
+     "file": "../assets/weapons/quaternius-medieval/Claymore.glb"
+    },
+    {
+     "name": "Dagger",
+     "file": "../assets/weapons/quaternius-medieval/Dagger.glb"
+    },
+    {
+     "name": "Hammer Double",
+     "file": "../assets/weapons/quaternius-medieval/Hammer_Double.glb"
+    },
+    {
+     "name": "Scythe",
+     "file": "../assets/weapons/quaternius-medieval/Scythe.glb"
+    },
+    {
+     "name": "Shield Heater",
+     "file": "../assets/weapons/quaternius-medieval/Shield_Heater.glb"
+    },
+    {
+     "name": "Shield Round",
+     "file": "../assets/weapons/quaternius-medieval/Shield_Round.glb"
+    },
+    {
+     "name": "Spear",
+     "file": "../assets/weapons/quaternius-medieval/Spear.glb"
+    },
+    {
+     "name": "Sword",
+     "file": "../assets/weapons/quaternius-medieval/Sword.glb"
+    },
+    {
+     "name": "Sword Big",
+     "file": "../assets/weapons/quaternius-medieval/Sword_Big.glb"
+    }
+   ]
   }
  ],
  "props": [
@@ -1401,6 +1455,26 @@
      "file": "../assets/props/quaternius-space-props/MetalSupport.glb"
     },
     {
+     "name": "Planet 1",
+     "file": "../assets/props/quaternius-space-props/Planet_1.glb"
+    },
+    {
+     "name": "Planet 2",
+     "file": "../assets/props/quaternius-space-props/Planet_2.glb"
+    },
+    {
+     "name": "Planet 3",
+     "file": "../assets/props/quaternius-space-props/Planet_3.glb"
+    },
+    {
+     "name": "Planet 5",
+     "file": "../assets/props/quaternius-space-props/Planet_5.glb"
+    },
+    {
+     "name": "Planet 7",
+     "file": "../assets/props/quaternius-space-props/Planet_7.glb"
+    },
+    {
      "name": "Plant 1",
      "file": "../assets/props/quaternius-space-props/Plant_1.glb"
     },
@@ -1597,6 +1671,106 @@
     {
      "name": "Spike Group",
      "file": "../assets/props/quaternius-platformer-props/Spike_Group.glb"
+    }
+   ]
+  },
+  {
+   "pack": "Quaternius Fantasy RTS towers (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "Archery SecondAge Level3",
+     "file": "../assets/props/quaternius-rts/Archery_SecondAge_Level3.glb"
+    },
+    {
+     "name": "Barracks SecondAge Level3",
+     "file": "../assets/props/quaternius-rts/Barracks_SecondAge_Level3.glb"
+    },
+    {
+     "name": "Temple FirstAge Level3",
+     "file": "../assets/props/quaternius-rts/Temple_FirstAge_Level3.glb"
+    },
+    {
+     "name": "Temple SecondAge Level3",
+     "file": "../assets/props/quaternius-rts/Temple_SecondAge_Level3.glb"
+    },
+    {
+     "name": "TowerHouse FirstAge",
+     "file": "../assets/props/quaternius-rts/TowerHouse_FirstAge.glb"
+    },
+    {
+     "name": "TowerHouse SecondAge",
+     "file": "../assets/props/quaternius-rts/TowerHouse_SecondAge.glb"
+    },
+    {
+     "name": "TownCenter FirstAge Level3",
+     "file": "../assets/props/quaternius-rts/TownCenter_FirstAge_Level3.glb"
+    },
+    {
+     "name": "TownCenter SecondAge Level3",
+     "file": "../assets/props/quaternius-rts/TownCenter_SecondAge_Level3.glb"
+    },
+    {
+     "name": "WallTowers SecondAge",
+     "file": "../assets/props/quaternius-rts/WallTowers_SecondAge.glb"
+    },
+    {
+     "name": "WatchTower FirstAge Level3",
+     "file": "../assets/props/quaternius-rts/WatchTower_FirstAge_Level3.glb"
+    },
+    {
+     "name": "WatchTower SecondAge Level3",
+     "file": "../assets/props/quaternius-rts/WatchTower_SecondAge_Level3.glb"
+    },
+    {
+     "name": "Wonder FirstAge Level3",
+     "file": "../assets/props/quaternius-rts/Wonder_FirstAge_Level3.glb"
+    },
+    {
+     "name": "Wonder SecondAge Level3",
+     "file": "../assets/props/quaternius-rts/Wonder_SecondAge_Level3.glb"
+    }
+   ]
+  },
+  {
+   "pack": "Quaternius RPG items (selection)",
+   "license": "CC0",
+   "items": [
+    {
+     "name": "Book1 Open",
+     "file": "../assets/props/quaternius-rpg-items/Book1_Open.glb"
+    },
+    {
+     "name": "Chest Closed",
+     "file": "../assets/props/quaternius-rpg-items/Chest_Closed.glb"
+    },
+    {
+     "name": "Coin",
+     "file": "../assets/props/quaternius-rpg-items/Coin.glb"
+    },
+    {
+     "name": "Crystal1",
+     "file": "../assets/props/quaternius-rpg-items/Crystal1.glb"
+    },
+    {
+     "name": "Crystal2",
+     "file": "../assets/props/quaternius-rpg-items/Crystal2.glb"
+    },
+    {
+     "name": "Heart",
+     "file": "../assets/props/quaternius-rpg-items/Heart.glb"
+    },
+    {
+     "name": "Potion1 Filled",
+     "file": "../assets/props/quaternius-rpg-items/Potion1_Filled.glb"
+    },
+    {
+     "name": "Potion3 Filled",
+     "file": "../assets/props/quaternius-rpg-items/Potion3_Filled.glb"
+    },
+    {
+     "name": "Scroll",
+     "file": "../assets/props/quaternius-rpg-items/Scroll.glb"
     }
    ]
   }
