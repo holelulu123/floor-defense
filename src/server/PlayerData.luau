@@ -72,6 +72,7 @@ function PlayerData.publish(player: Player)
 		return
 	end
 	player:SetAttribute("Gems", data.Gems)
+	player:SetAttribute("Level", data.Level)
 	player:SetAttribute("Class", data.Class)
 	player:SetAttribute("OwnedClasses", table.concat(data.OwnedClasses, ","))
 end
@@ -105,6 +106,12 @@ function PlayerData.addGems(player: Player, amount: number)
 		data.Gems += amount
 		PlayerData.publish(player)
 	end
+end
+
+-- Player level (unlocks dungeons; see Dungeons.isUnlocked). 1 until the data has loaded.
+function PlayerData.levelOf(player: Player): number
+	local data = sessions[player]
+	return if data and type(data.Level) == "number" then data.Level else 1
 end
 
 -- Class the player will use in their next run (always one they own).

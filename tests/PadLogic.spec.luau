@@ -34,4 +34,14 @@ eq(pad:update(2, 31), "counting", "pad counts again after launch if still full")
 local solo = PadLogic.new(1, 5)
 eq(solo:update(3, 0), "counting", "overfull pad still counts")
 
+-- every generated lobby pad produces a working countdown with its own capacity and countdown
+local LobbyLayout = require("../src/shared/LobbyLayout")
+for _, def in LobbyLayout.pads() do
+	local p = PadLogic.new(def.capacity, def.countdown)
+	eq(p:update(def.capacity - 1, 0), "waiting", `{def.dungeonId}/{def.mode} short one waits`)
+	local s, l = p:update(def.capacity, 0)
+	eq(s, "counting", `{def.dungeonId}/{def.mode} full counts`)
+	eq(l, def.countdown, `{def.dungeonId}/{def.mode} full countdown`)
+	eq(p:update(def.capacity, def.countdown), "launch", `{def.dungeonId}/{def.mode} launches on time`)
+end
 print("PadLogic.spec: ok")

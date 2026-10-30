@@ -23,12 +23,9 @@ return {
 		Gems500 = 0,
 	},
 
-	-- Floor pads in the lobby. Mode names must match Waves.Modes.
-	Pads = {
-		{ mode = "Solo", capacity = 1, countdown = 5, position = { -24, 0, 20 } },
-		{ mode = "Duo", capacity = 2, countdown = 10, position = { 0, 0, 20 } },
-		{ mode = "Squad", capacity = 4, countdown = 15, position = { 24, 0, 20 } },
-	},
+	-- Lobby pads are generated per dungeon and mode by LobbyLayout.pads(). In Studio every dungeon's
+	-- pads accept any level so each map can be playtested; live servers enforce Dungeons.isUnlocked.
+	UnlockAllInStudio = true,
 
 	-- Leave 0 to run inside the same place (reserved server of game.PlaceId).
 	RunPlaceId = 0,

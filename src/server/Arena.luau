@@ -12,8 +12,9 @@ local Roster = require(ReplicatedStorage.Shared.Roster)
 
 local Arena = {}
 
--- Far enough from the 120 x 120 lobby at the origin that a 360 x 280 arena never overlaps it.
-Arena.Origin = Vector3.new(0, 0, 600)
+-- Far enough from the lobby (a grass disc of radius 588 at the origin, see LobbyLayout) that a
+-- 360 x 280 arena (z from 1360 to 1640) never overlaps it.
+Arena.Origin = Vector3.new(0, 0, 1500)
 local LANE_THICKNESS = 0.2
 local TOWER_SIZE = 16
 local GATE_HEIGHT = 12
