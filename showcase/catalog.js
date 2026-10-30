@@ -324,12 +324,27 @@ export const FAMILIES = [
 
 // Fill in stats and blurb from the archetype table. Waves: creatures appear in list order, one new
 // creature per wave; bosses take waves 5, 10, 15, 20 in the order listed.
+// Difficulty ladder: within a family the regular creatures are ordered by archetype threat, then by
+// size, so the small and weak come first and the big, scary ones arrive late. Bosses keep their
+// listed order on waves 5, 10, 15. Health, damage and coins grow with the wave a creature debuts on.
+const THREAT = { Runner: 0, Spitter: 1, Flyer: 2, Exploder: 3, Healer: 4, Elite: 5, Shielder: 6, Brute: 7 };
+const waveMult = (w, k) => 1 + k * (w - 1);
 for (const f of FAMILIES) {
+  const bosses = f.creatures.filter(c => c.type === 'Boss');
+  const rest = f.creatures.filter(c => c.type !== 'Boss').sort((a, b) => (THREAT[a.type] - THREAT[b.type]) || (a.scale - b.scale));
+  const ordered = [];
   let wave = 0, bossN = 0;
+  while (rest.length || bossN < bosses.length) {
+    wave++;
+    if (wave % 5 === 0 && bossN < bosses.length) { bosses[bossN].firstWave = wave; ordered.push(bosses[bossN++]); }
+    else if (rest.length) { const c = rest.shift(); c.firstWave = wave; ordered.push(c); }
+    else { bosses[bossN].firstWave = wave; ordered.push(bosses[bossN++]); }
+  }
+  f.creatures = ordered;
   for (const cr of f.creatures) {
-    const a = ARCHETYPES[cr.type];
-    if (cr.type === 'Boss') { bossN++; cr.firstWave = bossN * 5; } else { wave++; if (wave % 5 === 0) wave++; cr.firstWave = wave; }
-    cr.stats = { health: a.health, speed: a.speed, damage: a.damage, coins: a.coins, firstWave: cr.firstWave };
+    const a = ARCHETYPES[cr.type]; const w = cr.firstWave;
+    cr.stats = { health: Math.round(a.health * waveMult(w, 0.12)), speed: a.speed, damage: Math.round(a.damage * waveMult(w, 0.05)),
+      coins: Math.round(a.coins * waveMult(w, 0.1)), firstWave: w };
     cr.blurb = `${cr.type}. ${a.blurb}`;
     cr.source = f.source;
   }

@@ -11,43 +11,49 @@
     --accent: #ffb454; --good: #7bd88f; --bad: #ff6b6b; --border: #2f343c;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, sans-serif; height: 100vh; display: grid; grid-template-columns: 300px 1fr 320px; grid-template-rows: 48px 1fr; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, sans-serif; height: 100vh; display: grid; grid-template-columns: 340px 1fr 440px; grid-template-rows: 48px 1fr; }
   header { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--border); }
   header h1 { font-size: 16px; margin: 0; white-space: nowrap; }
   header nav a { color: var(--muted); margin-right: 14px; text-decoration: none; padding: 6px 0; }
   header nav a.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
-  aside { background: var(--panel); border-right: 1px solid var(--border); overflow: auto; padding: 12px; }
+  aside { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; padding: 12px; }
+  aside.right { font-size: 15px; }
   aside.right { border-right: 0; border-left: 1px solid var(--border); }
   .group { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 6px; }
   .card { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; cursor: pointer; background: var(--panel-2); }
   .card:hover { border-color: var(--muted); }
   .card.active { border-color: var(--accent); }
-  .card { display: grid; grid-template-columns: 56px 1fr; gap: 10px; align-items: center; }
+  .card { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 10px; align-items: center; }
   .card .thumb { width: 56px; height: 56px; border-radius: 8px; background: #2c313a; object-fit: cover; }
   .card b { display: block; }
   .card small { color: var(--muted); }
-  .card .stats { display: flex; gap: 10px; margin-top: 4px; }
+  .card .stats { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 4px; }
   .card .stats span { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
-  .card .stats img { width: 14px; height: 14px; }
+  .card .stats img { width: 15px; height: 15px; }
+  .card small { display: block; line-height: 1.3; }
   input.filter { width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; margin-bottom: 8px; }
   #view { position: relative; min-width: 0; }
   canvas { display: block; width: 100%; height: 100%; }
-  #hud { position: absolute; left: 12px; top: 12px; background: rgba(0,0,0,.55); padding: 8px 10px; border-radius: 6px; font-size: 13px; }
+  #hud { position: absolute; left: 12px; top: 12px; background: rgba(0,0,0,.55); padding: 10px 12px; border-radius: 6px; font-size: 15px; }
+  #hud b { font-size: 18px; }
   #hud .hp { width: 180px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-top: 4px; }
   #hud .hp i { display: block; height: 100%; background: var(--good); width: 100%; transition: width .15s; }
   #flash { position: absolute; inset: 0; pointer-events: none; background: #fff; opacity: 0; transition: opacity .12s; }
   #empty { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; color: var(--muted); }
+  aside.right h2 { font-size: 14px; margin-top: 18px; }
   h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 14px 0 6px; }
   button { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; margin: 0 6px 6px 0; cursor: pointer; }
   button:hover { border-color: var(--accent); }
   button.primary { border-color: var(--accent); color: var(--accent); }
   select { width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  td { padding: 4px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  td { padding: 7px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
   td:last-child { text-align: right; font-weight: 600; }
-  td img { width: 22px; height: 22px; vertical-align: middle; margin-right: 8px; }
+  td img { width: 28px; height: 28px; vertical-align: middle; margin-right: 10px; }
+  td:last-child { font-size: 17px; }
   label.row { display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--muted); }
   .note { color: var(--muted); font-size: 12px; }
+  aside.right .note { font-size: 13px; }
   .hidden { display: none !important; }
   @media (max-width: 900px) { body { grid-template-columns: 1fr; grid-template-rows: 48px 220px 1fr auto; } aside { max-height: 260px; } }
 </style>
@@ -58,6 +64,7 @@
   <nav id="tabs">
     <a href="#creatures" data-tab="creatures">Creatures</a>
     <a href="#dungeons" data-tab="dungeons">Dungeons</a>
+    <a href="#lobby" data-tab="lobby">Lobby</a>
     <a href="#classes" data-tab="classes">Classes</a>
     <a href="#weapons" data-tab="weapons">Weapons</a>
     <a href="#props" data-tab="props">Props</a>
@@ -186,6 +193,39 @@ addEventListener('resize', resize); resize();
 
 // Bounds from mesh geometry only. Box3.setFromObject also swallows rig bones and helper nodes,
 // which on the Kenney rigs sit far from the body and made the camera frame empty space.
+// Exact world-space bounds of the current pose: skins every vertex on the CPU (these are low-poly
+// models, a few thousand vertices at most) with the standard formula
+//   v_world = sum_i w_i * boneWorld_i * boneInverse_i * bindMatrix * v
+// so rigs whose geometry sits in a rotated/scaled bind space (Quaternius FBX exports) still measure right.
+const _v = new THREE.Vector3(), _sk = new THREE.Vector3(), _m = new THREE.Matrix4(), _acc = new THREE.Vector3();
+function posedBox(root) {
+  root.updateMatrixWorld(true);
+  const box = new THREE.Box3();
+  root.traverse(o => {
+    if (!o.isMesh || !o.geometry) return;
+    const pos = o.geometry.attributes.position;
+    if (o.isSkinnedMesh && o.geometry.attributes.skinIndex && o.skeleton) {
+      const si = o.geometry.attributes.skinIndex, sw = o.geometry.attributes.skinWeight, bones = o.skeleton.bones, inv = o.skeleton.boneInverses;
+      const mats = bones.map((b, i) => new THREE.Matrix4().multiplyMatrices(b.matrixWorld, inv[i]).multiply(o.bindMatrix));
+      const step = Math.max(1, Math.floor(pos.count / 4000));
+      for (let i = 0; i < pos.count; i += step) {
+        _v.fromBufferAttribute(pos, i); _acc.set(0, 0, 0);
+        // getX..getW rather than getComponent: interleaved attributes (some glTF exports) lack the latter
+        const ws = [sw.getX(i), sw.getY(i), sw.getZ(i), sw.getW(i)], js = [si.getX(i), si.getY(i), si.getZ(i), si.getW(i)];
+        for (let k = 0; k < 4; k++) {
+          if (!ws[k]) continue;
+          _sk.copy(_v).applyMatrix4(mats[js[k]]); _acc.addScaledVector(_sk, ws[k]);
+        }
+        box.expandByPoint(_acc);
+      }
+    } else {
+      if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+      box.union(new THREE.Box3().copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld));
+    }
+  });
+  return box.isEmpty() ? meshBox(root) : box;
+}
+
 function meshBox(root) {
   root.updateMatrixWorld(true);
   const box = new THREE.Box3();
@@ -200,8 +240,62 @@ function meshBox(root) {
   return box;
 }
 
+// Rig bounds lie (bind pose, scaled armatures), so after the rough frame the model is rendered at
+// low resolution, its pixel extent measured, and the camera distance corrected so it fills about
+// 60% of the frame. Two passes are enough. Ground and grid are hidden for the measurement.
+const fitRT = new THREE.WebGLRenderTarget(96, 72);
+const fitPx = new Uint8Array(96 * 72 * 4);
+const FIT_BG = new THREE.Color(0xff00ff); // measured against magenta so dark models still register
+function measureFill(renderObj) {
+  const savedBg = scene.background, gv = ground.visible, grv = grid.visible, fog = scene.fog;
+  ground.visible = false; grid.visible = false; scene.fog = null; scene.background = FIT_BG; const bg = FIT_BG;
+  const aspect = camera.aspect; camera.aspect = 96 / 72; camera.updateProjectionMatrix();
+  renderer.setRenderTarget(fitRT); renderer.render(scene, camera); renderer.readRenderTargetPixels(fitRT, 0, 0, 96, 72, fitPx); renderer.setRenderTarget(null);
+  camera.aspect = aspect; camera.updateProjectionMatrix(); ground.visible = gv; grid.visible = grv; scene.fog = fog; scene.background = savedBg;
+  let minX = 96, maxX = -1, minY = 72, maxY = -1;
+  const br = bg.r * 255, bgG = bg.g * 255, bb = bg.b * 255;
+  for (let y = 0; y < 72; y++) for (let x = 0; x < 96; x++) {
+    const i = (y * 96 + x) * 4;
+    if (Math.abs(fitPx[i] - br) + Math.abs(fitPx[i + 1] - bgG) + Math.abs(fitPx[i + 2] - bb) > 60) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+  }
+  if (maxX < 0) return null;
+  return { w: (maxX - minX + 1) / 96, h: (maxY - minY + 1) / 72, cx: (minX + maxX) / 2 / 96 - 0.5, cy: (minY + maxY) / 2 / 72 - 0.5, minY: minY / 72 };
+}
+function pixelFit(root) {
+  if (!(scene.background?.isColor)) return;
+  const setDist = k => { const offset = camera.position.clone().sub(controls.target); camera.position.copy(controls.target).add(offset.multiplyScalar(k)); controls.update(); };
+  // Shift target and camera together by the measured screen offset so the model ends up centred.
+  // Render-target rows are bottom-up, so cy > 0 means the model sits high in the frame.
+  const recentre = m => {
+    const dist = camera.position.distanceTo(controls.target);
+    const spanV = 2 * dist * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), spanH = spanV * (96 / 72);
+    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+    const shift = right.multiplyScalar(m.cx * spanH).add(up.multiplyScalar(m.cy * spanV));
+    controls.target.add(shift); camera.position.add(shift); controls.update();
+  };
+  let m = null;
+  for (let pass = 0; pass < 9; pass++) {
+    m = measureFill(root);
+    if (!m) { setDist(1.8); continue; }                       // nothing drawn: inside or beside the model, back out
+    if (m.w > 0.97 || m.h > 0.97) { setDist(1.6); continue; } // touching the edges: real extent unknown, back out
+    if (Math.abs(m.cx) > 0.03 || Math.abs(m.cy) > 0.03) { recentre(m); continue; }
+    const fill = Math.max(m.w, m.h * 0.75);
+    const k = fill / 0.6;
+    if (Math.abs(k - 1) < 0.1) break;
+    setDist(THREE.MathUtils.clamp(k, 0.6, 1.6));               // gentle steps so one bad measurement cannot overshoot
+  }
+  m = measureFill(root);
+  if (m && m.h < 0.97) {
+    if (Math.abs(m.cy) > 0.02 || Math.abs(m.cx) > 0.02) recentre(m);
+  }
+  controls.minDistance = camera.position.distanceTo(controls.target) * 0.15;
+}
+
 function frame(root) {
-  const box = meshBox(root);
+  // Pose first so the measurement matches what is drawn, then stand the model on the floor.
+  const box0 = posedBox(root);
+  root.position.y -= box0.min.y; root.position.x -= (box0.min.x + box0.max.x) / 2; root.position.z -= (box0.min.z + box0.max.z) / 2;
+  const box = posedBox(root);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   const radius = Math.max(size.x, size.y, size.z) / 2;
@@ -216,11 +310,12 @@ function frame(root) {
   camera.far = dist * 20;
   camera.updateProjectionMatrix();
   controls.update();
-  ground.position.y = box.min.y - 0.001;
+  ground.position.y = -0.001; grid.position.y = 0;
+  const gs = Math.max(1.5, radius * 1.3); ground.scale.setScalar(gs / 6);
+  pixelFit(root);
   return size;
 }
 
-// --- audio ------------------------------------------------------------------------------
 const audioCache = new Map();
 function play(name, volume = 0.8) {
   if (!$('chk-sound').checked || !name) return;
@@ -233,16 +328,32 @@ function play(name, volume = 0.8) {
 // --- loading ----------------------------------------------------------------------------
 const loader = new GLTFLoader();
 const gltfCache = new Map();
-function loadGltf(file) { if (!gltfCache.has(file)) gltfCache.set(file, loader.loadAsync(file)); return gltfCache.get(file); }
+function loadGltf(file) { if (!gltfCache.has(file)) gltfCache.set(file, loader.loadAsync(file).then(g => { g.animations.forEach(stripRootMotion); return g; })); return gltfCache.get(file); }
+
+// Some packs (Quaternius Zombie) bake root motion into the hip bone, so a walk cycle carries the
+// model away from the origin. Remove the linear drift from the root bone's position track but keep
+// the bob, so clips play in place like the rest of the catalog.
+function stripRootMotion(clip) {
+  for (const t of clip.tracks) {
+    if (!t.name.endsWith('.position') || t.times.length < 2) continue;
+    const n = t.times.length, v = t.values;
+    const dx = v[(n - 1) * 3] - v[0], dz = v[(n - 1) * 3 + 2] - v[2];
+    const drift = Math.hypot(dx, dz);
+    const span = Math.hypot(...[0, 2].map(ax => Math.max(...Array.from({ length: n }, (_, i) => v[i * 3 + ax])) - Math.min(...Array.from({ length: n }, (_, i) => v[i * 3 + ax]))));
+    if (drift < 0.05 || drift < span * 0.5) continue; // small or oscillating: not root motion
+    const T = t.times[n - 1] - t.times[0];
+    for (let i = 0; i < n; i++) { const f = (t.times[i] - t.times[0]) / T; v[i * 3] -= dx * f; v[i * 3 + 2] -= dz * f; }
+  }
+}
 
 let current = null; // { def, root, mixer?, actions?, hp, state, stepTimer, animated }
 let active = null;
 const clock = new THREE.Clock();
 
-const DEFAULT_SKY = scene.background.clone(), DEFAULT_FOG = scene.fog.color.clone();
+const DEFAULT_SKY = scene.background.clone(), DEFAULT_FOG = scene.fog.color.clone(), DEFAULT_FOG_RANGE = [scene.fog.near, scene.fog.far];
 function clear() {
   if (current) { scene.remove(current.root); current = null; active = null; }
-  ground.visible = true; grid.visible = true; scene.background.copy(DEFAULT_SKY); scene.fog.color.copy(DEFAULT_FOG);
+  ground.visible = true; grid.visible = true; scene.background = DEFAULT_SKY.clone(); scene.fog.color.copy(DEFAULT_FOG); [scene.fog.near, scene.fog.far] = DEFAULT_FOG_RANGE;
 }
 
 // Tint a material. Lit materials (KayKit) take an emissive glow; unlit ones (most Kenney kits use
@@ -270,13 +381,18 @@ async function showAnimated(def) {
   if (seq !== loadSeq) return;
   const root = cloneSkinned(gltf.scene);
   root.scale.setScalar(def.scale);
-  root.traverse(o => { if (o.isMesh) { o.castShadow = true; if (def.tint) { o.material = o.material.clone(); applyTint(o.material, def.tint); } } });
+  root.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; if (def.tint) { o.material = o.material.clone(); applyTint(o.material, def.tint); } } });
   scene.add(root);
-  const fsize = frame(root);
-  log(`show ${def.id}: size ${fsize.x.toFixed(2)}x${fsize.y.toFixed(2)}x${fsize.z.toFixed(2)} clips ${gltf.animations.length}`);
   const mixer = new THREE.AnimationMixer(root);
   const actions = {};
   for (const clip of gltf.animations) actions[clipName(clip)] = mixer.clipAction(clip);
+  // Prime the idle pose before measuring, so the model is framed and grounded as it will be seen.
+  const idleAction = actions[def.anims.idle] ?? Object.values(actions)[0];
+  if (idleAction) { idleAction.play(); mixer.update(0.5); }
+  let fsize;
+  try { fsize = frame(root); } catch (e) { scene.remove(root); throw e; }
+  if (idleAction) { idleAction.stop(); }
+  log(`show ${def.id}: size ${fsize.x.toFixed(2)}x${fsize.y.toFixed(2)}x${fsize.z.toFixed(2)} clips ${gltf.animations.length}`);
   const maxHp = def.stats.health ?? 100;
   // A model with no clips (the UFOs) still gets the hit/kill buttons; it bobs instead of animating.
   current = { def, root, mixer, actions, hp: maxHp, maxHp, state: 'idle', stepTimer: 0, animated: true, bob: gltf.animations.length === 0, baseY: root.position.y };
@@ -337,60 +453,79 @@ async function placeProp(spec, parent, x, z, yaw) {
   parent.add(holder);
   return holder;
 }
-async function showMap(d) {
-  clear();
-  const seq = ++loadSeq;
-  const theme = MAPS[d.id];
-  const fam = FAMILIES.find(f => f.id === d.family);
-  if (!theme) { await showDungeon(d); return; }
-  const W = 64, D = 48, lanes = d.lanes;
-  const root = new THREE.Group();
-  const laneX = i => (i - (lanes - 1) / 2) * (W * 0.55 / Math.max(lanes - 1, 1));
-  const laneXs = Array.from({ length: lanes }, (_, i) => lanes === 1 ? 0 : laneX(i));
-  const g = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: theme.ground, roughness: 1 }));
-  g.rotation.x = -Math.PI / 2; g.receiveShadow = true; root.add(g);
-  if (theme.water) { const w = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.6, D * 1.6), new THREE.MeshStandardMaterial({ color: theme.water, roughness: 0.3, metalness: 0.1 })); w.rotation.x = -Math.PI / 2; w.position.y = -0.08; root.add(w); }
-  const hallZ = D / 2 - 7, gateZ = -D / 2 + 4;
-  for (const x of laneXs) {
-    // Each lane is a strip angled from its gate (x) toward the hall (x/2), so lanes converge.
-    const len = hallZ - gateZ - 4;
-    const strip = new THREE.Mesh(new THREE.PlaneGeometry(3.6, len), new THREE.MeshStandardMaterial({ color: theme.path, roughness: 1 }));
-    strip.rotation.x = -Math.PI / 2; strip.position.set(x * 0.75, 0.012, (hallZ + gateZ) / 2); strip.rotation.z = Math.atan2(x / 2, len); strip.receiveShadow = true;
-    root.add(strip);
+// Sky backdrop: an equirectangular canvas painted per theme (gradient, sun or moon, stars at night,
+// a few clouds and a mountain silhouette on the horizon). No external images needed.
+const skyCache = new Map();
+function skyTexture(theme, key) {
+  if (skyCache.has(key)) return skyCache.get(key);
+  const W = 2048, H = 1024, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  const top = new THREE.Color(theme.sky), hor = new THREE.Color(theme.fog).lerp(new THREE.Color(0xffffff), 0.18);
+  const night = top.r + top.g + top.b < 0.35;
+  const r = rng(key.length * 977 + 13);
+  const grad = g.createLinearGradient(0, 0, 0, H * 0.55);
+  grad.addColorStop(0, '#' + top.getHexString()); grad.addColorStop(1, '#' + hor.getHexString());
+  g.fillStyle = grad; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#' + new THREE.Color(theme.ground).multiplyScalar(0.55).getHexString(); g.fillRect(0, H * 0.5, W, H * 0.5);
+  if (night) { g.fillStyle = '#ffffff'; for (let i = 0; i < 700; i++) { const y = r() * H * 0.45; g.globalAlpha = 0.3 + r() * 0.7; g.fillRect(r() * W, y, r() < 0.1 ? 3 : 1.5, r() < 0.1 ? 3 : 1.5); } g.globalAlpha = 1; }
+  // sun or moon
+  const sx = W * 0.72, sy = H * 0.2;
+  const glow = g.createRadialGradient(sx, sy, 10, sx, sy, night ? 160 : 260);
+  glow.addColorStop(0, night ? 'rgba(230,235,255,0.95)' : 'rgba(255,245,210,1)'); glow.addColorStop(0.25, night ? 'rgba(200,210,240,0.35)' : 'rgba(255,220,150,0.45)'); glow.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = glow; g.fillRect(sx - 300, sy - 300, 600, 600);
+  g.beginPath(); g.arc(sx, sy, night ? 34 : 46, 0, Math.PI * 2); g.fillStyle = night ? '#e8ecff' : '#fff6d8'; g.fill();
+  // clouds
+  g.fillStyle = night ? 'rgba(120,130,160,0.25)' : 'rgba(255,255,255,0.55)';
+  for (let i = 0; i < 26; i++) { const cx = r() * W, cy = H * (0.12 + r() * 0.3), cw = 80 + r() * 220, ch = cw * (0.25 + r() * 0.2); for (let k = 0; k < 5; k++) { g.beginPath(); g.ellipse(cx + (r() - 0.5) * cw * 0.8, cy + (r() - 0.5) * ch * 0.6, cw * (0.3 + r() * 0.3), ch * (0.4 + r() * 0.5), 0, 0, Math.PI * 2); g.fill(); } }
+  // far hills / skyline on the horizon, in a darker fog tone
+  const hill = new THREE.Color(theme.fog).multiplyScalar(0.75);
+  for (let layer = 0; layer < 2; layer++) {
+    g.fillStyle = '#' + hill.clone().multiplyScalar(layer ? 0.8 : 1).getHexString();
+    g.beginPath(); g.moveTo(0, H * 0.5);
+    let y = H * (0.44 + layer * 0.02);
+    for (let x = 0; x <= W; x += 24) { y += (r() - 0.5) * 18 * (layer + 1); y = Math.min(H * 0.5, Math.max(H * (0.36 + layer * 0.04), y)); g.lineTo(x, y); }
+    g.lineTo(W, H * 0.5); g.closePath(); g.fill();
   }
-  scene.add(root);
-  ground.visible = false; grid.visible = false;
-  scene.background.set(theme.sky); scene.fog.color.set(theme.fog); scene.fog.near = 60; scene.fog.far = 160;
-  camera.far = 400; camera.updateProjectionMatrix();
-  controls.target.set(0, 0, 0); camera.position.set(W * 0.55, D * 0.75, -D * 0.95);
-  controls.minDistance = 6; controls.maxDistance = 220; controls.update();
-  const mixers = [];
-  current = { def: d, root, hp: 1, maxHp: 1, state: 'map', animated: true, bob: false, actions: {}, mixer: { update: dt => { for (const m of mixers) m.update(dt); } }, stepTimer: 0 };
-  $('hud-name').textContent = `${d.name} map`; $('hud-state').textContent = `${lanes} lanes · building…`;
-  $('dims').textContent = `Arena ${W} × ${D} m (about ${Math.round(W * 3.5)} × ${Math.round(D * 3.5)} studs). Gates at the near edge, Town Hall at the far edge.`;
-  $('stats').innerHTML = [['Unlock level', d.unlockLevel], ['Lanes', lanes], ['Creatures', fam?.creatures.length ?? 0], ['Gimmick', d.gimmick], ['Props', d.props]]
-    .map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
-  $('source').innerHTML = `Wave order: ${fam ? fam.creatures.map(c => `${c.firstWave}. ${c.id}${c.type === 'Boss' ? ' (boss)' : ''}`).join(', ') : '—'}<br><a href="#creatures" style="color:var(--accent)">Open in Creatures tab</a>`;
-  const r = rng([...d.id].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7));
+  const tex = new THREE.CanvasTexture(c); tex.mapping = THREE.EquirectangularReflectionMapping; tex.colorSpace = THREE.SRGBColorSpace;
+  skyCache.set(key, tex); return tex;
+}
+
+// Builds a themed arena into `parent`. Used at full size for a dungeon map and at diorama size in
+// the lobby. Returns { jobs, laneXs, placed, hallZ, gateZ } so callers can await the prop loads.
+function buildArena(theme, d, parent, { W = 110, D = 80, propMult = 2, withWalkers = true, mixers = [], seed = d.id } = {}) {
+  const lanes = d.lanes;
+  const fam = FAMILIES.find(f => f.id === d.family);
+  const laneXs = Array.from({ length: lanes }, (_, i) => lanes === 1 ? 0 : (i - (lanes - 1) / 2) * (W * 0.55 / Math.max(lanes - 1, 1)));
+  const g = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: theme.ground, roughness: 1 }));
+  g.rotation.x = -Math.PI / 2; g.receiveShadow = true; parent.add(g);
+  if (theme.water) { const w = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.6, D * 1.6), new THREE.MeshStandardMaterial({ color: theme.water, roughness: 0.3, metalness: 0.1 })); w.rotation.x = -Math.PI / 2; w.position.y = -0.08; parent.add(w); }
+  const hallZ = D / 2 - D * 0.14, gateZ = -D / 2 + D * 0.08;
+  const laneW = Math.max(3.6, W * 0.045);
+  for (const x of laneXs) {
+    const len = hallZ - gateZ - 4;
+    const strip = new THREE.Mesh(new THREE.PlaneGeometry(laneW, len), new THREE.MeshStandardMaterial({ color: theme.path, roughness: 1 }));
+    strip.rotation.x = -Math.PI / 2; strip.position.set(x * 0.75, 0.012, (hallZ + gateZ) / 2); strip.rotation.z = Math.atan2(x / 2, len); strip.receiveShadow = true;
+    parent.add(strip);
+  }
+  const r = rng([...seed].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7));
   const jobs = [];
-  jobs.push(placeProp(theme.hall, root, 0, hallZ, Math.PI));
-  for (const x of laneXs) jobs.push(placeProp(theme.gate, root, x, gateZ, 0));
-  const nearLane = (x, z) => laneXs.some(lx => { const t = (z - gateZ) / (hallZ - gateZ); const cx = lx * (1 - t) + 0 * t; return Math.abs(x - (lx + cx) / 2) < 3.2; }) || Math.abs(z - hallZ) < 5 && Math.abs(x) < 7;
+  const hallScale = W / 64;
+  jobs.push(placeProp({ ...theme.hall, h: theme.hall.h * hallScale }, parent, 0, hallZ, Math.PI));
+  for (const x of laneXs) jobs.push(placeProp({ ...theme.gate, h: theme.gate.h * Math.max(1, hallScale * 0.8) }, parent, x, gateZ, 0));
+  const nearLane = (x, z) => laneXs.some(lx => { const t = (z - gateZ) / (hallZ - gateZ); const cx = lx * (1 - t); return Math.abs(x - (lx + cx) / 2) < laneW * 0.9; }) || (Math.abs(z - hallZ) < 7 * hallScale && Math.abs(x) < 9 * hallScale);
   let placed = 0;
   for (const spec of theme.props) {
-    for (let i = 0; i < spec.n; i++) {
+    for (let i = 0; i < Math.round(spec.n * propMult); i++) {
       let x, z, tries = 0;
       do { x = (r() - 0.5) * (W - 4); z = (r() - 0.5) * (D - 4); tries++; } while (nearLane(x, z) && tries < 30);
       if (tries >= 30) continue;
-      jobs.push(placeProp(spec, root, x, z, r() * Math.PI * 2)); placed++;
+      jobs.push(placeProp(spec, parent, x, z, r() * Math.PI * 2)); placed++;
     }
   }
-  // A few creatures from this family walk the lanes.
-  const walkers = (fam?.creatures ?? []).filter(c => c.type !== 'Boss').slice(0, Math.min(8, lanes * 3));
+  const walkers = withWalkers ? (fam?.creatures ?? []).filter(c => c.type !== 'Boss').slice(0, Math.min(12, lanes * 4)) : [];
   walkers.forEach((def, i) => jobs.push((async () => {
     const gltf = await loadGltf(def.model);
     const inst = cloneSkinned(gltf.scene);
-    inst.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    inst.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
     inst.scale.setScalar(def.scale);
     const b = meshBox(inst); inst.position.y -= b.min.y;
     const lx = laneXs[i % lanes]; const t = 0.15 + 0.7 * ((i * 7919) % 97) / 97; const z = gateZ + 3 + (hallZ - gateZ - 8) * t;
@@ -399,13 +534,101 @@ async function showMap(d) {
     const clip = gltf.animations.find(c => clipName(c) === def.anims.walk) ?? gltf.animations[0];
     if (clip) { const a = mixer.clipAction(clip); a.play(); mixer.update(r() * 2); }
     mixers.push(mixer);
-    return holder;
-  })().then(h => { if (seq === loadSeq) root.add(h); })));
+    parent.add(holder);
+  })()));
+  return { jobs, laneXs, placed, hallZ, gateZ, walkers, W, D };
+}
+
+// Text label floating above a point (canvas sprite).
+function labelSprite(text, sub = '', color = '#ffb454') {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 160; const g = c.getContext('2d');
+  g.fillStyle = 'rgba(0,0,0,0.55)'; g.beginPath(); g.roundRect(8, 8, 496, 144, 24); g.fill();
+  g.fillStyle = color; g.font = 'bold 64px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText(text, 256, 78);
+  if (sub) { g.fillStyle = '#e8e9ec'; g.font = '38px system-ui, sans-serif'; g.fillText(sub, 256, 130); }
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+  sp.scale.set(12, 3.75, 1); return sp;
+}
+
+// The lobby: a plaza with the three floor pads (Config.Pads: Solo 1, Duo 2, Squad 4) and a ring of
+// dioramas, one slice of each dungeon map, so players can see where each floor leads.
+async function showLobby() {
+  clear();
+  const seq = ++loadSeq;
+  const root = new THREE.Group();
+  const R = 78; // diorama ring radius
+  const plaza = new THREE.Mesh(new THREE.CircleGeometry(R + 30, 96), new THREE.MeshStandardMaterial({ color: 0x5c6b4a, roughness: 1 }));
+  plaza.rotation.x = -Math.PI / 2; plaza.position.y = -0.05; plaza.receiveShadow = true; root.add(plaza);
+  const inner = new THREE.Mesh(new THREE.CircleGeometry(34, 64), new THREE.MeshStandardMaterial({ color: 0x8e8571, roughness: 1 }));
+  inner.rotation.x = -Math.PI / 2; inner.position.y = 0.01; inner.receiveShadow = true; root.add(inner);
+  scene.add(root);
+  ground.visible = false; grid.visible = false;
+  scene.background = skyTexture({ sky: 0x5f9fe0, fog: 0xbcd6f0, ground: 0x5c6b4a }, 'lobby');
+  scene.fog.color.set(0xbcd6f0); scene.fog.near = 180; scene.fog.far = 420;
+  camera.far = 900; camera.updateProjectionMatrix();
+  controls.target.set(0, 0, 0); camera.position.set(90, 95, 140); controls.minDistance = 10; controls.maxDistance = 400; controls.update();
+  const mixers = [];
+  current = { def: { id: 'Lobby' }, root, hp: 1, maxHp: 1, state: 'map', animated: true, bob: false, actions: {}, mixer: { update: dt => { for (const m of mixers) m.update(dt); } }, stepTimer: 0 };
+  $('hud-name').textContent = 'Lobby'; $('hud-state').textContent = 'building…';
+  $('dims').textContent = `Plaza radius ${R + 30} m. Pads in the centre, one diorama per dungeon around the ring in unlock order.`;
+  const pads = [['SOLO', '1 player', 0x7bd88f, -14], ['DUO', '2 players', 0x5fb8ff, 0], ['SQUAD', '4 players', 0xff8a5f, 14]];
+  for (const [name, sub, color, x] of pads) {
+    const pad = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 4.8, 0.6, 32), new THREE.MeshStandardMaterial({ color, roughness: 0.6, emissive: color, emissiveIntensity: 0.25 }));
+    pad.position.set(x, 0.3, 0); pad.castShadow = true; pad.receiveShadow = true; root.add(pad);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(4.9, 0.18, 8, 48), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.4 }));
+    ring.rotation.x = Math.PI / 2; ring.position.set(x, 0.62, 0); root.add(ring);
+    const lab = labelSprite(name, sub, '#' + new THREE.Color(color).getHexString()); lab.position.set(x, 5.5, 0); root.add(lab);
+  }
+  const jobs = [];
+  DUNGEONS.forEach((d, i) => {
+    const theme = MAPS[d.id]; if (!theme) return;
+    const a = (i / DUNGEONS.length) * Math.PI * 2 - Math.PI / 2;
+    const holder = new THREE.Group();
+    holder.position.set(Math.cos(a) * R, 0.02, Math.sin(a) * R);
+    holder.rotation.y = -a - Math.PI / 2; // gates face the plaza, hall on the far side
+    root.add(holder);
+    const built = buildArena(theme, { ...d, lanes: Math.min(d.lanes, 2) }, holder, { W: 30, D: 24, propMult: 0.25, withWalkers: true, mixers, seed: d.id + 'lobby' });
+    jobs.push(...built.jobs);
+    const lab = labelSprite(d.name, `Level ${d.unlockLevel}`); lab.position.set(0, 14, 0); lab.scale.multiplyScalar(1.5); holder.add(lab);
+  });
+  $('stats').innerHTML = [['Pads', 'Solo (1) · Duo (2) · Squad (4)'], ['Dioramas', `${DUNGEONS.length} dungeons, unlock order clockwise from the top`], ['Countdown', 'Pad fills when occupied; launches a reserved server for that party size (see Lobby.luau / PadLogic.luau)']]
+    .map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
+  $('source').innerHTML = 'Dioramas reuse each dungeon\'s props kit at 1/4 density. Pads and plaza are placeholder geometry; a lobby kit can replace them later.';
   const results = await Promise.allSettled(jobs);
+  if (seq !== loadSeq) return;
+  const failed = results.filter(x => x.status === 'rejected').length;
+  $('hud-state').textContent = `${DUNGEONS.length} dioramas · 3 pads${failed ? ` · ${failed} props failed` : ''}`;
+  log(`lobby: ${jobs.length} loads, ${failed} failed`);
+}
+
+async function showMap(d) {
+  clear();
+  const seq = ++loadSeq;
+  const theme = MAPS[d.id];
+  const fam = FAMILIES.find(f => f.id === d.family);
+  if (!theme) { await showDungeon(d); return; }
+  const root = new THREE.Group();
+  scene.add(root);
+  ground.visible = false; grid.visible = false;
+  scene.background = skyTexture(theme, d.id);
+  scene.fog.color.set(theme.fog); scene.fog.near = 140; scene.fog.far = 360;
+  camera.far = 900; camera.updateProjectionMatrix();
+  const mixers = [];
+  const built = buildArena(theme, d, root, { mixers });
+  const { W, D, placed, walkers } = built;
+  controls.target.set(0, 0, 0); camera.position.set(W * 0.55, D * 0.8, -D * 1.05);
+  controls.minDistance = 6; controls.maxDistance = 420; controls.update();
+  current = { def: d, root, hp: 1, maxHp: 1, state: 'map', animated: true, bob: false, actions: {}, mixer: { update: dt => { for (const m of mixers) m.update(dt); } }, stepTimer: 0 };
+  $('hud-name').textContent = `${d.name} map`; $('hud-state').textContent = `${d.lanes} lanes · building…`;
+  $('dims').textContent = `Arena ${W} × ${D} m (about ${Math.round(W * 3.5)} × ${Math.round(D * 3.5)} studs). Gates at the near edge, Town Hall at the far edge.`;
+  $('stats').innerHTML = [['Unlock level', d.unlockLevel], ['Lanes', d.lanes], ['Creatures', fam?.creatures.length ?? 0], ['Gimmick', d.gimmick], ['Props', d.props]]
+    .map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
+  $('source').innerHTML = `Wave order: ${fam ? fam.creatures.map(c => `${c.firstWave}. ${c.id}${c.type === 'Boss' ? ' (boss)' : ''}`).join(', ') : '—'}<br><a href="#creatures" style="color:var(--accent)">Open in Creatures tab</a>`;
+  const results = await Promise.allSettled(built.jobs);
   if (seq !== loadSeq) return;
   const failed = results.filter(x => x.status === 'rejected');
   for (const f of failed) console.warn('map prop failed', f.reason);
-  $('hud-state').textContent = `${lanes} lanes · ${placed} props · ${walkers.length} creatures${failed.length ? ` · ${failed.length} failed` : ''}`;
+  $('hud-state').textContent = `${d.lanes} lanes · ${placed} props · ${walkers.length} creatures${failed.length ? ` · ${failed.length} failed` : ''}`;
   log(`map ${d.id}: ${placed} props, ${walkers.length} creatures, ${failed.length} failed${failed.length ? ': ' + failed.map(f => f.reason?.message ?? f.reason).join('; ') : ''}`);
 }
 
@@ -483,7 +706,7 @@ function animatedCard(def) {
 
 // --- thumbnails: a small offscreen render of each model in its idle pose -----------------
 const THUMB = 112;
-const THUMB_VERSION = 'v3'; // bump to invalidate thumbnails saved in localStorage
+const THUMB_VERSION = 'v4'; // bump to invalidate thumbnails saved in localStorage
 const thumbRenderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 thumbRenderer.setSize(THUMB, THUMB, false);
 thumbRenderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -509,7 +732,7 @@ async function thumbRoot(file) {
   if (thumbRoots.has(file)) return thumbRoots.get(file);
   const gltf = await loadGltf(file);
   const root = gltf.animations.length ? cloneSkinned(gltf.scene) : gltf.scene.clone(true);
-  root.traverse(o => { if (o.isMesh) o.material = o.material.clone(); });
+  root.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); o.frustumCulled = false; } });
   const entry = { root, gltf, mixer: new THREE.AnimationMixer(root) };
   thumbRoots.set(file, entry);
   return entry;
@@ -528,6 +751,34 @@ async function drawThumb(file, { scale = 1, tint = null, idle = null }) {
   const dist = radius / Math.tan(THREE.MathUtils.degToRad(thumbCamera.fov / 2)) * 1.25;
   thumbCamera.position.set(center.x + dist * 0.6, center.y + dist * 0.35, center.z + dist * 0.75);
   thumbCamera.lookAt(center);
+  // Same pixel-measured correction as the main view: render, measure the drawn extent, move in/out.
+  const tpx = new Uint8Array(THUMB * THUMB * 4);
+  const thumbBg = thumbScene.background; thumbScene.background = FIT_BG;
+  for (let pass = 0; pass < 6; pass++) {
+    thumbRenderer.render(thumbScene, thumbCamera);
+    const gl = thumbRenderer.getContext(); gl.readPixels(0, 0, THUMB, THUMB, gl.RGBA, gl.UNSIGNED_BYTE, tpx);
+    let minX = THUMB, maxX = -1, minY = THUMB, maxY = -1;
+    const bg = thumbScene.background;
+    for (let y = 0; y < THUMB; y++) for (let x = 0; x < THUMB; x++) {
+      const i = (y * THUMB + x) * 4;
+      if (Math.abs(tpx[i] - bg.r * 255) + Math.abs(tpx[i + 1] - bg.g * 255) + Math.abs(tpx[i + 2] - bg.b * 255) > 60) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+    }
+    const d0 = thumbCamera.position.distanceTo(center);
+    if (maxX < 0) { thumbCamera.position.copy(center).add(thumbCamera.position.clone().sub(center).normalize().multiplyScalar(d0 * 1.8)); continue; }
+    const fill = Math.max(maxX - minX + 1, maxY - minY + 1) / THUMB;
+    if (fill > 0.97) { thumbCamera.position.copy(center).add(thumbCamera.position.clone().sub(center).normalize().multiplyScalar(d0 * 1.6)); continue; }
+    const k = THREE.MathUtils.clamp(fill / 0.78, 0.6, 1.6);
+    const cy = ((minY + maxY) / 2) / THUMB - 0.5, cx = ((minX + maxX) / 2) / THUMB - 0.5;
+    const d = thumbCamera.position.distanceTo(center);
+    const span = 2 * d * Math.tan(THREE.MathUtils.degToRad(thumbCamera.fov / 2));
+    const right = new THREE.Vector3().setFromMatrixColumn(thumbCamera.matrixWorld, 0), up = new THREE.Vector3().setFromMatrixColumn(thumbCamera.matrixWorld, 1);
+    center.add(right.multiplyScalar(cx * span)).add(up.multiplyScalar(cy * span));
+    const dir = thumbCamera.position.clone().sub(center).normalize();
+    thumbCamera.position.copy(center).add(dir.multiplyScalar(THREE.MathUtils.clamp(d * k, 0.1, 500)));
+    thumbCamera.lookAt(center);
+    if (Math.abs(k - 1) < 0.1) break;
+  }
+  thumbScene.background = thumbBg;
   thumbRenderer.render(thumbScene, thumbCamera);
   const url = thumbRenderer.domElement.toDataURL('image/png');
   thumbScene.remove(root);
@@ -589,6 +840,7 @@ const thumbObserver = new IntersectionObserver(entries => {
 const TABS = {
   creatures: { animated: true, groups: () => FAMILIES.map(f => ({ title: `${f.name} · ${f.map}`, items: f.creatures })) },
   dungeons: { animated: true, isDungeon: true, groups: () => [{ title: 'Unlock order (player level)', items: DUNGEONS }] },
+  lobby: { animated: true, isLobby: true, groups: () => [{ title: 'Lobby', items: [{ id: 'Lobby', name: 'Lobby', blurb: 'Three floor pads (solo, duo, squad) in the plaza, one diorama per dungeon around it.' }] }] },
   classes: { animated: false, isClass: true, groups: () => [
     { title: 'Free classes', items: CLASSES.filter(c => c.tier === 'Free') },
     { title: 'Premium classes', items: CLASSES.filter(c => c.tier === 'Premium') },
@@ -612,15 +864,15 @@ function renderList() {
       el.className = 'card';
       const fam = cfg.isDungeon ? FAMILIES.find(f => f.id === item.family) : null;
       const boss = fam ? (fam.creatures.find(c => c.type === 'Boss') ?? fam.creatures[0]) : null;
-      el.innerHTML = cfg.isDungeon ? `<img class="thumb" alt=""><div><b>${item.name}</b><small>Level ${item.unlockLevel} · ${fam?.creatures.length ?? 0} creatures · ${item.lanes} lanes</small><small><br>${item.gimmick}</small></div>`
+      el.innerHTML = cfg.isLobby ? `<div></div><div><b>${item.name}</b><small>${item.blurb}</small></div>` : cfg.isDungeon ? `<img class="thumb" alt=""><div><b>${item.name}</b><small>Level ${item.unlockLevel} · ${fam?.creatures.length ?? 0} creatures · ${item.lanes} lanes</small><small><br>${item.gimmick}</small></div>`
         : cfg.animated ? animatedCard(item)
         : cfg.isClass ? `<img class="thumb" alt=""><div><b>${item.id}</b><small>${item.role} · ${item.weapon}</small><small><br>${item.passive}</small></div>`
         : `<img class="thumb" alt=""><b>${item.name}</b>`;
-      el.onclick = () => { for (const c of list.querySelectorAll('.card')) c.classList.remove('active'); el.classList.add('active'); cfg.isDungeon ? showMap(item) : cfg.animated ? showAnimated(item) : cfg.isClass ? showClass(item) : showStatic(item); };
+      el.onclick = () => { for (const c of list.querySelectorAll('.card')) c.classList.remove('active'); el.classList.add('active'); cfg.isLobby ? showLobby() : cfg.isDungeon ? showMap(item) : cfg.animated ? showAnimated(item) : cfg.isClass ? showClass(item) : showStatic(item); };
       list.appendChild(el);
       const img = el.querySelector('.thumb');
       const thumbItem = cfg.isDungeon ? boss : item;
-      if (!thumbItem) continue;
+      if (!thumbItem || cfg.isLobby) continue;
       const opts = cfg.animated ? { scale: thumbItem.scale, tint: thumbItem.tint, idle: thumbItem.anims.idle } : {};
       renderThumb(cfg.animated || cfg.isClass ? thumbItem.model : thumbItem.file, opts, img).then(url => { if (url) img.src = url; });
     }
@@ -678,7 +930,54 @@ setTab(location.hash.slice(1) || 'creatures');
 const mapId = new URLSearchParams(location.search).get('map');
 if (mapId) {
   setTab('dungeons');
-  for (const d of DUNGEONS.filter(x => mapId === 'all' || x.id === mapId)) { await showMap(d); await new Promise(r => setTimeout(r, 300)); }
+  for (const d of DUNGEONS.filter(x => mapId === 'all' || x.id === mapId)) { await showMap(d); await new Promise(r => setTimeout(r, 300)); await postShot('map__' + d.id); }
+}
+// ?walk=1 (with ?log=1): show every creature in turn and report whether it actually renders:
+// pixel coverage of the model in the frame, its framed size, and clips the catalog names that the
+// model does not have. Used to catch invisible or mis-framed creatures without eyeballing 190 cards.
+if (new URLSearchParams(location.search).has('walk')) {
+  setTab('creatures');
+  renderer.setSize(400, 300, false); camera.aspect = 4 / 3; camera.updateProjectionMatrix();
+  const rt = new THREE.WebGLRenderTarget(160, 120);
+  const px = new Uint8Array(160 * 120 * 4);
+  const bg = scene.background.clone();
+  const only = new URLSearchParams(location.search).get('only');
+  for (const f of FAMILIES) for (const def of f.creatures) {
+    if (only && !def.id.includes(only)) continue;
+    try {
+      await showAnimated(def);
+      playAnim(def.anims.walk);
+      await new Promise(r => setTimeout(r, 120));
+      current?.mixer?.update(0.6);
+      pixelFit(current.root);
+      const aspect = camera.aspect; camera.aspect = 160 / 120; camera.updateProjectionMatrix();
+      renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.readRenderTargetPixels(rt, 0, 0, 160, 120, px); renderer.setRenderTarget(null);
+      camera.aspect = aspect; camera.updateProjectionMatrix();
+      let covered = 0, lum = 0;
+      for (let i = 0; i < px.length; i += 4) {
+        const dr = Math.abs(px[i] - bg.r * 255), dg = Math.abs(px[i + 1] - bg.g * 255), db = Math.abs(px[i + 2] - bg.b * 255);
+        if (dr + dg + db > 40) { covered++; lum += (px[i] + px[i + 1] + px[i + 2]) / 3; }
+      }
+      if (new URLSearchParams(location.search).has('shots')) {
+        renderer.render(scene, camera);
+        const url = renderer.domElement.toDataURL('image/jpeg', 0.7);
+        await fetch('/__shot/' + encodeURIComponent(`${f.id}__${def.id}`), { method: 'POST', body: url });
+      }
+      const size = current ? meshBox(current.root).getSize(new THREE.Vector3()) : new THREE.Vector3();
+      const missing = Object.entries(def.anims).filter(([, v]) => v && !current.actions[v]).map(([k, v]) => `${k}=${v}`);
+      const bb = meshBox(current.root); const camd = camera.position.distanceTo(controls.target);
+      log(`walk ${f.id}/${def.id}: box y ${bb.min.y.toFixed(2)}..${bb.max.y.toFixed(2)} x ${bb.min.x.toFixed(1)}..${bb.max.x.toFixed(1)} z ${bb.min.z.toFixed(1)}..${bb.max.z.toFixed(1)} cam ${camd.toFixed(1)} target ${controls.target.y.toFixed(2)} fill ${JSON.stringify(measureFill())} cover ${(100 * covered / (160 * 120)).toFixed(1)}% lum ${covered ? Math.round(lum / covered) : 0} size ${size.x.toFixed(2)}x${size.y.toFixed(2)}x${size.z.toFixed(2)} clips ${Object.keys(current.actions).length}${missing.length ? ' MISSING ' + missing.join(',') : ''}`);
+    } catch (e) { log(`walk ${f.id}/${def.id}: ERROR ${e.message ?? e}`); }
+  }
+  log('walk done');
+}
+if (new URLSearchParams(location.search).has('lobby')) { setTab('lobby'); await showLobby(); await new Promise(r => setTimeout(r, 500)); await postShot('lobby'); }
+async function postShot(name) {
+  if (!new URLSearchParams(location.search).has('shots')) return;
+  renderer.setSize(960, 600, false); camera.aspect = 960 / 600; camera.updateProjectionMatrix();
+  for (const m of (current?.mixer ? [current.mixer] : [])) m.update(0.5);
+  renderer.render(scene, camera);
+  await fetch('/__shot/' + encodeURIComponent(name), { method: 'POST', body: renderer.domElement.toDataURL('image/jpeg', 0.8) });
 }
 // ?zoomtest=1 (with ?log=1): fire one wheel notch and report how far the camera moved, for headless checks.
 if (new URLSearchParams(location.search).has('zoomtest')) {
