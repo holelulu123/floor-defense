@@ -10,6 +10,7 @@ Moved out of DESIGN.md so the design doc stays about the game. Rule: CC0 packs, 
 | Kenney Impact Sounds (130 ogg: impacts, footsteps) | `assets/sounds/kenney-impact/` | CC0 1.0 | `LICENSE.txt` in the pack; kenney.nl/support states all assets are CC0 |
 | Kenney Graveyard Kit characters (zombie, skeleton, ghost, vampire, keeper; animated: idle, walk, sprint, jump, die) | `assets/creatures/kenney-graveyard/` | CC0 1.0 | kenney.nl/support; glTF copies from github.com/shorepine/kenney |
 | Kenney Weapon Pack (37 guns, grenades, knives, ammo) | `assets/weapons/kenney-weapon-pack/` | CC0 1.0 | kenney.nl/support; glTF copies from github.com/shorepine/kenney |
+| Quaternius Farm Animals Pack (Cow, Horse, Llama, Pig, Pug, Sheep, Zebra; Idle/Walk/Run/Jump/Death) | `assets/creatures/quaternius-farm-animals/` | CC0 1.0 | `LICENSE.txt` in the pack; Blender export, see `SOURCE.md` |
 | Kenney Blocky Characters (18 animated blocky people, 27 clips each) used only as the optional random player skin in the class preview (no longer used as creatures) | `assets/creatures/kenney-blocky/` | CC0 1.0 | `SOURCE.md` in the pack; kenney.nl/support; glTF copies from github.com/shorepine/kenney |
 | KayKit Halloween Bits (63 graveyard props: graves, crypts, fences, dead trees, lanterns) | `assets/props/kaykit-halloween/` | CC0 1.0 | `LICENSE.txt` in the pack |
 | KayKit Dungeon Remastered, selection (chests, barrels, torches, coins, banners, sword+shield, spike trap) | `assets/props/kaykit-dungeon/` | CC0 1.0 | `LICENSE.txt` in the pack |

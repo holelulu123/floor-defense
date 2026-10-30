@@ -7,14 +7,23 @@ local RunService = game:GetService("RunService")
 local TeleportService = game:GetService("TeleportService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local ClassService = require(script.Parent.ClassService)
 local Combat = require(script.Parent.Combat)
 local Lobby = require(script.Parent.Lobby)
 local Monetization = require(script.Parent.Monetization)
 local PlayerData = require(script.Parent.PlayerData)
 local Run = require(script.Parent.Run)
+local Skills = require(script.Parent.Skills)
+local Turrets = require(script.Parent.Turrets)
 
 Monetization.init()
 Combat.init()
+Turrets.init()
+Skills.init()
+ClassService.init({
+	canSwitch = Run.canSwitchClass,
+	onSwitch = Run.equipClass, -- no-op outside a run; re-equips during prep
+})
 
 Players.PlayerAdded:Connect(PlayerData.load)
 for _, player in Players:GetPlayers() do

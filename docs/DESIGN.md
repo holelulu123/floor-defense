@@ -1,6 +1,6 @@
 # Floor Defense — Game Design
 
-Last updated: 2026-10-28
+Last updated: 2026-10-30
 
 ## Overview
 
@@ -83,6 +83,15 @@ Players keep their own avatar: a class never changes the player's skin, it only 
 
 Class select: on entering the lobby a panel shows the classes with their two skills and unlock cost; locked ones show a Buy button (gems). The choice is kept per player and can be changed in the lobby at any time.
 
+Implementation contract (code-first, see `src/shared/Skills.luau` for the numbers and `src/server/Skills.luau` for the handlers):
+
+- Remotes: `BuyClass(classId)` and `SelectClass(classId)` are RemoteFunctions validated with `Classes.tryBuy` / `Classes.isOwned`; selecting is only allowed in the lobby or during prep. `UseSkill(index, aimOrigin, aimDirection)` is a RemoteEvent; the server owns the cooldown clock (`Classes.canUse` with `os.clock()`), applies the effect and answers with `SkillFx` (`{kind="cooldown", index, cooldown}` to the caster, `{kind=<fx>, position, radius, ...}` to everyone for the placeholder visuals). Gems for a run come from `Classes.gemsForRun(wave, mode)` at run end.
+- Player attributes published by the server for the UI: `Class`, `Gems`, `OwnedClasses` (comma list), `Weapon`, `Turrets`; timed buffs are `<Stat>` + `<Stat>Until` pairs (`DamageMult`, `FireRateMult`, `SpeedMult`, `CritShots`), read through `Skills.buffValue`.
+- Creature attributes written by skills, honoured by the creature mover: `Frozen` (boolean, no movement), `SlowUntil` + `SlowFactor` (speed multiplier while `os.clock() < SlowUntil`). `BurnUntil` + `BurnBy` and `MarkedUntil` are read by `Damage.hit`, the single entry point every weapon, skill, turret and pet uses before `Creatures.damage`.
+- Town Hall part attribute `ShieldUntil` (Medic Overcharge): `TownHall.takeDamage` ignores damage while `os.clock() < ShieldUntil`.
+- Weapon in hand: `WeaponModels.give` builds a placeholder Tool from Parts per weapon (rifle, carbine, SMG, bolt rifle, flamethrower, launcher, two pistols, axe, staff, wand, flail with a left-arm shield) and equips it; the Tool is visual only, firing still goes through `Remotes.Fire`.
+- Engineer turrets (`src/server/Turrets.luau`): max 3, a 4th replaces the oldest (`Skills.Turret.placeIndex`), 300 HP, creatures within 4 studs chew 15 HP/s, an Engineer shot at an own turret within 8 studs repairs 25% of max, Overclock halves the fire interval for 10 s.
+
 ## Turrets and class gear (to discuss)
 
 Agreed direction, numbers still open:
@@ -137,26 +146,36 @@ Each map has its own creature family, so the roster stays readable: on the grave
 
 Horde mix once everything is unlocked: Runner 58%, Brute 15%, Spitter 10%, Exploder 6%, Flyer 5%, Shielder 4%, Healer 2% (`Enemies.HordeMix`); shares of locked archetypes go to Runners. Two more families exist as models for future maps: slimes (Sewer) and bandits/orcs (Village), plus static UFOs for the Factory map's Flyers.
 
-Roster rule: every creature is a distinct 3D model, never a recolor of another one. Each dungeon has its own family of 13 to 20 creatures and the waves introduce one new creature per wave in the family's listed order, with bosses on waves 5, 10 and 15; after the list runs out, waves mix everything seen so far. The showcase's Creatures tab is the source of truth for the per-dungeon order (`showcase/catalog.js`), and its Dungeons tab previews each map (220 x 160 m arena, one lane of 450 to 700 m that snakes from the gate to the tower through S-bends and switchbacks and never crosses itself, themed props, a painted sky) with a few creatures walking the lane. The lane is a seeded self-avoiding walk on a coarse grid (`laneCurve`), so every dungeon has its own route and the same route every visit. The Lobby tab shows the zoned hub described under Lobby and floors.
+Roster rule: every creature is a distinct 3D model, never a recolor of another one. Each dungeon has its own family of 13 to 21 creatures and the waves introduce one new creature per wave in the family's listed order, with bosses on waves 5, 10 and 15; after the list runs out, waves mix everything seen so far. The showcase's Creatures tab is the source of truth for the per-dungeon order (`showcase/catalog.js`), and its Dungeons tab previews each map (260 x 200 m arena, one lane of 450 to 700 m that snakes from the gate to the tower through S-bends and switchbacks and never crosses itself, themed props, a painted sky) with a few creatures walking the lane. The lane is a seeded self-avoiding walk on a coarse grid (`laneCurve`), so every dungeon has its own route and the same route every visit. The Lobby tab shows the zoned hub described under Lobby and floors.
 
-Scaling: health multiplies by `1 + 0.12 x wave`, count grows by 4 per wave, and from wave 15 some Runners spawn as elites with an extra ability (frost aura, regen, teleport). Elites keep late waves interesting without only raising numbers.
+In the game the roster is generated, not retyped: `scripts/gen-roster.py` evaluates `showcase/catalog.js` with node and writes `src/shared/Roster.luau` (per family: id, archetype, debut wave, debut-wave health/damage/coins, speed, scale, model path, flying; per dungeon: theme colours and tower/gate prop names). Rerun it after editing the catalog; `tests/Roster.spec.luau` checks ten families, unique ids, contiguous debut waves, growing stats per archetype, a boss on wave 5 and existing model files.
+
+Wave composition (`Waves.composition(family, wave, mode)`): the pool is every regular creature with `firstWave <= wave`. Each archetype's horde share (`Enemies.HordeMix`) is split between its creatures in the pool, rounded down, and the remainder goes to the newest creature, so the debut creature always shows up on its wave. Boss waves (every 5th, plus any wave a roster boss debuts on when a short roster runs out of regulars) lead with the latest boss that has debuted and add an escort of a quarter of the wave's count from the pool. Spawns are ordered oldest creature first, so the new face arrives last.
+
+Scaling: a creature's roster stats are already its debut-wave stats (health x `1 + 0.2 x (debut - 1)`, damage x `1 + 0.08 x (debut - 1)`, coins x `1 + 0.12 x (debut - 1)`), and on top of that health multiplies by `1 + 0.12 x wave` and the party multiplier (`Waves.stats`), count grows by 4 per wave, and from wave 15 Elite creatures (a Runner with an extra ability: frost aura, regen, teleport) join the mix. Damage and speed are not scaled per wave so a lane keeps its rhythm.
 
 ## Dungeons
 
-Each dungeon is a map with its own creature family, lane count and one gimmick. Dungeons unlock by **player level** (see Progression); `src/shared/Dungeons.luau` is the source of truth and the showcase's Dungeons tab mirrors it.
+Each dungeon is a map with its own creature family, one winding lane and one gimmick. Dungeons unlock by **player level** (see Progression); `src/shared/Dungeons.luau` is the source of truth and the showcase's Dungeons tab mirrors it.
 
 | # | Dungeon | Unlock level | Creature family (models in repo) | Lanes | Gimmick |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Graveyard | 1 | Skeletons / undead | 3 | Fog rolls in on boss waves, cutting sight lines |
-| 2 | Haunted Farm | 3 | Possessed farm animals | 2 | Hay bales can be pushed into lanes as cover; animals trample them |
-| 3 | Swamp | 5 | Bugs and beasts | 2 | Shallow water slows everyone; ice spells freeze it solid |
-| 4 | Sewer | 10 | Slimes | 3 | Slimes split in two when killed above half health |
-| 5 | Bandit Village | 15 | Bandits and orcs | 4 | Bandits loot dropped coins before you can |
-| 6 | Frozen Cavern | 20 | Arctic beasts | 2 | Everything is slippery; freeze spells last twice as long |
-| 7 | Jungle Temple | 25 | Jungle beasts | 3 | Vines block sight lines until burned away |
-| 8 | Pirate Cove | 30 | Pirates | 3 | Cannons on the cliffs can be captured and fired at the lanes |
-| 9 | Factory | 35 | UFOs / robots | 4 | Conveyor belts move anything on them, including grenades |
-| 10 | Space Station | 40 | Aliens and drones | 4 | Airlocks vent a lane for 5 s when opened |
+| 1 | Graveyard | 1 | Skeletons / undead | 1 | Fog rolls in on boss waves, cutting sight lines |
+| 2 | Haunted Farm | 3 | Possessed farm animals | 1 | Hay bales can be pushed into lanes as cover; animals trample them |
+| 3 | Swamp | 5 | Bugs and beasts | 1 | Shallow water slows everyone; ice spells freeze it solid |
+| 4 | Sewer | 10 | Slimes | 1 | Slimes split in two when killed above half health |
+| 5 | Bandit Village | 15 | Bandits and orcs | 1 | Bandits loot dropped coins before you can |
+| 6 | Frozen Cavern | 20 | Arctic beasts | 1 | Everything is slippery; freeze spells last twice as long |
+| 7 | Jungle Temple | 25 | Jungle beasts | 1 | Vines block sight lines until burned away |
+| 8 | Pirate Cove | 30 | Pirates | 1 | Cannons on the cliffs can be captured and fired at the lanes |
+| 9 | Factory | 35 | UFOs / robots | 1 | Conveyor belts move anything on them, including grenades |
+| 10 | Space Station | 40 | Aliens and drones | 1 | Airlocks vent a lane for 5 s when opened |
+
+### Lane and arena scale
+
+Every dungeon is one winding lane from a gate on the near edge to the dungeon's tower on the far edge; the tower is the Town Hall. `src/shared/Lane.luau` generates it deterministically from the dungeon id with the showcase's recipe (seeded self-avoiding walk on a coarse grid, cells at least 2.6 lane widths across, Chaikin-rounded corners, rejected if it leaves the arena, comes back within 1.4 lane widths of itself or misses the length band), so server, client and tools agree on the exact route and `tests/Lane.spec.luau` can check it never self-intersects.
+
+Stud scale decision: the showcase arena is 260 x 200 m with a 450 to 700 m lane. At the usual 3.5 studs per metre that is a 2,000+ stud lane that a Runner (14 studs/s) would need 2.5 minutes to walk, so the game uses about 1.4 studs per metre: a **360 x 280 stud arena, a 10 stud wide lane and a route of 600 to 1,000 studs (target 800)**. A Runner crosses it in about a minute, a Brute in two, which keeps a wave at one to two minutes. The arena sits at z = 600 so it never overlaps the 120 x 120 lobby at the origin. Creatures walk the lane's points exactly (no PathfindingService); Flyers keep every fifth point at 8 studs height and cut the corners. The tower and gate are placeholder Parts named after the theme prop (`Roster.Themes`) until the meshes are imported; floor and lane take the theme's ground and path colours.
 
 One dungeon (Graveyard) is enough for the MVP. Each extra dungeon is a few days of building plus its creature family, and all ten families already have placeholder models in `assets/creatures/`. Props kits per dungeon are listed in the showcase and fetched as each map is built.
 

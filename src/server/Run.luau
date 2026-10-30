@@ -5,10 +5,13 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Classes = require(ReplicatedStorage.Shared.Classes)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Arena = require(script.Parent.Arena)
 local Combat = require(script.Parent.Combat)
 local PlayerData = require(script.Parent.PlayerData)
+local Skills = require(script.Parent.Skills)
+local WeaponModels = require(script.Parent.WeaponModels)
 local TownHall = require(script.Parent.TownHall)
 local WaveManager = require(script.Parent.WaveManager)
 
@@ -24,6 +27,8 @@ local current: {
 	session: WaveManager.Session,
 	arena: Arena.Built,
 	townHall: TownHall.TownHall,
+	phase: string,
+	connections: { RBXScriptConnection },
 }? =
 	nil
 
@@ -61,27 +66,47 @@ function Run.playerRun(player: Player): PlayerRun?
 	return current and current.players[player.UserId]
 end
 
-function Run.start(mode: string, players: { Player }, onEnd: (mode: string, wave: number) -> ())
+-- Class changes are allowed in the lobby and during the prep phase of the player's own run.
+function Run.canSwitchClass(player: Player): boolean
+	return current == nil or current.players[player.UserId] == nil or current.phase == "prep"
+end
+
+-- Gives the player their selected class's weapon (stats + Tool in hand) and passives. Called at run
+-- start, after a respawn during the run, and when the class is switched during prep.
+function Run.equipClass(player: Player)
+	if not current or not current.players[player.UserId] then
+		return
+	end
+	local weapon = Classes.weaponFor(PlayerData.classOf(player))
+	Combat.setWeapon(player, weapon)
+	WeaponModels.give(player, weapon)
+	Skills.applyClass(player)
+end
+
+function Run.start(mode: string, players: { Player }, onEnd: (mode: string, wave: number) -> (), dungeonId: string?)
 	assert(current == nil, "a run is already active")
 
-	local arena = Arena.build()
+	local arena = Arena.build(dungeonId)
 	local townHall = TownHall.new(arena.townHall, Config.TownHallHealth)
 
 	local runPlayers: { [number]: PlayerRun } = {}
 	for i, player in players do
 		runPlayers[player.UserId] = { coins = 0, score = 0, kills = 0 }
 		moveIn(player, arena.spawns[(i - 1) % #arena.spawns + 1])
-		Combat.setWeapon(player, Config.StartingWeapon)
 	end
 
 	local session
-	session = WaveManager.start(mode, townHall, arena.gates, {
+	session = WaveManager.start(mode, arena.dungeonId, townHall, arena, {
 		onKill = function(killer, _archetype, coins)
 			local pr = killer and runPlayers[killer]
 			if pr then
 				pr.coins += coins
 				pr.score += coins
 				pr.kills += 1
+				local killerPlayer = Players:GetPlayerByUserId(killer)
+				if killerPlayer then
+					Skills.onKill(killerPlayer)
+				end
 			end
 		end,
 		onWaveCleared = function(wave, bonus)
@@ -91,6 +116,9 @@ function Run.start(mode: string, players: { Player }, onEnd: (mode: string, wave
 			broadcast("cleared", wave, 0)
 		end,
 		onPhase = function(phase, wave, secondsLeft)
+			if current then
+				current.phase = phase
+			end
 			broadcast(phase, wave, secondsLeft)
 			if phase == "ended" then
 				Run.finish(wave)
@@ -99,7 +127,27 @@ function Run.start(mode: string, players: { Player }, onEnd: (mode: string, wave
 		end,
 	})
 
-	current = { mode = mode, players = runPlayers, session = session, arena = arena, townHall = townHall }
+	local connections = {}
+	current = {
+		mode = mode,
+		players = runPlayers,
+		session = session,
+		arena = arena,
+		townHall = townHall,
+		phase = "prep",
+		connections = connections,
+	}
+	Combat.setTownHall(townHall)
+	Skills.beginRun(players, townHall)
+	for _, player in players do
+		Run.equipClass(player)
+		table.insert(
+			connections,
+			player.CharacterAdded:Connect(function()
+				task.defer(Run.equipClass, player)
+			end)
+		)
+	end
 	broadcast("prep", 1, Config.PrepSeconds)
 end
 
@@ -111,12 +159,18 @@ function Run.finish(wave: number)
 	current = nil
 
 	WaveManager.stop(finished.session)
+	for _, connection in finished.connections do
+		connection:Disconnect()
+	end
+	Skills.endRun()
+	Combat.setTownHall(nil)
 	for _, player in Players:GetPlayers() do
 		local pr = finished.players[player.UserId]
 		if pr then
 			PlayerData.recordScore(player, finished.mode, pr.score)
-			PlayerData.addGems(player, wave)
+			PlayerData.addGems(player, Classes.gemsForRun(wave, finished.mode))
 			Combat.setWeapon(player, nil)
+			WeaponModels.remove(player)
 		end
 	end
 	finished.townHall:destroy()

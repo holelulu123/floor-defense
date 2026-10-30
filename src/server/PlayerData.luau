@@ -3,6 +3,7 @@
 local DataStoreService = game:GetService("DataStoreService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Classes = require(ReplicatedStorage.Shared.Classes)
 local Config = require(ReplicatedStorage.Shared.Config)
 
 -- GetDataStore throws in Studio until the place is published with API access enabled.
@@ -53,10 +54,26 @@ function PlayerData.load(player: Player)
 		end
 	end
 	data.ProcessedReceipts = data.ProcessedReceipts or {}
+	data.OwnedClasses = if type(data.OwnedClasses) == "table" then data.OwnedClasses else {}
+	if type(data.Class) ~= "string" or not Classes.isOwned(data.Class, data.OwnedClasses) then
+		data.Class = Classes.List[1].id
+	end
 
 	if player.Parent then
 		sessions[player] = data
+		PlayerData.publish(player)
 	end
+end
+
+-- Mirror the fields the UI needs onto player attributes (read-only on the client).
+function PlayerData.publish(player: Player)
+	local data = sessions[player]
+	if not data then
+		return
+	end
+	player:SetAttribute("Gems", data.Gems)
+	player:SetAttribute("Class", data.Class)
+	player:SetAttribute("OwnedClasses", table.concat(data.OwnedClasses, ","))
 end
 
 function PlayerData.get(player: Player): { [string]: any }?
@@ -86,7 +103,44 @@ function PlayerData.addGems(player: Player, amount: number)
 	local data = sessions[player]
 	if data then
 		data.Gems += amount
+		PlayerData.publish(player)
 	end
+end
+
+-- Class the player will use in their next run (always one they own).
+function PlayerData.classOf(player: Player): string
+	local data = sessions[player]
+	return if data then data.Class else Classes.List[1].id
+end
+
+-- Spends gems on a locked class. Returns false and a reason when the purchase is not possible.
+function PlayerData.buyClass(player: Player, classId: string): (boolean, string?)
+	local data = sessions[player]
+	if not data then
+		return false, "data not loaded"
+	end
+	local left, why = Classes.tryBuy(classId, data.Gems, data.OwnedClasses)
+	if left == nil then
+		return false, why
+	end
+	data.Gems = left
+	table.insert(data.OwnedClasses, classId)
+	PlayerData.publish(player)
+	return true, nil
+end
+
+-- Picks a class the player owns. Returns false and a reason otherwise.
+function PlayerData.selectClass(player: Player, classId: string): (boolean, string?)
+	local data = sessions[player]
+	if not data then
+		return false, "data not loaded"
+	end
+	if not Classes.isOwned(classId, data.OwnedClasses) then
+		return false, "locked"
+	end
+	data.Class = classId
+	PlayerData.publish(player)
+	return true, nil
 end
 
 -- Records a finished run's score against the mode's best. Returns true if it is a new best.

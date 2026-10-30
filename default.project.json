@@ -9,7 +9,11 @@
         "$className": "Folder",
         "RunState": { "$className": "RemoteEvent" },
         "Fire": { "$className": "RemoteEvent" },
-        "HitFx": { "$className": "RemoteEvent" }
+        "HitFx": { "$className": "RemoteEvent" },
+        "UseSkill": { "$className": "RemoteEvent" },
+        "SkillFx": { "$className": "RemoteEvent" },
+        "BuyClass": { "$className": "RemoteFunction" },
+        "SelectClass": { "$className": "RemoteFunction" }
       }
     },
     "ServerScriptService": {

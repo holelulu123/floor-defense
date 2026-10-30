@@ -1,17 +1,22 @@
--- Server-owned creatures: a blocky anchored Part moved along a precomputed path each Heartbeat.
--- No Humanoid, so a hundred of them cost almost nothing and nothing about them is client-driven.
--- Health lives in an attribute; Creatures.damage is the only way to lower it.
+-- Server-owned creatures: a blocky anchored Part moved along the dungeon lane each Heartbeat.
+-- No Humanoid and no pathfinding, so a hundred of them cost almost nothing and nothing about them is
+-- client-driven. Health lives in an attribute; Creatures.damage is the only way to lower it.
 
-local PathfindingService = game:GetService("PathfindingService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
+local Roster = require(ReplicatedStorage.Shared.Roster)
+local Waves = require(ReplicatedStorage.Shared.Waves)
 
 local Creatures = {}
 
+local FLYING_HEIGHT = 8
+local FLYING_STRIDE = 5 -- flyers keep every Nth lane point, cutting the corners between them
+
 export type Creature = {
 	part: Part,
+	id: string, -- roster creature id, e.g. "Zombie"
 	archetype: string,
 	health: number,
 	speed: number,
@@ -25,31 +30,7 @@ export type Creature = {
 }
 
 local active: { [Part]: Creature } = {}
-local routeCache: { [Part]: { Vector3 } } = {}
 local heartbeat: RBXScriptConnection? = nil
-
--- Straight-line fallback keeps the game playable if pathfinding fails (e.g. no navmesh yet).
-local function routeFrom(gate: Part, start: Vector3, goal: Vector3): { Vector3 }
-	local cached = routeCache[gate]
-	if cached then
-		return cached
-	end
-
-	local waypoints = { goal }
-	local path = PathfindingService:CreatePath({ AgentRadius = 2, AgentHeight = 5, AgentCanJump = false })
-	local ok = pcall(path.ComputeAsync, path, start, goal)
-	if ok and path.Status == Enum.PathStatus.Success then
-		waypoints = {}
-		for _, wp in path:GetWaypoints() do
-			table.insert(waypoints, wp.Position)
-		end
-	else
-		warn(`Pathfinding from {gate.Name} failed; using a straight line`)
-	end
-
-	routeCache[gate] = waypoints
-	return waypoints
-end
 
 local function step(dt: number)
 	for part, c in active do
@@ -60,71 +41,95 @@ local function step(dt: number)
 			continue
 		end
 
+		-- Status effects written by Skills as attributes: Frozen stops movement, SlowUntil/SlowFactor
+		-- scale speed until a clock time (os.clock, the same clock Combat uses).
+		if part:GetAttribute("Frozen") == true then
+			continue
+		end
+		local speed = c.speed
+		local slowUntil = part:GetAttribute("SlowUntil")
+		if type(slowUntil) == "number" and os.clock() < slowUntil then
+			local factor = part:GetAttribute("SlowFactor")
+			speed *= if type(factor) == "number" then factor else 0.5
+		end
+
 		local pos = part.Position
-		local flatTarget = Vector3.new(target.X, pos.Y, target.Z)
-		local delta = flatTarget - pos
-		local stepLen = c.speed * dt
+		local delta = target - pos
+		local stepLen = speed * dt
 		if delta.Magnitude <= stepLen then
-			part.Position = flatTarget
+			part.Position = target
 			c.nextWaypoint += 1
 		else
-			part.CFrame = CFrame.lookAt(pos + delta.Unit * stepLen, flatTarget)
+			part.CFrame = CFrame.lookAt(pos + delta.Unit * stepLen, target)
 		end
 	end
 end
 
+-- The route a creature walks: the lane lifted to its body height; flyers take a sparse copy at height.
+local function routeFor(lane: { Vector3 }, flying: boolean, halfHeight: number): { Vector3 }
+	local lift = Vector3.new(0, halfHeight + (if flying then FLYING_HEIGHT else 0), 0)
+	local route = {}
+	if flying then
+		for i = 1, #lane, FLYING_STRIDE do
+			table.insert(route, lane[i] + lift)
+		end
+		if (#lane - 1) % FLYING_STRIDE ~= 0 then
+			table.insert(route, lane[#lane] + lift)
+		end
+	else
+		for _, p in lane do
+			table.insert(route, p + lift)
+		end
+	end
+	return route
+end
+
 function Creatures.spawn(
-	archetype: string,
-	health: number,
-	coins: number,
-	gate: Part,
-	goal: Vector3,
-	arriveDistance: number,
+	creature: Roster.Creature,
+	stats: Waves.Stats,
+	lane: { Vector3 },
+	parent: Instance,
 	onDeath: (Creature, number?) -> (),
 	onArrive: (Creature) -> ()
 ): Creature
-	local def = Enemies.get(archetype)
-	local size = Vector3.new(def.size[1], def.size[2], def.size[3])
+	assert(#lane >= 2, "a lane needs at least two points")
+	local def = Enemies.get(creature.archetype)
+	local size = Vector3.new(def.size[1], def.size[2], def.size[3]) * creature.scale
+	local route = routeFor(lane, creature.flying, size.Y / 2)
 
 	local part = Instance.new("Part")
-	part.Name = archetype
+	part.Name = creature.id
 	part.Size = size
 	part.Anchored = true
 	part.CanCollide = false
 	part.Color = Color3.fromRGB(def.color[1], def.color[2], def.color[3])
-	part.Position = gate.Position + Vector3.new(0, size.Y / 2 - gate.Size.Y / 2, 0)
-	part:SetAttribute("Health", health)
-	part:SetAttribute("MaxHealth", health)
-	part:SetAttribute("Archetype", archetype)
-	part.Parent = gate.Parent
+	part.CFrame = CFrame.lookAt(route[1], route[2])
+	part:SetAttribute("Health", stats.health)
+	part:SetAttribute("MaxHealth", stats.health)
+	part:SetAttribute("CreatureId", creature.id)
+	part:SetAttribute("Archetype", creature.archetype)
+	part.Parent = parent
 
-	-- Path between two points on the floor just outside the solid gate and Town Hall parts;
-	-- a start or goal inside a solid makes ComputeAsync fail.
-	local floorY = gate.Position.Y - gate.Size.Y / 2
-	local toGate = Vector3.new(gate.Position.X - goal.X, 0, gate.Position.Z - goal.Z)
-	local startAt = Vector3.new(gate.Position.X, floorY, gate.Position.Z) - toGate.Unit * (gate.Size.Z / 2 + 3)
-	local stopAt = Vector3.new(goal.X, floorY, goal.Z) + toGate.Unit * arriveDistance
-	local waypoints = routeFrom(gate, startAt, stopAt)
-
-	local creature: Creature = {
+	local c: Creature = {
 		part = part,
-		archetype = archetype,
-		health = health,
-		speed = def.speed,
-		damage = def.damage,
-		coins = coins,
-		waypoints = waypoints,
-		nextWaypoint = 1,
+		id = creature.id,
+		archetype = creature.archetype,
+		health = stats.health,
+		speed = stats.speed,
+		damage = stats.damage,
+		coins = stats.coins,
+		waypoints = route,
+		nextWaypoint = 2,
 		lastHitBy = nil,
 		onDeath = onDeath,
 		onArrive = onArrive,
 	}
-	active[part] = creature
+	active[part] = c
 
 	if not heartbeat then
 		heartbeat = RunService.Heartbeat:Connect(step)
 	end
-	return creature
+	return c
 end
 
 function Creatures.get(part: Instance): Creature?
@@ -160,6 +165,15 @@ function Creatures.remove(creature: Creature)
 	creature.part:Destroy()
 end
 
+-- Every live creature, in no particular order.
+function Creatures.all(): { Creature }
+	local list = {}
+	for _, c in active do
+		table.insert(list, c)
+	end
+	return list
+end
+
 function Creatures.count(): number
 	local n = 0
 	for _ in active do
@@ -173,7 +187,6 @@ function Creatures.clear()
 		c.part:Destroy()
 	end
 	table.clear(active)
-	table.clear(routeCache)
 	if heartbeat then
 		heartbeat:Disconnect()
 		heartbeat = nil

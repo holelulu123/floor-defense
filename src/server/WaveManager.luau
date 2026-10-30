@@ -1,25 +1,31 @@
 -- Drives one run: prep phase, spawn the wave, wait for it to clear, repeat until the Town Hall falls.
--- Coins and score are handed to the Run via callbacks so this module knows nothing about players.
+-- Waves are composed from the dungeon's roster (Waves.composition) and every creature walks the
+-- arena's lane. Coins and score are handed to the Run via callbacks so this module knows nothing
+-- about players.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Dungeons = require(ReplicatedStorage.Shared.Dungeons)
 local Waves = require(ReplicatedStorage.Shared.Waves)
+local Arena = require(script.Parent.Arena)
 local Creatures = require(script.Parent.Creatures)
 local TownHall = require(script.Parent.TownHall)
 
 local WaveManager = {}
 
 export type Hooks = {
-	onKill: (killer: number?, archetype: string, coins: number) -> (),
+	onKill: (killer: number?, creatureId: string, coins: number) -> (),
 	onWaveCleared: (wave: number, bonus: number) -> (),
 	onPhase: (phase: string, wave: number, secondsLeft: number) -> (),
 }
 
 export type Session = {
 	mode: string,
+	dungeonId: string,
+	familyId: string,
 	townHall: TownHall.TownHall,
-	gates: { Part },
+	arena: Arena.Built,
 	hooks: Hooks,
 	wave: number,
 	running: boolean,
@@ -36,40 +42,35 @@ local function prepPhase(session: Session)
 end
 
 local function spawnWave(session: Session)
-	local goal = session.townHall.part.Position
-	local gateIndex = 0
-	for _, group in Waves.composition(session.wave, session.mode) do
-		local health = Waves.creatureHealth(group.archetype, session.wave, session.mode)
-		local coins = Waves.coinsFor(group.archetype, session.mode)
+	for _, group in Waves.composition(session.familyId, session.wave, session.mode) do
+		local stats = Waves.stats(group.creature, session.wave, session.mode)
 		for _ = 1, group.count do
 			if not session.running then
 				return
 			end
-			gateIndex = gateIndex % #session.gates + 1
-			Creatures.spawn(
-				group.archetype,
-				health,
-				coins,
-				session.gates[gateIndex],
-				goal,
-				Config.ArriveDistance + session.townHall.part.Size.X / 2,
-				function(creature, killer)
-					session.hooks.onKill(killer, creature.archetype, creature.coins)
-				end,
-				function(creature)
-					session.townHall:takeDamage(creature.damage)
-				end
-			)
+			Creatures.spawn(group.creature, stats, session.arena.lane, session.arena.folder, function(creature, killer)
+				session.hooks.onKill(killer, creature.id, creature.coins)
+			end, function(creature)
+				session.townHall:takeDamage(creature.damage)
+			end)
 			task.wait(Config.SpawnInterval)
 		end
 	end
 end
 
-function WaveManager.start(mode: string, townHall: TownHall.TownHall, gates: { Part }, hooks: Hooks): Session
+function WaveManager.start(
+	mode: string,
+	dungeonId: string,
+	townHall: TownHall.TownHall,
+	arena: Arena.Built,
+	hooks: Hooks
+): Session
 	local session: Session = {
 		mode = mode,
+		dungeonId = dungeonId,
+		familyId = Dungeons.get(dungeonId).family,
 		townHall = townHall,
-		gates = gates,
+		arena = arena,
 		hooks = hooks,
 		wave = 0,
 		running = true,

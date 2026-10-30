@@ -25,8 +25,14 @@ function TownHall.isAlive(self: TownHall): boolean
 	return self.health > 0
 end
 
+-- Skills set a ShieldUntil attribute (os.clock seconds) on the part; damage is ignored until then.
+function TownHall.isShielded(self: TownHall): boolean
+	local shieldUntil = self.part:GetAttribute("ShieldUntil")
+	return type(shieldUntil) == "number" and os.clock() < shieldUntil
+end
+
 function TownHall.takeDamage(self: TownHall, amount: number)
-	if not self:isAlive() then
+	if not self:isAlive() or self:isShielded() then
 		return
 	end
 	self.health = math.max(0, self.health - amount)

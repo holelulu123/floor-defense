@@ -77,6 +77,16 @@ Enemies.Archetypes = {
 		color = { 170, 220, 255 },
 		flying = true, -- ignores ground paths; straight line at height
 	},
+	Elite = {
+		name = "Elite",
+		health = 45,
+		speed = 16,
+		damage = 10,
+		coins = 20,
+		firstWave = 15,
+		size = { 2, 3, 1 },
+		color = { 230, 200, 90 },
+	},
 	Healer = {
 		name = "Healer",
 		health = 80,
@@ -99,10 +109,13 @@ Enemies.Archetypes = {
 	},
 }
 
--- Archetypes that may appear in regular (non-boss) waves, in spawn-weight order. Shares of
--- archetypes not yet unlocked (firstWave) fall back to Runners, so early waves are all Runners.
+-- Horde shares per archetype for regular (non-boss) waves. Waves.composition splits a share between
+-- the roster creatures of that archetype that have debuted, so a wave is mostly runners with a few of
+-- everything else; shares of archetypes with no creature in the pool yet go unused and the rest are
+-- renormalised, so early waves are all Runners.
 Enemies.HordeMix = {
-	{ archetype = "Runner", share = 0.58 },
+	{ archetype = "Runner", share = 0.53 },
+	{ archetype = "Elite", share = 0.05 },
 	{ archetype = "Brute", share = 0.15 },
 	{ archetype = "Spitter", share = 0.1 },
 	{ archetype = "Exploder", share = 0.06 },

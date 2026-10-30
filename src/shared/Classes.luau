@@ -130,13 +130,33 @@ Classes.List = list
 -- Engineer turret rules shared by server and UI.
 Classes.Turrets = { MaxPlaced = 3, RepairPerHit = 0.25, OverclockRate = 2 }
 
-function Classes.get(id: string): Class
+-- Keybinds shown in the HUD; the client sends the skill index, never the key.
+Classes.SkillKeys = { "Q", "E" }
+
+-- Gems paid at the end of a run: one per wave, with a party bonus so Duo/Squad runs keep up with
+-- the faster Solo clears. Persistent currency; classes are bought with it (see tryBuy).
+Classes.GemsPerWave = { Solo = 1, Duo = 1.25, Squad = 1.5 }
+
+function Classes.gemsForRun(wave: number, mode: string): number
+	local perWave = Classes.GemsPerWave[mode] or 1
+	return math.floor(math.max(0, wave) * perWave)
+end
+
+-- Class by id, or nil for an unknown id (use for values that came from a client).
+function Classes.find(id: any): Class?
+	if type(id) ~= "string" then
+		return nil
+	end
 	for _, c in Classes.List do
 		if c.id == id then
 			return c
 		end
 	end
-	error(`Unknown class {id}`)
+	return nil
+end
+
+function Classes.get(id: string): Class
+	return Classes.find(id) or error(`Unknown class {id}`)
 end
 
 -- A class is playable when it is free or the player owns it.
@@ -157,6 +177,22 @@ function Classes.tryBuy(id: string, gems: number, owned: { string }): (number?, 
 		return nil, "not enough gems"
 	end
 	return gems - class.cost, nil
+end
+
+-- Weapon definition name for a class (key into Weapons.Definitions).
+function Classes.weaponFor(id: string): string
+	return Classes.get(id).weapon
+end
+
+-- Ids of every class the player may pick (free ones plus purchases).
+function Classes.playable(owned: { string }): { string }
+	local ids = {}
+	for _, c in Classes.List do
+		if Classes.isOwned(c.id, owned) then
+			table.insert(ids, c.id)
+		end
+	end
+	return ids
 end
 
 -- Skill cooldown bookkeeping: `used` maps skill id -> time it was last used.

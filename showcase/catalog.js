@@ -9,6 +9,7 @@ const DUNGEON = '../assets/creatures/kenney-mini-dungeon/';
 const UFO = '../assets/creatures/kenney-ufo/';
 const GUNS = '../assets/weapons/kenney-weapon-pack/';
 const QA = '../assets/creatures/quaternius-animals/';
+const QFA = '../assets/creatures/quaternius-farm-animals/';
 const QD = '../assets/creatures/quaternius-dinosaurs/';
 const QE = '../assets/creatures/quaternius-easy-enemies/';
 const QC = '../assets/creatures/quaternius-cyberpunk/';
@@ -38,6 +39,7 @@ const KENNEY_PET = { idle: 'idle', walk: 'walk', run: 'run', attack: 'eat', hit:
 const KENNEY_MINI = { idle: 'idle', walk: 'walk', run: 'sprint', attack: 'attack-melee-right', hit: 'emote-no', death: 'die', spawn: 'jump' };
 const NONE = {}; // static models (UFOs) bob in place instead of animating
 // Quaternius packs (the viewer strips the "Armature|" prefix from clip names).
+const Q_FARM = { idle: 'Idle', walk: 'Walk', run: 'Run', attack: 'Jump', hit: 'WalkSlow', death: 'Death', spawn: 'Idle' };
 const Q_ANIMAL = { idle: 'Idle', walk: 'Walk', run: 'Gallop', attack: 'Attack_Headbutt', hit: 'Idle_HitReact_Left', death: 'Death', spawn: 'Idle_2' };
 const Q_CANINE = { ...Q_ANIMAL, attack: 'Attack' };
 const Q_DINO = n => ({ idle: `${n}_Idle`, walk: `${n}_Walk`, run: `${n}_Run`, attack: `${n}_Attack`, hit: `${n}_Jump`, death: `${n}_Death`, spawn: `${n}_Jump` });
@@ -112,10 +114,12 @@ export const FAMILIES = [
     ],
   },
   {
-    id: 'farm', name: 'Haunted Farm', map: 'Haunted Farm', source: 'Quaternius Animals + Ultimate + Cute Monsters (all CC0)',
+    id: 'farm', name: 'Haunted Farm', map: 'Haunted Farm', source: 'Quaternius Animals + Farm Animals + Ultimate + Cute Monsters (all CC0)',
     creatures: [
       c('Chicken', 'Runner', QCU + 'Chicken.glb', { anims: Q_CUTE, sounds: SOFT }),
       c('Piglet', 'Runner', QCU + 'Pig.glb', { anims: Q_CUTE, sounds: SOFT }),
+      c('Pig', 'Runner', QFA + 'Pig.glb', { anims: Q_FARM, sounds: SOFT }),
+      c('Pug', 'Runner', QFA + 'Pug.glb', { anims: Q_FARM, sounds: SOFT }),
       c('Bomb Hen', 'Exploder', QU + 'Blob_Chicken.glb', { anims: Q_BLOB, sounds: BOOM }),
       c('Farm Dog', 'Runner', QA + 'ShibaInu.glb', { anims: Q_CANINE, sounds: SOFT }),
       c('Mutt', 'Elite', QU + 'Blob_Dog.glb', { anims: Q_BLOB, sounds: SOFT }),
@@ -124,11 +128,14 @@ export const FAMILIES = [
       c('Pigeon', 'Flyer', QU + 'Flying_Pigeon.glb', { anims: Q_FLY, sounds: FLY }),
       c('Fat Pigeon', 'Runner', QU + 'Blob_Pigeon.glb', { anims: Q_BLOB, sounds: SOFT }),
       c('Horse', 'Runner', QA + 'Horse.glb', { anims: Q_ANIMAL, sounds: SOFT }),
-      c('Pale Horse', 'Elite', QA + 'Horse_White.glb', { anims: Q_ANIMAL, sounds: SOFT }),
+      c('Stallion', 'Elite', QFA + 'Horse.glb', { anims: Q_FARM, sounds: SOFT }),
+      c('Sheep', 'Healer', QFA + 'Sheep.glb', { anims: Q_FARM, sounds: SOFT }),
+      c('Llama', 'Shielder', QFA + 'Llama.glb', { scale: 1.1, anims: Q_FARM, sounds: SOFT }),
       c('Donkey', 'Shielder', QA + 'Donkey.glb', { scale: 1.1, anims: Q_ANIMAL, sounds: SOFT }),
       c('Alpaca', 'Healer', QA + 'Alpaca.glb', { anims: Q_ANIMAL, sounds: SOFT }),
       c('Cow', 'Brute', QA + 'Cow.glb', { scale: 1.2, anims: Q_ANIMAL, sounds: HEAVY }),
       c('Bull', 'Brute', QA + 'Bull.glb', { scale: 1.3, anims: Q_ANIMAL, sounds: HEAVY }),
+      c('Mad Cow', 'Boss', QFA + 'Cow.glb', { scale: 2.2, anims: Q_FARM, sounds: BIGMETAL }),
       c('Scarecrow Tree', 'Shielder', QCU + 'Tree.glb', { scale: 1.2, anims: { ...Q_CUTE, hit: 'HitRecieve', death: 'HitRecieve' }, sounds: WOOD }),
     ],
   },
@@ -227,6 +234,7 @@ export const FAMILIES = [
       c('Raptor', 'Runner', QD + 'Velociraptor.glb', { anims: Q_DINO('Velociraptor'), sounds: SOFT }),
       c('Rex', 'Boss', QD + 'Trex.glb', { scale: 1.8, anims: Q_DINO('TRex'), sounds: BIGMETAL }),
       c('Para', 'Spitter', QD + 'Parasaurolophus.glb', { anims: Q_DINO('Parasaurolophus'), sounds: SOFT }),
+      c('Zebra', 'Runner', QFA + 'Zebra.glb', { anims: Q_FARM, sounds: SOFT }),
       c('Yellow Dragon', 'Boss', QCU + 'YellowDragon.glb', { scale: 1.8, anims: Q_CUTE_FLY, sounds: BIGMETAL }),
       c('Stego', 'Brute', QD + 'Stegosaurus.glb', { scale: 1.2, anims: Q_DINO('Stegosaurus'), sounds: HEAVY }),
       c('Trike', 'Shielder', QD + 'Triceratops.glb', { scale: 1.2, anims: Q_DINO('Triceratops'), sounds: HEAVY }),
