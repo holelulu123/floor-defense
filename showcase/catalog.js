@@ -3,7 +3,6 @@
 
 const KAYKIT = '../assets/creatures/kaykit-skeletons/';
 const KENNEY = '../assets/creatures/kenney-graveyard/';
-const PETS = '../assets/creatures/kenney-cube-pets/';
 const BLOBS = '../assets/creatures/kenney-blobs/';
 const BLOCKY = '../assets/creatures/kenney-blocky/';
 const DUNGEON = '../assets/creatures/kenney-mini-dungeon/';
@@ -16,6 +15,9 @@ const QC = '../assets/creatures/quaternius-cyberpunk/';
 const QM = '../assets/creatures/quaternius-mechs/';
 const QS = '../assets/creatures/quaternius-space/';
 const QP = '../assets/creatures/quaternius-platformer/';
+const QF = '../assets/creatures/quaternius-cute-fish/';
+const KKB = '../assets/creatures/kaykit-bandits/';
+const MINIC = '../assets/creatures/kenney-mini-characters/';
 
 // Archetype stats from src/shared/Enemies.luau: health, speed, Town Hall damage, coins, first wave.
 export const ARCHETYPES = {
@@ -31,8 +33,9 @@ export const ARCHETYPES = {
 };
 
 // Animation names differ per pack; each entry maps the showcase's verbs to the pack's clip names.
-const KENNEY_CHAR = { idle: 'idle', walk: 'walk', run: 'sprint', attack: 'pick-up', hit: 'jump', death: 'die', spawn: 'idle' };
+const KENNEY_CHAR = { idle: 'idle', walk: 'walk', run: 'sprint', attack: 'attack-melee-right', hit: 'emote-no', death: 'die', spawn: 'idle' };
 const KENNEY_PET = { idle: 'idle', walk: 'walk', run: 'run', attack: 'eat', hit: 'gesture-negative', death: 'static', spawn: 'gesture-positive' };
+const KENNEY_MINI = { idle: 'idle', walk: 'walk', run: 'sprint', attack: 'attack-melee-right', hit: 'emote-no', death: 'die', spawn: 'jump' };
 const NONE = {}; // static models (UFOs) bob in place instead of animating
 // Quaternius packs (the viewer strips the "Armature|" prefix from clip names).
 const Q_ANIMAL = { idle: 'Idle', walk: 'Walk', run: 'Gallop', attack: 'Attack_Headbutt', hit: 'Idle_HitReact_Left', death: 'Death', spawn: 'Idle_2' };
@@ -45,6 +48,8 @@ const Q_SPACE_FLYER = { idle: 'Flying_Idle', walk: 'Flying_Idle', run: 'Fast_Fly
 const Q_SPACE_CHAR = { idle: 'Idle', walk: 'Walk', run: 'Run', attack: 'Punch', hit: 'HitReact', death: 'Death', spawn: 'Wave' };
 const Q_SPACE_MECH = { idle: 'Idle', walk: 'Walk', run: 'Run', attack: 'Shoot_Big', hit: 'HitRecieve_1', death: 'Death', spawn: 'Hello' };
 const Q_MONSTER = { idle: 'Idle', walk: 'Walk', run: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', spawn: 'Jump' };
+const Q_PLAT_GUN = { idle: 'Idle_Gun', walk: 'Walk_Gun', run: 'Run_Gun', attack: 'Idle_Shoot', hit: 'HitReact', death: 'Death', spawn: 'Wave' };
+const Q_FISH = { idle: 'Swimming_Normal', walk: 'Swimming_Normal', run: 'Swimming_Fast', attack: 'Attack', hit: 'Swimming_Impulse', death: 'Death', spawn: 'Out_Of_Water' };
 const SOFT = { hit: 'impact_soft_medium', death: 'impact_soft_heavy', attack: 'impact_punch_medium', step: 'footstep_grass' };
 const HEAVY = { hit: 'impact_soft_heavy', death: 'impact_plank_medium', attack: 'impact_punch_heavy', step: 'impact_soft_heavy' };
 const METAL = { hit: 'impact_metal_medium', death: 'impact_metal_heavy', attack: 'impact_tin_medium', step: 'footstep_concrete' };
@@ -107,17 +112,13 @@ export const FAMILIES = [
     ],
   },
   {
-    id: 'farm', name: 'Haunted Farm', map: 'Haunted Farm', source: 'Kenney Cube Pets, Quaternius Animals + Ultimate + Cute Monsters (all CC0)',
+    id: 'farm', name: 'Haunted Farm', map: 'Haunted Farm', source: 'Quaternius Animals + Ultimate + Cute Monsters (all CC0)',
     creatures: [
-      c('Chick', 'Runner', PETS + 'animal-chick.glb', { anims: KENNEY_PET, sounds: SOFT }),
       c('Chicken', 'Runner', QCU + 'Chicken.glb', { anims: Q_CUTE, sounds: SOFT }),
-      c('Pig', 'Brute', PETS + 'animal-pig.glb', { scale: 1.3, anims: KENNEY_PET, sounds: HEAVY }),
       c('Piglet', 'Runner', QCU + 'Pig.glb', { anims: Q_CUTE, sounds: SOFT }),
-      c('Mad Cow', 'Boss', PETS + 'animal-cow.glb', { scale: 2.2, anims: KENNEY_PET, sounds: BIGMETAL }),
       c('Bomb Hen', 'Exploder', QU + 'Blob_Chicken.glb', { anims: Q_BLOB, sounds: BOOM }),
       c('Farm Dog', 'Runner', QA + 'ShibaInu.glb', { anims: Q_CANINE, sounds: SOFT }),
       c('Mutt', 'Elite', QU + 'Blob_Dog.glb', { anims: Q_BLOB, sounds: SOFT }),
-      c('Barn Cat', 'Spitter', PETS + 'animal-cat.glb', { anims: KENNEY_PET, sounds: SOFT }),
       c('Monkroose', 'Boss', QU + 'Big_Monkroose.glb', { scale: 2.0, anims: Q_BIG, sounds: BIGMETAL }),
       c('Alley Cat', 'Elite', QU + 'Blob_Cat.glb', { anims: Q_BLOB, sounds: SOFT }),
       c('Pigeon', 'Flyer', QU + 'Flying_Pigeon.glb', { anims: Q_FLY, sounds: FLY }),
@@ -128,26 +129,23 @@ export const FAMILIES = [
       c('Alpaca', 'Healer', QA + 'Alpaca.glb', { anims: Q_ANIMAL, sounds: SOFT }),
       c('Cow', 'Brute', QA + 'Cow.glb', { scale: 1.2, anims: Q_ANIMAL, sounds: HEAVY }),
       c('Bull', 'Brute', QA + 'Bull.glb', { scale: 1.3, anims: Q_ANIMAL, sounds: HEAVY }),
-      c('Scarecrow Tree', 'Shielder', QCU + 'Tree.glb', { scale: 1.2, anims: Q_CUTE, sounds: WOOD }),
-      c('Farmhand Zombie', 'Brute', QZ + 'Zombie.glb', { scale: 1.1, anims: Q_ZOMBIE, sounds: SOFT }),
+      c('Scarecrow Tree', 'Shielder', QCU + 'Tree.glb', { scale: 1.2, anims: { ...Q_CUTE, hit: 'HitRecieve', death: 'HitRecieve' }, sounds: WOOD }),
     ],
   },
   {
-    id: 'swamp', name: 'Swamp', map: 'Swamp', source: 'Kenney Cube Pets, Quaternius Easy Enemies + Ultimate + Cute Monsters (all CC0)',
+    id: 'swamp', name: 'Swamp', map: 'Swamp', source: 'Quaternius Easy Enemies + Platformer Kit + Cute Fish + Ultimate + Cute Monsters (all CC0)',
     creatures: [
-      c('Caterpillar', 'Runner', PETS + 'animal-caterpillar.glb', { anims: KENNEY_PET, sounds: SOFT }),
+      c('Piranha', 'Runner', QF + 'Piranha.glb', { scale: 0.7, anims: Q_FISH, sounds: SOFT }),
       c('Bog Frog', 'Runner', QE + 'Frog.glb', { anims: Q_EASY('Frog', 'Frog_Jump', 'Frog_Jump'), sounds: SOFT }),
       c('Marsh Rat', 'Runner', QE + 'Rat.glb', { anims: Q_EASY('Rat'), sounds: SOFT }),
-      c('Swamp Snake', 'Spitter', QE + 'Snake.glb', { anims: Q_EASY('Snake', 'Snake_Walk', 'Snake_Walk'), sounds: SOFT }),
+      c('Swamp Snake', 'Spitter', QE + 'Snake.glb', { anims: { ...Q_EASY('Snake', 'Snake_Walk', 'Snake_Walk'), death: 'Snake_Jump' }, sounds: SOFT }),
       c('Mushroom King', 'Boss', QU + 'Big_MushroomKing.glb', { scale: 2.0, anims: Q_BIG, sounds: BIGMETAL }),
-      c('Viper', 'Elite', QE + 'Snake_angry.glb', { anims: Q_EASY('Snake', 'Snake_Walk', 'Snake_Walk'), sounds: SOFT }),
+      c('Viper', 'Elite', QE + 'Snake_angry.glb', { anims: { ...Q_EASY('Snake', 'Snake_Walk', 'Snake_Walk'), death: 'Snake_Jump' }, sounds: SOFT }),
       c('Bog Spider', 'Brute', QE + 'Spider.glb', { scale: 1.3, anims: Q_EASY('Spider', 'Spider_Walk', 'Spider_Walk'), sounds: SOFT }),
       c('Hornet', 'Flyer', QE + 'Wasp.glb', { anims: { ...Q_EASY('Wasp', 'Wasp_Flying', 'Wasp_Flying'), idle: 'Wasp_Flying', hit: 'Wasp_Attack', spawn: 'Wasp_Flying' }, sounds: FLY }),
-      c('Bomb Bee', 'Exploder', PETS + 'animal-bee.glb', { anims: KENNEY_PET, sounds: BOOM }),
+      c('Bomb Bee', 'Exploder', QP + 'Bee.glb', { anims: Q_CUTE_FLY, sounds: BOOM }),
       c('Toad King', 'Boss', QU + 'Big_Frog.glb', { scale: 2.0, anims: Q_BIG, sounds: BIGMETAL }),
-      c('Mud Hog', 'Brute', PETS + 'animal-hog.glb', { scale: 1.3, anims: KENNEY_PET, sounds: HEAVY }),
-      c('Beaver', 'Shielder', PETS + 'animal-beaver.glb', { scale: 1.2, anims: KENNEY_PET, sounds: WOOD }),
-      c('Crab', 'Spitter', PETS + 'animal-crab.glb', { anims: KENNEY_PET, sounds: { ...SOFT, hit: 'impact_plate_light' } }),
+      c('Crab', 'Spitter', QP + 'Crab.glb', { anims: Q_CUTE, sounds: { ...SOFT, hit: 'impact_plate_light' } }),
       c('Bog Fish', 'Runner', QU + 'Big_Fish.glb', { anims: Q_BIG, sounds: SOFT }),
       c('Shroomling', 'Healer', QCU + 'Mushroom.glb', { anims: Q_CUTE, sounds: SOFT }),
       c('Mushnub', 'Runner', QU + 'Blob_Mushnub.glb', { anims: Q_BLOB, sounds: SOFT }),
@@ -172,25 +170,24 @@ export const FAMILIES = [
       c('Oopi', 'Healer', BLOBS + 'character-oopi.glb', { sounds: SOFT }),
       c('Sewer Beast', 'Brute', QP + 'Enemy.glb', { scale: 1.3, anims: Q_MONSTER, sounds: HEAVY }),
       c('Glub Evolved', 'Elite', QU + 'Flying_Glub_Evolved.glb', { anims: Q_FLY, sounds: FLY }),
-      c('Pipe Rat', 'Runner', PETS + 'animal-bunny.glb', { anims: KENNEY_PET, sounds: SOFT }),
       c('Drain Birb', 'Flyer', QU + 'Blob_Birb.glb', { anims: Q_BLOB, sounds: FLY }),
       c('Slime', 'Runner', QAM + 'Slime.glb', { anims: Q_SLIME, sounds: { ...SOFT, step: 'footstep_carpet' } }),
       c('Sewer Bat', 'Flyer', QAM + 'Bat.glb', { anims: Q_WING('Bat'), sounds: FLY }),
     ],
   },
   {
-    id: 'village', name: 'Bandit Village', map: 'Bandit Village', source: 'Kenney Blocky Characters + Mini Dungeon, Quaternius Ultimate + Cute Monsters (all CC0)',
+    id: 'village', name: 'Bandit Village', map: 'Bandit Village', source: 'KayKit Adventurers (enemy variants), Kenney Mini Characters + Mini Dungeon, Quaternius Ultimate + Cute Monsters (all CC0)',
     creatures: [
-      c('Footpad', 'Runner', BLOCKY + 'character-a.glb'),
-      c('Cutpurse', 'Runner', BLOCKY + 'character-b.glb'),
-      c('Crossbowman', 'Spitter', BLOCKY + 'character-c.glb', { sounds: { ...SOFT, attack: 'impact_wood_light' } }),
-      c('Powder Thief', 'Exploder', BLOCKY + 'character-d.glb', { sounds: BOOM }),
+      c('Footpad', 'Runner', KKB + 'Rogue.glb', { anims: SK('Idle', 'Walking_A', 'Running_A', 'Dualwield_Melee_Attack_Slice', 'Hit_A', 'Death_A', 'Dodge_Forward'), sounds: SOFT }),
+      c('Cutpurse', 'Runner', MINIC + 'character-female-a.glb', { scale: 4, anims: KENNEY_MINI, sounds: SOFT }),
+      c('Crossbowman', 'Spitter', KKB + 'Rogue_Hooded.glb', { anims: SK('2H_Ranged_Aiming', 'Walking_B', 'Running_B', '2H_Ranged_Shoot', 'Hit_B', 'Death_B', 'Jump_Land'), sounds: { ...SOFT, attack: 'impact_wood_light' } }),
+      c('Powder Thief', 'Exploder', MINIC + 'character-male-b.glb', { scale: 4, anims: KENNEY_MINI, sounds: BOOM }),
       c('Green Demon', 'Boss', QCU + 'GreenDemon.glb', { scale: 2.0, anims: Q_CUTE, sounds: BIGMETAL }),
-      c('Shield Thug', 'Shielder', BLOCKY + 'character-e.glb', { scale: 1.1, sounds: { ...SOFT, hit: 'impact_plate_medium' } }),
-      c('Quack', 'Healer', BLOCKY + 'character-f.glb'),
-      c('Bruiser', 'Brute', BLOCKY + 'character-g.glb', { scale: 1.25, sounds: HEAVY }),
+      c('Shield Thug', 'Shielder', MINIC + 'character-female-f.glb', { scale: 4.4, anims: { ...KENNEY_MINI, attack: 'attack-kick-right' }, sounds: { ...SOFT, hit: 'impact_plate_medium' } }),
+      c('Quack', 'Healer', KKB + 'Mage.glb', { anims: SK('Idle', 'Walking_A', 'Running_B', 'Spellcast_Raise', 'Hit_A', 'Death_B', 'Spellcast_Long'), sounds: SOFT }),
+      c('Bruiser', 'Brute', KKB + 'Barbarian.glb', { scale: 1.25, anims: SK('2H_Melee_Idle', 'Walking_B', 'Running_B', '2H_Melee_Attack_Spin', 'Hit_B', 'Death_A', 'Cheer'), sounds: HEAVY }),
       c('Mercenary', 'Runner', MINI + 'character-human.glb'),
-      c('Bandit King', 'Boss', BLOCKY + 'character-i.glb', { scale: 1.9, sounds: BIGMETAL }),
+      c('Bandit King', 'Boss', KKB + 'Knight.glb', { scale: 1.9, anims: SK('Blocking', 'Walking_C', 'Running_A', 'Block_Attack', 'Block_Hit', 'Death_A', 'Cheer'), sounds: BIGMETAL }),
       c('Orc', 'Brute', MINI + 'character-orc.glb', { scale: 1.3, sounds: HEAVY }),
       c('Orc Chief', 'Brute', QU + 'Big_Orc.glb', { scale: 1.4, anims: Q_BIG, sounds: HEAVY }),
       c('Orc Runt', 'Runner', QU + 'Blob_Orc.glb', { anims: Q_BLOB, sounds: SOFT }),
@@ -200,25 +197,22 @@ export const FAMILIES = [
       c('Tribal Flyer', 'Flyer', QU + 'Flying_Tribal.glb', { anims: Q_FLY, sounds: FLY }),
       c('Cactoro', 'Shielder', QU + 'Big_Cactoro.glb', { scale: 1.2, anims: Q_BIG, sounds: WOOD }),
       c('Cactoro Runt', 'Runner', QU + 'Blob_Cactoro.glb', { anims: Q_BLOB, sounds: WOOD }),
-      c('Lieutenant', 'Elite', BLOCKY + 'character-h.glb'),
+      c('Lieutenant', 'Elite', MINIC + 'character-male-c.glb', { scale: 4, anims: KENNEY_MINI, sounds: SOFT }),
     ],
   },
   {
-    id: 'frozen', name: 'Frozen Cavern', map: 'Frozen Cavern', source: 'Kenney Cube Pets, Quaternius Animals + Ultimate + Cute Monsters (all CC0)',
+    id: 'frozen', name: 'Frozen Cavern', map: 'Frozen Cavern', source: 'Quaternius Animals + Cute Fish + Ultimate + Cute Monsters (all CC0)',
     creatures: [
-      c('Penguin', 'Runner', PETS + 'animal-penguin.glb', { anims: KENNEY_PET, sounds: SNOW }),
       c('Puffin', 'Runner', QCU + 'Penguin.glb', { anims: Q_CUTE, sounds: SNOW }),
       c('Frost Wolf', 'Runner', QA + 'Wolf.glb', { anims: Q_CANINE, sounds: SNOW }),
-      c('Ice Fish', 'Spitter', PETS + 'animal-fish.glb', { anims: KENNEY_PET, sounds: GLASS }),
+      c('Ice Fish', 'Spitter', QF + 'BlueTang.glb', { scale: 0.6, anims: Q_FISH, sounds: GLASS }),
       c('Yeti', 'Boss', QU + 'Big_Yeti.glb', { scale: 2.0, anims: Q_BIG, sounds: BIGMETAL }),
       c('Husky', 'Elite', QA + 'Husky.glb', { anims: Q_CANINE, sounds: SNOW }),
-      c('Polar Bear', 'Brute', PETS + 'animal-polar.glb', { scale: 1.3, anims: KENNEY_PET, sounds: HEAVY }),
       c('Doe', 'Runner', QA + 'Deer.glb', { anims: Q_ANIMAL, sounds: SNOW }),
       c('Arctic Fox', 'Spitter', QA + 'Fox.glb', { anims: Q_CANINE, sounds: SNOW }),
       c('Frost Dragon', 'Boss', QU + 'Flying_Dragon.glb', { scale: 1.8, anims: Q_FLY, sounds: BIGMETAL }),
       c('Ice Stag', 'Brute', QA + 'Stag.glb', { scale: 1.2, anims: Q_ANIMAL, sounds: HEAVY }),
       c('Reindeer', 'Healer', QCU + 'Deer.glb', { anims: Q_CUTE, sounds: SNOW }),
-      c('Snow Bunny', 'Runner', PETS + 'animal-deer.glb', { anims: KENNEY_PET, sounds: SNOW }),
       c('Yeti Cub', 'Runner', QU + 'Blob_Yeti.glb', { anims: Q_BLOB, sounds: SNOW }),
       c('Young Yeti', 'Brute', QCU + 'Yeti.glb', { scale: 1.2, anims: Q_CUTE, sounds: HEAVY }),
       c('Alpaking', 'Flyer', QU + 'Flying_Alpaking.glb', { anims: Q_FLY, sounds: FLY }),
@@ -228,23 +222,16 @@ export const FAMILIES = [
     ],
   },
   {
-    id: 'jungle', name: 'Jungle Temple', map: 'Jungle Temple', source: 'Kenney Cube Pets, Quaternius Dinosaurs + Ultimate + Cute Monsters (all CC0)',
+    id: 'jungle', name: 'Jungle Temple', map: 'Jungle Temple', source: 'Quaternius Dinosaurs + Ultimate + Cute Monsters (all CC0)',
     creatures: [
-      c('Monkey', 'Runner', PETS + 'animal-monkey.glb', { anims: KENNEY_PET, sounds: SOFT }),
       c('Raptor', 'Runner', QD + 'Velociraptor.glb', { anims: Q_DINO('Velociraptor'), sounds: SOFT }),
-      c('Giraffe', 'Spitter', PETS + 'animal-giraffe.glb', { anims: KENNEY_PET, sounds: SOFT }),
-      c('Lion', 'Brute', PETS + 'animal-lion.glb', { scale: 1.3, anims: KENNEY_PET, sounds: HEAVY }),
       c('Rex', 'Boss', QD + 'Trex.glb', { scale: 1.8, anims: Q_DINO('TRex'), sounds: BIGMETAL }),
       c('Para', 'Spitter', QD + 'Parasaurolophus.glb', { anims: Q_DINO('Parasaurolophus'), sounds: SOFT }),
-      c('Panda', 'Shielder', PETS + 'animal-panda.glb', { scale: 1.2, anims: KENNEY_PET, sounds: WOOD }),
-      c('Koala', 'Healer', PETS + 'animal-koala.glb', { anims: KENNEY_PET, sounds: SOFT }),
-      c('Tiger', 'Elite', PETS + 'animal-tiger.glb', { anims: KENNEY_PET, sounds: SOFT }),
       c('Yellow Dragon', 'Boss', QCU + 'YellowDragon.glb', { scale: 1.8, anims: Q_CUTE_FLY, sounds: BIGMETAL }),
       c('Stego', 'Brute', QD + 'Stegosaurus.glb', { scale: 1.2, anims: Q_DINO('Stegosaurus'), sounds: HEAVY }),
       c('Trike', 'Shielder', QD + 'Triceratops.glb', { scale: 1.2, anims: Q_DINO('Triceratops'), sounds: HEAVY }),
       c('Longneck', 'Brute', QD + 'Apatosaurus.glb', { scale: 1.5, anims: { ...Q_DINO('Apatosaurus'), death: 'Stegosaurus_Death' }, sounds: HEAVY }),
       c('Dino', 'Runner', QU + 'Big_Dino.glb', { anims: Q_BIG, sounds: SOFT }),
-      c('Elephant', 'Brute', PETS + 'animal-elephant.glb', { scale: 1.6, anims: KENNEY_PET, sounds: HEAVY }),
       c('Red Panda', 'Healer', QCU + 'Panda.glb', { anims: Q_CUTE, sounds: SOFT }),
       c('Cactus', 'Exploder', QCU + 'Cactus.glb', { anims: Q_CUTE, sounds: BOOM }),
       c('Armabee', 'Flyer', QU + 'Flying_Armabee.glb', { anims: Q_FLY, sounds: FLY }),
@@ -253,20 +240,20 @@ export const FAMILIES = [
     ],
   },
   {
-    id: 'pirate', name: 'Pirate Cove', map: 'Pirate Cove', source: 'Kenney Blocky Characters + Cube Pets, Quaternius Ultimate + Cute Monsters (all CC0)',
+    id: 'pirate', name: 'Pirate Cove', map: 'Pirate Cove', source: 'Kenney Mini Characters, Quaternius Platformer Kit + Cute Fish + Ultimate + Cute Monsters (all CC0)',
     creatures: [
-      c('Deckhand', 'Runner', BLOCKY + 'character-j.glb', { sounds: { ...SOFT, step: 'footstep_wood' } }),
-      c('Swabbie', 'Runner', BLOCKY + 'character-p.glb', { sounds: { ...SOFT, step: 'footstep_wood' } }),
-      c('Gunner', 'Spitter', BLOCKY + 'character-k.glb', { sounds: { ...SOFT, attack: 'impact_metal_medium' } }),
-      c('Powder Monkey', 'Exploder', BLOCKY + 'character-l.glb', { sounds: BOOM }),
+      c('Deckhand', 'Runner', MINIC + 'character-male-d.glb', { scale: 4, anims: KENNEY_MINI, sounds: { ...SOFT, step: 'footstep_wood' } }),
+      c('Swabbie', 'Runner', MINIC + 'character-female-b.glb', { scale: 4, anims: KENNEY_MINI, sounds: { ...SOFT, step: 'footstep_wood' } }),
+      c('Gunner', 'Spitter', QP + 'Character_Gun.glb', { scale: 0.7, anims: Q_PLAT_GUN, sounds: { ...SOFT, attack: 'impact_metal_medium' } }),
+      c('Powder Monkey', 'Exploder', MINIC + 'character-male-e.glb', { scale: 4, anims: KENNEY_MINI, sounds: BOOM }),
       c('Kraken', 'Boss', QU + 'Flying_Squidle.glb', { scale: 2.2, anims: Q_FLY, sounds: BIGMETAL }),
-      c('Boatswain', 'Shielder', BLOCKY + 'character-m.glb', { scale: 1.1, sounds: { ...SOFT, hit: 'impact_plate_medium' } }),
-      c('Surgeon', 'Healer', BLOCKY + 'character-n.glb'),
-      c('First Mate', 'Brute', BLOCKY + 'character-o.glb', { scale: 1.25, sounds: HEAVY }),
-      c('Parrot', 'Flyer', PETS + 'animal-parrot.glb', { anims: KENNEY_PET, sounds: FLY }),
+      c('Boatswain', 'Shielder', MINIC + 'character-male-f.glb', { scale: 4.4, anims: KENNEY_MINI, sounds: { ...SOFT, hit: 'impact_plate_medium' } }),
+      c('Surgeon', 'Healer', MINIC + 'character-female-c.glb', { scale: 4, anims: KENNEY_MINI, sounds: SOFT }),
+      c('First Mate', 'Brute', MINIC + 'character-male-a.glb', { scale: 5, anims: KENNEY_MINI, sounds: HEAVY }),
+      c('Swordfish', 'Flyer', QF + 'Swordfish.glb', { scale: 0.5, anims: Q_FISH, sounds: FLY }),
       c('Deep One', 'Boss', QCU + 'Cthulhu.glb', { scale: 2.0, anims: Q_CUTE_FLY, sounds: BIGMETAL }),
-      c('Lookout', 'Runner', BLOCKY + 'character-q.glb'),
-      c('Quartermaster', 'Elite', BLOCKY + 'character-r.glb'),
+      c('Lookout', 'Runner', MINIC + 'character-female-d.glb', { scale: 4, anims: KENNEY_MINI, sounds: SOFT }),
+      c('Quartermaster', 'Elite', MINIC + 'character-female-e.glb', { scale: 4, anims: KENNEY_MINI, sounds: SOFT }),
       c('Reef Crab', 'Brute', QCU + 'Crab.glb', { scale: 1.3, anims: Q_CUTE, sounds: { ...HEAVY, hit: 'impact_plate_medium' } }),
       c('Sea Dragon', 'Boss', QAM + 'Dragon.glb', { scale: 2.0, anims: Q_WING('Dragon'), sounds: BIGMETAL }),
     ],
@@ -351,52 +338,55 @@ for (const f of FAMILIES) {
 }
 
 // Classes (DESIGN.md "Classes"). Players keep their own Roblox avatar; a class is a weapon, a passive
-// and two skills with cooldowns (skill 1 quick, 1-10 s; skill 2 long, 25-50 s). Free classes are
-// playable at once; locked ones are bought with gems earned at the end of each run. The showcase
-// previews each class on a KayKit Adventurer dummy (CC0) so the skill animations can be checked;
-// in Roblox the same moves are played on the player's own R15 avatar with Roblox animation assets.
+// Classes. Five are free and the rest are locked; everyone can play all of them once bought with gems
+// earned at the end of each run. The showcase previews each class on a random Kenney blocky character
+// (CC0), standing in for a player's own avatar: the game never changes the player's skin, it only puts
+// the class weapon in their hand. Clips are Kenney's; they are the reference for the Roblox animations.
+export const BLOCKY_RIGS = 'abcdefghijklmnopqr'.split('').map(l => BLOCKY + `character-${l}.glb`);
 const ADV = '../assets/characters/kaykit-adventurers/';
 const QMED = '../assets/weapons/quaternius-medieval/';
 const PCY = '../assets/props/quaternius-cyberpunk-props/';
-const sk = (name, cooldown, anim, desc, extra = {}) => ({ name, cooldown, anim, desc, duration: 0, ...extra });
+const sk = (name, cooldown, anim, desc, extra = {}) => ({ name, cooldown, anim, desc, duration: 0, loop: false, ...extra });
+// Weapon in hand: file (+ optional node inside it), side, forward axis of the model, length as a fraction of the
+// player's height, grip ('gun' along the arm, 'melee' pointing forward, 'shield' on the forearm), offset toward the butt.
+const gun = (file, len = 0.42, extra = {}) => ({ file: GUNS + file, side: 'right', fwd: '-z', len, grip: 'gun', offset: 0.1, ...extra });
+const melee = (file, len = 0.5, extra = {}) => ({ file, side: 'right', fwd: '+y', len, grip: 'melee', offset: 0.2, ...extra });
 export const CLASSES = [
-  { id: 'Trooper', tier: 'Free', cost: 0, role: 'All-rounder', weapon: 'Assault rifle', rig: ADV + 'Rogue.glb', show: [], gun: GUNS + 'machinegun.glb',
+  { id: 'Trooper', tier: 'Free', cost: 0, role: 'All-rounder', weapon: 'Assault rifle', idle: 'holding-right', hold: [gun('machinegun.glb', 0.5)],
     passive: '+10% reload speed',
-    skills: [sk('Burst Fire', 6, '2H_Ranged_Shooting', '3-round burst, double damage', { duration: 1 }), sk('Ammo Crate', 45, 'Use_Item', 'Drops a crate: team reloads instantly and gets +20% fire rate for 10 s', { duration: 10 })] },
-  { id: 'Tank', tier: 'Free', cost: 0, role: 'Blocker', weapon: 'Flail and shield', rig: ADV + 'Knight.glb', show: ['Spike_Shield'], flail: true,
+    skills: [sk('Burst Fire', 6, 'holding-right-shoot', '3-round burst, double damage', { duration: 1, loop: true }), sk('Ammo Crate', 45, 'interact-right', 'Drops a crate: team reloads instantly and gets +20% fire rate for 10 s', { duration: 10 })] },
+  { id: 'Tank', tier: 'Free', cost: 0, role: 'Blocker', weapon: 'Flail and shield', hold: [{ flail: true, side: 'right', len: 0.6, grip: 'melee', offset: 0.3 }, { file: QMED + 'Shield_Round.glb', side: 'left', fwd: '+y', len: 0.36, grip: 'shield' }],
     passive: 'Creatures cannot push past you; +50% max health',
-    skills: [sk('Flail Sweep', 5, '2H_Melee_Attack_Spin', 'Spin: knocks back everything within 6 studs', { duration: 1 }), sk('Iron Wall', 30, 'Blocking', 'Raise the shield: taunts creatures and blocks 80% damage for 8 s', { duration: 8 })] },
-  { id: 'Scout', tier: 'Free', cost: 0, role: 'Mobility', weapon: 'Dual pistols', rig: ADV + 'Rogue.glb', show: [], gun: GUNS + 'pistol.glb', gun2: GUNS + 'pistol.glb',
+    skills: [sk('Flail Sweep', 5, 'attack-melee-right', 'Spin: knocks back everything within 6 studs', { duration: 1 }), sk('Iron Wall', 30, 'holding-left', 'Raise the shield: taunts creatures and blocks 80% damage for 8 s', { duration: 8, loop: true })] },
+  { id: 'Scout', tier: 'Free', cost: 0, role: 'Mobility', weapon: 'Dual pistols', idle: 'holding-both', hold: [gun('pistol.glb', 0.24), gun('pistol.glb', 0.24, { side: 'left' })],
     passive: '+20% move speed',
-    skills: [sk('Dash', 4, 'Dodge_Forward', 'Dash 20 studs through creatures', { duration: 0.4 }), sk('Mark Target', 25, 'Throw', 'Marked creature takes +30% damage from everyone for 8 s', { duration: 8 })] },
-  { id: 'Medic', tier: 'Free', cost: 0, role: 'Support', weapon: 'SMG', rig: ADV + 'Rogue_Hooded.glb', show: [], gun: GUNS + 'uzi.glb',
+    skills: [sk('Dash', 4, 'sprint', 'Dash 20 studs through creatures', { duration: 0.4, loop: true }), sk('Mark Target', 25, 'holding-both-shoot', 'Marked creature takes +30% damage from everyone for 8 s', { duration: 8, loop: true })] },
+  { id: 'Medic', tier: 'Free', cost: 0, role: 'Support', weapon: 'SMG', idle: 'holding-right', hold: [gun('uzi.glb', 0.34)],
     passive: 'Repairs the Town Hall 2x faster with melee',
-    skills: [sk('Repair Pulse', 8, 'Use_Item', '+150 Town Hall HP'), sk('Overcharge', 40, 'Spellcast_Long', 'Town Hall takes no damage for 6 s', { duration: 6 })] },
-  { id: 'Engineer', tier: 'Free', cost: 0, role: 'Area control', weapon: 'Carbine and wrench', rig: ADV + 'Barbarian.glb', show: [], gun: GUNS + 'machinegunLauncher.glb', turret: PCY + 'Turret_Gun.glb',
+    skills: [sk('Repair Pulse', 8, 'interact-right', '+150 Town Hall HP'), sk('Overcharge', 40, 'emote-yes', 'Town Hall takes no damage for 6 s', { duration: 6 })] },
+  { id: 'Engineer', tier: 'Free', cost: 0, role: 'Area control', weapon: 'Carbine and wrench', idle: 'holding-right', hold: [gun('machinegunLauncher.glb', 0.52)], turret: PCY + 'Turret_Gun.glb',
     passive: 'Melee hits on a turret repair it (+25% HP per hit); turrets bought between runs with gems, upgraded in-run with coins',
-    skills: [sk('Place Turret', 10, 'PickUp', 'Builds the selected turret where you aim (max 3 up; placing a 4th removes the oldest)', { repair: '1H_Melee_Attack_Chop' }), sk('Overclock', 30, 'Cheer', 'All your turrets fire 2x faster for 10 s', { duration: 10 })] },
-  { id: 'Berserker', tier: 'Locked', cost: 1200, role: 'Melee damage', weapon: 'Two-handed axe', rig: ADV + 'Barbarian.glb', show: ['2H_Axe'],
+    skills: [sk('Place Turret', 10, 'pick-up', 'Builds the selected turret where you aim (max 3 up; placing a 4th removes the oldest)', { repair: 'attack-melee-right' }), sk('Overclock', 30, 'emote-yes', 'All your turrets fire 2x faster for 10 s', { duration: 10 })] },
+  { id: 'Berserker', tier: 'Locked', cost: 1200, role: 'Melee damage', weapon: 'Two-handed axe', hold: [melee(QMED + 'Axe_Double.glb', 0.65, { fwd: 'auto' })],
     passive: 'Kills heal you 5 HP; melee damage +25%',
-    skills: [sk('Cleave', 4, '2H_Melee_Attack_Slice', 'Wide swing: hits every creature in front of you', { duration: 0.8 }), sk('Rage', 30, 'Cheer', '+40% attack speed and move speed for 10 s', { duration: 10 })] },
-  { id: 'Mage', tier: 'Locked', cost: 1200, role: 'Crowd control', weapon: 'Staff', rig: ADV + 'Mage.glb', show: ['2H_Staff'],
+    skills: [sk('Cleave', 4, 'attack-melee-right', 'Wide swing: hits every creature in front of you', { duration: 0.8 }), sk('Rage', 30, 'emote-yes', '+40% attack speed and move speed for 10 s', { duration: 10 })] },
+  { id: 'Mage', tier: 'Locked', cost: 1200, role: 'Crowd control', weapon: 'Staff', hold: [melee(ADV + 'Mage.glb', 0.8, { node: '2H_Staff', offset: 0.05 })],
     passive: 'Spells cost 25% less coins; freeze lasts 25% longer',
-    skills: [sk('Arcane Bolt', 2, 'Spellcast_Shoot', 'Homing bolt, 35 damage'), sk('Frost Nova', 25, 'Spellcast_Long', 'Freezes every creature within 15 studs for 3 s', { duration: 3 })] },
-  { id: 'Pyro', tier: 'Locked', cost: 1500, role: 'Area damage', weapon: 'Flamethrower', rig: ADV + 'Barbarian.glb', show: [], gun: GUNS + 'flamethrower_long.glb',
+    skills: [sk('Arcane Bolt', 2, 'interact-right', 'Homing bolt, 35 damage'), sk('Frost Nova', 25, 'holding-both', 'Freezes every creature within 15 studs for 3 s', { duration: 3, loop: true })] },
+  { id: 'Pyro', tier: 'Locked', cost: 1500, role: 'Area damage', weapon: 'Flamethrower', idle: 'holding-both', hold: [gun('flamethrower_long.glb', 0.6, { offset: 0.2 })],
     passive: 'Burning creatures take +15% damage',
-    skills: [sk('Flame Sweep', 7, '2H_Ranged_Shooting', 'Cone of fire, ignites for 4 s', { duration: 1.5 }), sk('Fire Wall', 40, 'Throw', 'Wall of fire across the lane for 8 s', { duration: 8 })] },
-  { id: 'Sniper', tier: 'Locked', cost: 1500, role: 'Boss killer', weapon: 'Bolt rifle', rig: ADV + 'Rogue_Hooded.glb', show: [], gun: GUNS + 'sniper.glb',
+    skills: [sk('Flame Sweep', 7, 'holding-both-shoot', 'Cone of fire, ignites for 4 s', { duration: 1.5, loop: true }), sk('Fire Wall', 40, 'interact-right', 'Wall of fire across the lane for 8 s', { duration: 8 })] },
+  { id: 'Sniper', tier: 'Locked', cost: 1500, role: 'Boss killer', weapon: 'Bolt rifle', idle: 'holding-both', hold: [gun('sniper.glb', 0.7, { offset: 0.15 })],
     passive: '+50% headshot damage',
-    skills: [sk('Piercing Shot', 8, '2H_Ranged_Shoot', 'Shot goes through up to 5 creatures'), sk('Overwatch', 35, '2H_Ranged_Aiming', 'Next 5 shots in 10 s are guaranteed crits', { duration: 10 })] },
-  { id: 'Demolisher', tier: 'Locked', cost: 2000, role: 'Burst', weapon: 'Grenade launcher', rig: ADV + 'Knight.glb', show: [], gun: GUNS + 'rocketlauncherModern.glb',
+    skills: [sk('Piercing Shot', 8, 'holding-both-shoot', 'Shot goes through up to 5 creatures', { loop: true, duration: 0.6 }), sk('Overwatch', 35, 'holding-both', 'Next 5 shots in 10 s are guaranteed crits', { duration: 10, loop: true })] },
+  { id: 'Demolisher', tier: 'Locked', cost: 2000, role: 'Burst', weapon: 'Grenade launcher', idle: 'holding-both', hold: [gun('rocketlauncherModern.glb', 0.5, { fwd: '+z', offset: 0.1 })],
     passive: 'Carries +2 grenades; explosions 20% wider',
-    skills: [sk('Frag Toss', 6, 'Throw', 'Grenade: 120 damage in 8 studs'), sk('Cluster Bomb', 45, '2H_Ranged_Shoot', 'Shell splits into 6 bomblets along the lane', { duration: 1 })] },
-  { id: 'Summoner', tier: 'Locked', cost: 2500, role: 'Pet', weapon: 'Wand and spellbook', rig: ADV + 'Mage.glb', show: ['1H_Wand', 'Spellbook_open'], pet: QCU + 'Bat.glb', petAnims: Q_CUTE_FLY,
+    skills: [sk('Frag Toss', 6, 'interact-right', 'Grenade: 120 damage in 8 studs'), sk('Cluster Bomb', 45, 'holding-both-shoot', 'Shell splits into 6 bomblets along the lane', { duration: 1, loop: true })] },
+  { id: 'Summoner', tier: 'Locked', cost: 2500, role: 'Pet', weapon: 'Wand', hold: [melee(ADV + 'Mage.glb', 0.3, { node: '1H_Wand', offset: 0.15 })], pet: QCU + 'Bat.glb', petAnims: Q_CUTE_FLY,
     passive: 'Starts with a pet that attacks the nearest creature',
-    skills: [sk('Pet Pounce', 5, 'Spellcast_Shoot', 'Pet leaps on your target for 60 damage', { duration: 0.5 }), sk('Enrage', 45, 'Spellcast_Raise', 'Pet grows: 2x size and damage for 8 s', { duration: 8 })] },
+    skills: [sk('Pet Pounce', 5, 'interact-right', 'Pet leaps on your target for 60 damage', { duration: 0.5 }), sk('Enrage', 45, 'holding-both', 'Pet grows: 2x size and damage for 8 s', { duration: 8, loop: true })] },
 ];
-for (const c of CLASSES) { c.model = c.rig; c.anims = { idle: 'Idle', walk: 'Walking_A', run: 'Running_A' }; c.scale = 1; c.tint = null; c.stats = { tier: c.tier, role: c.role }; }
-// Weapon meshes built into the Adventurer rigs; everything here is hidden unless listed in `show`.
-export const RIG_WEAPONS = /Sword|Shield|Axe|Mug|Wand|Staff|Spellbook|Knife|Crossbow|Throwable/;
+for (const c of CLASSES) { c.model = BLOCKY_RIGS[0]; c.anims = { idle: c.idle ?? 'idle', walk: 'walk', run: 'sprint' }; c.scale = 1; c.tint = null; c.stats = { tier: c.tier, role: c.role }; }
 
 // Dungeons (src/shared/Dungeons.luau): unlock level, creature family, lanes, gimmick, props kit.
 export const DUNGEONS = [

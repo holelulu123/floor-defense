@@ -8,3 +8,6 @@ sourcemap.json
 *.rbxlx.lock
 .env
 /.luau-defs
+
+# Roblox Open Cloud credentials (never commit)
+scripts/roblox/.env

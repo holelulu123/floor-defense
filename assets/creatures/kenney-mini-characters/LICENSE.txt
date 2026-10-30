@@ -1,0 +1,18 @@
+	Mini Characters (1.1)
+
+	Created/distributed by Kenney (www.kenney.nl)
+
+			------------------------------
+
+	License: (Creative Commons Zero, CC0)
+	http://creativecommons.org/publicdomain/zero/1.0/
+
+	You can use this content for personal, educational, and commercial purposes.
+
+	Support by crediting 'Kenney' or 'www.kenney.nl' (this is not a requirement)
+
+			------------------------------
+
+	kenney.nl/support: "All assets are licensed under CC0 (public domain)".
+	This copy of the licence text follows the Kenney pack-licence template (the glTF
+	conversion on github.com/shorepine/kenney ships the same text as its LICENSE.txt).

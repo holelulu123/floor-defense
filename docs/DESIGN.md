@@ -14,6 +14,8 @@ The core fantasy: you and three friends, back to back at the gate, a horde pouri
 
 The lobby is one shared hub with floor pads. A run starts only when the pad is full.
 
+Layout: distinct zones on a grass field, joined by stone paths from the central spawn plaza. The dungeon arc runs along the far side, one diorama per dungeon in unlock order, and every dungeon has its own three pads (Solo, Duo, Squad) right in front of it, so the pad also picks the dungeon. On the near side sit the Scoreboard plaza (Hall of Fame boards) and the Shop and class-select plaza; three reserved plots are kept free for later features (events, cosmetics, Siege queue). The showcase Lobby tab is the layout reference (`showLobby` in `showcase/index.html`).
+
 | Pad | Players | Countdown once full | Enemy health | Enemy count | Coin payout |
 | --- | --- | --- | --- | --- | --- |
 | Solo | 1 | 5 s | x1.0 | x1.0 | x1.0 |
@@ -77,7 +79,7 @@ Players keep their own Roblox avatar. A class is a weapon, a passive and **two s
 
 Turrets (Engineer): turret **types and rarities** are bought between runs with gems and never change in a run; turret **levels** are bought in-run with coins. Placed turrets have HP; creatures that bump into them damage them, the Engineer's melee repairs them. Overclock doubles fire rate for 10 s. More classes are easy to add later (the data lives in `src/shared/Classes.luau` and `showcase/catalog.js`).
 
-Animations: the showcase previews every skill on a KayKit Adventurer dummy (CC0) with the clip named in the table's source (for example Tank's Flail Sweep is `2H_Melee_Attack_Spin`). In Roblox the moves are played on the player's own R15 avatar, which needs Roblox animation assets: either re-created in the Animation Editor using these previews as reference, or retargeted from the KayKit clips in Blender onto the R15 rig and uploaded. The flail model is a placeholder until a CC0 flail is found.
+Players keep their own avatar: a class never changes the player's skin, it only puts the class weapon (and for the Tank a shield) in their hands. The showcase previews every class on the Roblox default character (a procedural R15-style figure in the classic yellow/blue/green) with a toggle to a random Kenney blocky player skin (CC0), so the weapon size and grip can be judged on a default body. Weapon models: Kenney Weapon Pack guns, Quaternius Medieval axe and round shield, the KayKit staff and wand meshes (CC0); the flail is a procedural placeholder until a CC0 flail is found. The skill clips in the preview are Kenney's generic poses (holding-right, holding-both-shoot, attack-melee-right, interact-right, pick-up, emote-yes) re-created as keyframes on the dummy; in Roblox the moves need Roblox animation assets authored in the Animation Editor using these previews as reference.
 
 Class select: on entering the lobby a panel shows the classes with their two skills and unlock cost; locked ones show a Buy button (gems). The choice is kept per player and can be changed in the lobby at any time.
 
@@ -135,7 +137,7 @@ Each map has its own creature family, so the roster stays readable: on the grave
 
 Horde mix once everything is unlocked: Runner 58%, Brute 15%, Spitter 10%, Exploder 6%, Flyer 5%, Shielder 4%, Healer 2% (`Enemies.HordeMix`); shares of locked archetypes go to Runners. Two more families exist as models for future maps: slimes (Sewer) and bandits/orcs (Village), plus static UFOs for the Factory map's Flyers.
 
-Roster rule: every creature is a distinct 3D model, never a recolor of another one. Each dungeon has its own family of 13 to 20 creatures and the waves introduce one new creature per wave in the family's listed order, with bosses on waves 5, 10 and 15; after the list runs out, waves mix everything seen so far. The showcase's Creatures tab is the source of truth for the per-dungeon order (`showcase/catalog.js`), and its Dungeons tab previews each map (110 x 80 m arena, lanes converging on the Town Hall, themed props, a painted sky) with a few creatures walking the lanes. The Lobby tab shows the plaza: three pads (Solo 1, Duo 2, Squad 4) in the centre and a diorama slice of every dungeon around the ring, in unlock order.
+Roster rule: every creature is a distinct 3D model, never a recolor of another one. Each dungeon has its own family of 13 to 20 creatures and the waves introduce one new creature per wave in the family's listed order, with bosses on waves 5, 10 and 15; after the list runs out, waves mix everything seen so far. The showcase's Creatures tab is the source of truth for the per-dungeon order (`showcase/catalog.js`), and its Dungeons tab previews each map (220 x 160 m arena, one lane of 450 to 700 m that snakes from the gate to the tower through S-bends and switchbacks and never crosses itself, themed props, a painted sky) with a few creatures walking the lane. The lane is a seeded self-avoiding walk on a coarse grid (`laneCurve`), so every dungeon has its own route and the same route every visit. The Lobby tab shows the zoned hub described under Lobby and floors.
 
 Scaling: health multiplies by `1 + 0.12 x wave`, count grows by 4 per wave, and from wave 15 some Runners spawn as elites with an extra ability (frost aura, regen, teleport). Elites keep late waves interesting without only raising numbers.
 

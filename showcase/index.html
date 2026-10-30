@@ -19,7 +19,14 @@
   aside { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; padding: 12px; }
   aside.right { font-size: 15px; }
   aside.right { border-right: 0; border-left: 1px solid var(--border); }
-  .group { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 6px; }
+  .group { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 6px; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
+  .group:hover { color: var(--text, #eee); }
+  .group .chev { display: inline-block; width: 1em; transition: transform .15s; }
+  .group.collapsed .chev { transform: rotate(-90deg); }
+  .group-body { display: contents; }
+  .group.collapsed + .group-body { display: none; }
+  .list-tools { display: flex; gap: 6px; margin: 6px 0 2px; }
+  .list-tools button { font-size: 11px; padding: 3px 8px; }
   .card { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; cursor: pointer; background: var(--panel-2); }
   .card:hover { border-color: var(--muted); }
   .card.active { border-color: var(--accent); }
@@ -55,6 +62,8 @@
   .note { color: var(--muted); font-size: 12px; }
   aside.right .note { font-size: 13px; }
   .hidden { display: none !important; }
+  @media (max-width: 1400px) { body { grid-template-columns: 300px 1fr 380px; } }
+  @media (max-width: 1150px) { body { grid-template-columns: 260px 1fr 320px; } aside.right { font-size: 14px; } }
   @media (max-width: 900px) { body { grid-template-columns: 1fr; grid-template-rows: 48px 220px 1fr auto; } aside { max-height: 260px; } }
 </style>
 </head>
@@ -73,6 +82,7 @@
 </header>
 
 <aside>
+  <div class="list-tools"><button id="btn-collapse-all" title="Collapse every group">Collapse all</button><button id="btn-expand-all" title="Expand every group">Expand all</button></div>
   <input class="filter" id="filter" placeholder="Filter…">
   <div id="list"></div>
 </aside>
@@ -121,6 +131,8 @@
     </div>
     <div class="note" id="cooldowns"></div>
     <div><button id="btn-cls-walk">Walk</button><button id="btn-cls-run">Run</button><button id="btn-cls-idle">Idle</button></div>
+    <h2>Player</h2>
+    <select id="cls-rig-select"><option value="roblox">Roblox default character (R15)</option><option value="kenney">Random player skin (Kenney)</option></select>
     <h2>Any animation</h2>
     <select id="cls-anim-select"></select>
   </div>
@@ -149,7 +161,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
-import { FAMILIES, CLASSES, DUNGEONS, MAPS, RIG_WEAPONS, STAT_ICONS, STAT_LABELS } from './catalog.js';
+import { FAMILIES, CLASSES, DUNGEONS, MAPS, BLOCKY_RIGS, STAT_ICONS, STAT_LABELS } from './catalog.js';
 
 const SFX = '../assets/sounds/kenney-impact/';
 const ICONS = '../assets/ui/icons/';
@@ -305,9 +317,12 @@ function pixelFit(root) {
 
 function frame(root) {
   // Pose first so the measurement matches what is drawn, then stand the model on the floor.
-  const box0 = posedBox(root);
+  let box0 = posedBox(root);
+  const mb0 = meshBox(root), vol = b => { const z = b.getSize(new THREE.Vector3()); return z.x * z.y * z.z; };
+  const posedBad = !isFinite(vol(box0)) || vol(box0) > vol(mb0) * 6; // a rig whose skinning we cannot evaluate (Apatosaurus) reports a huge box
+  if (posedBad) { log?.(`frame: posed box ${box0.getSize(new THREE.Vector3()).toArray().map(v => v.toFixed(1))} rejected, using mesh box`); box0 = mb0; }
   root.position.y -= box0.min.y; root.position.x -= (box0.min.x + box0.max.x) / 2; root.position.z -= (box0.min.z + box0.max.z) / 2;
-  const box = posedBox(root);
+  const box = posedBad ? meshBox(root) : posedBox(root);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   const radius = Math.max(size.x, size.y, size.z) / 2;
@@ -365,7 +380,7 @@ const clock = new THREE.Clock();
 const DEFAULT_SKY = scene.background.clone(), DEFAULT_FOG = scene.fog.color.clone(), DEFAULT_FOG_RANGE = [scene.fog.near, scene.fog.far];
 function clear() {
   if (current) { scene.remove(current.root); for (const e of current.extras ?? []) scene.remove(e); current = null; active = null; }
-  ground.visible = true; grid.visible = true; controls.maxPolarAngle = Math.PI; hemi.intensity = 0.9; sun.intensity = 1.8; scene.background = DEFAULT_SKY.clone(); scene.fog.color.copy(DEFAULT_FOG); [scene.fog.near, scene.fog.far] = DEFAULT_FOG_RANGE;
+  ground.visible = true; grid.visible = true; camera.near = 0.05; controls.maxPolarAngle = Math.PI; hemi.intensity = 0.9; sun.intensity = 1.8; scene.background = DEFAULT_SKY.clone(); scene.fog.color.copy(DEFAULT_FOG); [scene.fog.near, scene.fog.far] = DEFAULT_FOG_RANGE;
 }
 
 // Tint a material. Lit materials (KayKit) take an emissive glow; unlit ones (most Kenney kits use
@@ -391,8 +406,11 @@ async function showAnimated(def) {
   const seq = ++loadSeq;
   const gltf = await loadGltf(def.model);
   if (seq !== loadSeq) return;
-  const root = cloneSkinned(gltf.scene);
+  let root = cloneSkinned(gltf.scene);
   root.scale.setScalar(def.scale);
+  const rotParam = new URLSearchParams(location.search).get('rot');
+  const rot = rotParam ? rotParam.split(',').map(Number) : def.rot; // a model exported lying down or rolled gets a fixed rotation
+  if (rot) { const fix = new THREE.Group(); fix.rotation.set(rot[0] ?? 0, rot[1] ?? 0, rot[2] ?? 0); const inner = root; fix.add(inner); root = fix; }
   root.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; if (def.tint) { o.material = o.material.clone(); applyTint(o.material, def.tint); } } });
   scene.add(root);
   const mixer = new THREE.AnimationMixer(root);
@@ -408,6 +426,7 @@ async function showAnimated(def) {
   const maxHp = def.stats.health ?? 100;
   // A model with no clips (the UFOs) still gets the hit/kill buttons; it bobs instead of animating.
   current = { def, root, mixer, actions, hp: maxHp, maxHp, state: 'idle', stepTimer: 0, animated: true, bob: gltf.animations.length === 0, baseY: root.position.y };
+  if (def.type === 'Flyer' && !current.bob) { groundNow(current); pixelFit(root); }
 
   $('anim-select').innerHTML = gltf.animations.length ? gltf.animations.map(c => `<option>${clipName(c)}</option>`).join('') : '<option>(static model: hover bob)</option>';
   $('anim-select').value = def.anims.idle ?? $('anim-select').value;
@@ -471,8 +490,8 @@ const skyCache = new Map();
 function skyTexture(theme, key) {
   if (skyCache.has(key)) return skyCache.get(key);
   const W = 2048, H = 1024, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
-  const top = new THREE.Color(theme.sky), hor = new THREE.Color(theme.fog).lerp(new THREE.Color(0xffffff), 0.18);
-  const night = top.r + top.g + top.b < 0.35;
+  const raw = new THREE.Color(theme.sky), night = raw.r + raw.g + raw.b < 0.35;
+  const top = raw.clone().lerp(new THREE.Color(night ? 0x24345a : 0x6fa8e8), night ? 0.35 : 0.45), hor = new THREE.Color(theme.fog).lerp(new THREE.Color(0xffffff), night ? 0.22 : 0.4);
   const r = rng(key.length * 977 + 13);
   const grad = g.createLinearGradient(0, 0, 0, H * 0.55);
   grad.addColorStop(0, '#' + top.getHexString()); grad.addColorStop(1, '#' + hor.getHexString());
@@ -492,8 +511,9 @@ function skyTexture(theme, key) {
   g.fillStyle = glow; g.fillRect(sx - 300, sy - 300, 600, 600);
   g.beginPath(); g.arc(sx, sy, night ? 34 : 46, 0, Math.PI * 2); g.fillStyle = night ? '#e8ecff' : '#fff6d8'; g.fill();
   // clouds
-  g.fillStyle = night ? 'rgba(120,130,160,0.25)' : 'rgba(255,255,255,0.55)';
-  for (let i = 0; i < 26; i++) { const cx = r() * W, cy = H * (0.12 + r() * 0.3), cw = 80 + r() * 220, ch = cw * (0.25 + r() * 0.2); for (let k = 0; k < 5; k++) { g.beginPath(); g.ellipse(cx + (r() - 0.5) * cw * 0.8, cy + (r() - 0.5) * ch * 0.6, cw * (0.3 + r() * 0.3), ch * (0.4 + r() * 0.5), 0, 0, Math.PI * 2); g.fill(); } }
+  for (let i = 0; i < 34; i++) {
+    const alpha = night ? 0.22 : 0.75; const cxc = r() * W, cyc = H * (0.24 + r() * 0.24); const cg = g.createRadialGradient(cxc, cyc, 0, cxc, cyc, 160); cg.addColorStop(0, `rgba(255,255,255,${alpha})`); cg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = cg; g.beginPath(); g.ellipse(cxc, cyc, 160 + r() * 120, 50 + r() * 40, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = night ? 'rgba(160,170,200,0.28)' : 'rgba(255,255,255,0.8)'; const cx = r() * W, cy = H * (0.12 + r() * 0.3), cw = 80 + r() * 220, ch = cw * (0.25 + r() * 0.2); for (let k = 0; k < 5; k++) { g.beginPath(); g.ellipse(cx + (r() - 0.5) * cw * 0.8, cy + (r() - 0.5) * ch * 0.6, cw * (0.3 + r() * 0.3), ch * (0.4 + r() * 0.5), 0, 0, Math.PI * 2); g.fill(); } }
   // far hills / skyline on the horizon, in a darker fog tone
   const hill = new THREE.Color(theme.fog).multiplyScalar(0.75);
   for (let layer = 0; layer < 2; layer++) {
@@ -507,21 +527,63 @@ function skyTexture(theme, key) {
   skyCache.set(key, tex); return tex;
 }
 
-// Builds a themed arena into `parent`. Used at full size for a dungeon map and at diorama size in
-// the lobby. Returns { jobs, laneXs, placed, hallZ, gateZ } so callers can await the prop loads.
-// Lane: one winding route from the gate (near edge) to the tower (far edge). Seeded zig-zag
-// waypoints through a centripetal Catmull-Rom spline, so every dungeon has its own bends.
-function laneCurve(W, D, r, gateZ, towerZ) {
-  const pts = [new THREE.Vector3((r() - 0.5) * W * 0.3, 0, gateZ)];
-  const bends = 4 + Math.floor(r() * 3);
-  let side = r() < 0.5 ? 1 : -1;
-  for (let i = 1; i <= bends; i++) {
-    const t = i / (bends + 1);
-    pts.push(new THREE.Vector3(side * W * (0.18 + r() * 0.2), 0, gateZ + (towerZ - gateZ) * t + (r() - 0.5) * D * 0.06));
-    side = -side;
+// Lane: one winding route from the gate (near edge) to the tower (far edge). The arena is cut into a
+// coarse grid of cells at least 2.6 lane widths across; a seeded self-avoiding walk goes from the gate
+// cell to a top-centre cell (mostly sideways, sometimes up, now and then back down for a switchback),
+// and a centripetal Catmull-Rom spline through the jittered cell centres is the lane. The sampled
+// curve is still checked for self-overlap and for leaving the arena, and the longest clean walk of a
+// batch wins, so every dungeon gets its own snake of bends and no lane ever crosses itself.
+function laneCurve(W, D, r, gateZ, towerZ, { laneW = 4, wind = 0.55 } = {}) {
+  const endZ = towerZ - 6, span = endZ - gateZ;
+  const cell = Math.max(laneW * 2.6, Math.min(W * 0.8, span) / 8);
+  const cols = Math.floor(W * 0.84 / cell), rows = Math.floor((span - cell * 0.5) / cell);
+  const straight = () => new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, gateZ), new THREE.Vector3(0, 0, endZ)], false, 'centripetal', 0.5);
+  if (cols < 2 || rows < 2) return straight();
+  const cx = c => (c - (cols - 1) / 2) * cell, cz = k => gateZ + cell * 0.9 + k * cell;
+  const mid = (cols - 1) / 2, target = Math.round(wind * cols * rows);
+  let best = null, bestScore = -Infinity, valid = 0, tried = 0;
+  for (let attempt = 0; attempt < 80 && tried < 80; attempt++) {
+    tried++;
+    const seen = new Set(); const walk = [];
+    let c = Math.floor(mid + (r() - 0.5) * cols * 0.6), k = 0, dir = r() < 0.5 ? 1 : -1;
+    const push = (c, k) => { walk.push([c, k]); seen.add(c + ',' + k); };
+    push(c, k);
+    let steps = 0, done = false;
+    while (steps++ < cols * rows) {
+      if (k === rows - 1 && Math.abs(c - mid) <= 0.5) { done = true; break; }
+      const free = (c2, k2) => c2 >= 0 && c2 < cols && k2 >= 0 && k2 < rows && !seen.has(c2 + ',' + k2);
+      const opts = [];
+      if (free(c + dir, k)) opts.push([c + dir, k, 0.55]);        // keep sweeping sideways
+      if (free(c - dir, k)) opts.push([c - dir, k, 0.12]);        // turn back early
+      if (free(c, k + 1)) opts.push([c, k + 1, k === rows - 1 ? 0 : 0.3]);
+      if (free(c, k - 1) && k > 0) opts.push([c, k - 1, 0.07]);   // switchback
+      const total = opts.reduce((a, o) => a + o[2], 0); if (!total) break;
+      let pick = r() * total, o = opts[opts.length - 1];
+      for (const q of opts) { pick -= q[2]; if (pick <= 0) { o = q; break; } }
+      if (o[0] !== c) dir = Math.sign(o[0] - c); else dir = r() < 0.5 ? 1 : -1;
+      c = o[0]; k = o[1]; push(c, k);
+    }
+    if (!done) continue;
+    const pts = [new THREE.Vector3(cx(walk[0][0]) * 0.6, 0, gateZ)];
+    for (const [c, k] of walk) pts.push(new THREE.Vector3(cx(c) + (r() - 0.5) * cell * 0.25, 0, cz(k) + (r() - 0.5) * cell * 0.25));
+    pts.push(new THREE.Vector3(0, 0, endZ));
+    const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
+    const len = curve.getLength(), s = curve.getSpacedPoints(240);
+    const gap = Math.ceil(laneW * 2.6 / (len / 240)); // samples closer than this along the lane are neighbours, not overlap
+    let ok = true;
+    outer: for (let i = 0; i < s.length; i++) {
+      const p = s[i];
+      if (Math.abs(p.x) > W / 2 - laneW || p.z < -D / 2 + 2 || p.z > D / 2 - 2) { ok = false; break; }
+      for (let j = i + gap; j < s.length; j++) if (p.distanceTo(s[j]) < laneW * 1.4) { ok = false; break outer; }
+    }
+    if (!ok) continue;
+    valid++;
+    const score = -Math.abs(walk.length - target) + r() * 2; // closest to the wanted winding, with a little variety
+    if (score > bestScore) { best = curve; bestScore = score; }
+    if (valid >= 12) break;
   }
-  pts.push(new THREE.Vector3(0, 0, towerZ - 6));
-  return new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
+  if (W > 100) log?.(`lane ${W}x${D}: grid ${cols}x${rows}, ${valid} valid of ${tried} walks, ${Math.round(best?.getLength() ?? 0)} m`);
+  return best ?? straight();
 }
 function laneRibbon(curve, width, color) {
   const N = 240, pos = [], idx = [], up = new THREE.Vector3(0, 1, 0);
@@ -538,7 +600,7 @@ function laneRibbon(curve, width, color) {
 // Builds a themed arena into `parent`: ground, one winding lane, the dungeon's tower at the far end,
 // a gate at the near end, scattered props off the lane, and creatures walking the lane. Used at full
 // size for a dungeon map and at diorama size in the lobby. Returns { jobs, placed, curve, ... }.
-function buildArena(theme, d, parent, { W = 160, D = 110, propMult = 3, withWalkers = true, mixers = [], seed = d.id, maxWalkers = 14 } = {}) {
+function buildArena(theme, d, parent, { W = 260, D = 200, propMult = 3, withWalkers = true, mixers = [], seed = d.id, maxWalkers = 14, wind = 0.55 } = {}) {
   const fam = FAMILIES.find(f => f.id === d.family);
   const r = rng([...seed].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7));
   const g = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: theme.ground, roughness: 1 }));
@@ -547,14 +609,26 @@ function buildArena(theme, d, parent, { W = 160, D = 110, propMult = 3, withWalk
   // The world does not end at the arena: a wide terrain disc in a darker tone reaches the horizon,
   // with a ring of far props (bigger, cheaper) so the skyline has something in front of it.
   if (propMult >= 1) {
-  const far = new THREE.Mesh(new THREE.CircleGeometry(W * 6, 64), new THREE.MeshStandardMaterial({ color: new THREE.Color(theme.ground).multiplyScalar(0.75), roughness: 1 }));
+  const far = new THREE.Mesh(new THREE.CircleGeometry(W * 6, 64), new THREE.MeshStandardMaterial({ color: new THREE.Color(theme.ground).multiplyScalar(0.92), roughness: 1 }));
   far.rotation.x = -Math.PI / 2; far.position.y = -0.03; far.receiveShadow = true; parent.add(far);
+  // A ring of low-poly hills (or crater rims in space) closes the valley so the arena does not float on a flat plane.
+  const hillMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(theme.ground).lerp(new THREE.Color(theme.fog), 0.35), roughness: 1, flatShading: true });
+  const hr = rng(1234 + W);
+  const peakMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(theme.ground).lerp(new THREE.Color(theme.fog), 0.55), roughness: 1, flatShading: true });
+  for (let ring = 0; ring < 2; ring++) for (let i = 0; i < 22; i++) {
+    const a = (i / 22) * Math.PI * 2 + (hr() - 0.5) * 0.25 + ring * 0.14, dist = W * (ring ? 1.7 + hr() * 0.8 : 0.95 + hr() * 0.45);
+    const h = W * (ring ? 0.18 + hr() * 0.22 : 0.05 + hr() * 0.08), rad = W * (ring ? 0.3 + hr() * 0.35 : 0.14 + hr() * 0.16);
+    const peak = ring && hr() < 0.45;
+    const hill = new THREE.Mesh(peak ? new THREE.ConeGeometry(1, 1, 7) : new THREE.SphereGeometry(1, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), peak ? peakMat : hillMat);
+    hill.scale.set(rad, h, rad * (0.7 + hr() * 0.5)); hill.position.set(Math.cos(a) * dist, peak ? h / 2 - 0.5 : -0.5, Math.sin(a) * dist); hill.rotation.y = hr() * Math.PI;
+    parent.add(hill);
+  }
   }
   const towerZ = D / 2 - D * 0.12, gateZ = -D / 2 + D * 0.07;
-  const laneW = Math.max(3.5, W * 0.05);
-  const curve = laneCurve(W, D, r, gateZ, towerZ);
+  const laneW = Math.max(2.2, W * 0.03);
+  const curve = laneCurve(W, D, r, gateZ, towerZ, { laneW, wind });
   parent.add(laneRibbon(curve, laneW, theme.path));
-  const samples = curve.getSpacedPoints(160);
+  const samples = curve.getSpacedPoints(320);
   const laneDist = (x, z) => { let m = Infinity; for (const p of samples) { const dx = p.x - x, dz = p.z - z; const q = dx * dx + dz * dz; if (q < m) m = q; } return Math.sqrt(m); };
   const jobs = [];
   const k = W / 64; // size factor relative to the first map version the prop heights were tuned on
@@ -588,6 +662,7 @@ function buildArena(theme, d, parent, { W = 160, D = 110, propMult = 3, withWalk
   walkers.forEach((def, i) => jobs.push((async () => {
     const gltf = await loadGltf(def.model);
     const inst = cloneSkinned(gltf.scene);
+    if (def.rot) inst.rotation.set(def.rot[0] ?? 0, def.rot[1] ?? 0, def.rot[2] ?? 0);
     inst.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
     inst.scale.setScalar(def.scale);
     const mixer = new THREE.AnimationMixer(inst);
@@ -618,54 +693,134 @@ function labelSprite(text, sub = '', color = '#ffb454') {
   sp.scale.set(12, 3.75, 1); return sp;
 }
 
-// The lobby: a plaza with the three floor pads (Config.Pads: Solo 1, Duo 2, Squad 4) and a ring of
-// dioramas, one slice of each dungeon map, so players can see where each floor leads.
+// Repeating brick floor painted on a canvas (one tile = 2 x 2 m: four courses of staggered bricks).
+let brickTex = null;
+function brickTexture() {
+  if (brickTex) return brickTex;
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  g.fillStyle = '#6b5a4a'; g.fillRect(0, 0, 128, 128); // mortar
+  const rows = 4, bh = 128 / rows, bw = 64;
+  for (let y = 0; y < rows; y++) for (let i = -1; i < 3; i++) {
+    const x = i * bw + (y % 2 ? bw / 2 : 0), tone = 150 + ((y * 7 + i * 13) % 5) * 12;
+    g.fillStyle = `rgb(${tone + 20},${tone - 25},${tone - 55})`; g.fillRect(x + 2, y * bh + 2, bw - 4, bh - 4);
+  }
+  brickTex = new THREE.CanvasTexture(c); brickTex.colorSpace = THREE.SRGBColorSpace; brickTex.wrapS = brickTex.wrapT = THREE.RepeatWrapping; brickTex.anisotropy = 8;
+  return brickTex;
+}
+
+// The lobby: a hub of distinct zones joined by brick paths across a grass field. Spawn plaza in the
+// centre; the dungeon ring on the far side (one diorama per dungeon in unlock order, each with its own
+// Solo / Duo / Squad pads in front of it, Config.Pads); on the near side the Scoreboard plaza and the
+// Shop & class-select plaza; and three reserved plots for future features. Trees close the horizon.
 async function showLobby() {
   clear();
   const seq = ++loadSeq;
   const root = new THREE.Group();
-  const R = 78; // diorama ring radius
-  const plaza = new THREE.Mesh(new THREE.CircleGeometry(R + 30, 96), new THREE.MeshStandardMaterial({ color: 0x5c6b4a, roughness: 1 }));
-  plaza.rotation.x = -Math.PI / 2; plaza.position.y = -0.05; plaza.receiveShadow = true; root.add(plaza);
-  const inner = new THREE.Mesh(new THREE.CircleGeometry(34, 64), new THREE.MeshStandardMaterial({ color: 0x8e8571, roughness: 1 }));
-  inner.rotation.x = -Math.PI / 2; inner.position.y = 0.01; inner.receiveShadow = true; root.add(inner);
+  const r = rng(20251030);
+  const R = 165; // dungeon ring radius
+  const PAD_R = R - 30; // each dungeon's pad trio sits on this ring, in front of its diorama
+  const FIELD = 420; // grass reaches this far
+  const STONE = 0x8e8571, STONE_DARK = 0x6e6655, GRASS = 0x4f8a3a, DIRT = 0x7a6a4a;
+  // Ground layers sit a few centimetres apart (field, meadow patches, paths, plazas) and the camera's
+  // near plane is moved out, so nothing z-fights at the lobby's viewing distance.
+  const Y_FIELD = -0.3, Y_PATCH = -0.2, Y_PATH = 0.04, Y_PLAZA = 0.1;
+  const flat = (geo, color, y = 0, mat = {}) => { const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness: 1, ...mat })); m.rotation.x = -Math.PI / 2; m.position.y = y; m.receiveShadow = true; root.add(m); return m; };
+  const brick = brickTexture();
+  const brickMat = (w, l) => { const map = brick.clone(); map.needsUpdate = true; map.repeat.set(w / 2, l / 2); return { map, color: 0xffffff }; };
+  const strip = (x1, z1, x2, z2, w) => { const len = Math.hypot(x2 - x1, z2 - z1); const m = flat(new THREE.PlaneGeometry(w, len), 0xffffff, Y_PATH, brickMat(w, len)); m.position.set((x1 + x2) / 2, Y_PATH, (z1 + z2) / 2); m.rotation.z = Math.atan2(-(x2 - x1), -(z2 - z1)); return m; };
+  const keep = [[0, 0, 40]]; // [x, z, radius] areas kept clear of greenery
+  const spokes = []; // [x1, z1, x2, z2] paths kept clear of greenery
+  flat(new THREE.CircleGeometry(FIELD, 96), GRASS, Y_FIELD);
+  for (let i = 0; i < 40; i++) { const a = r() * Math.PI * 2, d = 40 + r() * (FIELD - 60); flat(new THREE.CircleGeometry(12 + r() * 30, 24), [0x5a9a42, 0x467d33, 0x629f48][i % 3], Y_PATCH).position.set(Math.cos(a) * d, Y_PATCH, Math.sin(a) * d); }
+  flat(new THREE.CircleGeometry(30, 64), STONE, Y_PLAZA);
+  flat(new THREE.RingGeometry(PAD_R - 3.5, PAD_R + 3.5, 160, 1, Math.PI / 18, Math.PI * 8 / 9), 0xffffff, Y_PATH + 0.02, brickMat(PAD_R * 2, PAD_R * 2)); // brick ring road past every pad trio
   scene.add(root);
   ground.visible = false; grid.visible = false;
-  scene.background = skyTexture({ sky: 0x5f9fe0, fog: 0xbcd6f0, ground: 0x5c6b4a }, 'lobby');
-  scene.fog.color.set(0xbcd6f0); scene.fog.near = 260; scene.fog.far = 1000;
-  camera.far = 2500; camera.updateProjectionMatrix();
-  controls.target.set(0, 3, 0); camera.position.set(70, 55, 150); controls.minDistance = 10; controls.maxDistance = 600; controls.maxPolarAngle = Math.PI / 2 - 0.03; controls.update();
+  scene.background = skyTexture({ sky: 0x5f9fe0, fog: 0xbcd6f0, ground: GRASS }, 'lobby');
+  scene.fog.color.set(0xbcd6f0); scene.fog.near = 480; scene.fog.far = 1500;
+  camera.near = 2; camera.far = 3000; camera.updateProjectionMatrix(); // a nearer near plane keeps depth precision across the big field
+  controls.target.set(0, 0, -15); camera.position.set(40, 262, 325); controls.minDistance = 10; controls.maxDistance = 900; controls.maxPolarAngle = Math.PI / 2 - 0.03; controls.update();
   const mixers = [];
   current = { def: { id: 'Lobby' }, root, hp: 1, maxHp: 1, state: 'map', animated: true, bob: false, actions: {}, mixer: { update: dt => { for (const m of mixers) m.update(dt); } }, stepTimer: 0 };
   $('hud-name').textContent = 'Lobby'; $('hud-state').textContent = 'building…';
-  $('dims').textContent = `Plaza radius ${R + 30} m. Pads in the centre, one diorama per dungeon around the ring in unlock order.`;
-  const pads = [['SOLO', '1 player', 0x7bd88f, -14], ['DUO', '2 players', 0x5fb8ff, 0], ['SQUAD', '4 players', 0xff8a5f, 14]];
-  for (const [name, sub, color, x] of pads) {
-    const pad = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 4.8, 0.6, 32), new THREE.MeshStandardMaterial({ color, roughness: 0.6, emissive: color, emissiveIntensity: 0.25 }));
-    pad.position.set(x, 0.3, 0); pad.castShadow = true; pad.receiveShadow = true; root.add(pad);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(4.9, 0.18, 8, 48), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.4 }));
-    ring.rotation.x = Math.PI / 2; ring.position.set(x, 0.62, 0); root.add(ring);
-    const lab = labelSprite(name, sub, '#' + new THREE.Color(color).getHexString()); lab.position.set(x, 5.5, 0); root.add(lab);
-  }
+  $('dims').textContent = `Grass field radius ${FIELD} m; dungeon ring radius ${R} m. Spawn plaza in the centre, a dungeon arc with Solo / Duo / Squad pads per dungeon, Scoreboard and Shop plazas, three reserved plots.`;
   const jobs = [];
+  const prop = (file, h, x, z, yaw = 0) => jobs.push(placeProp({ file, h }, root, x, z, yaw));
+  const PADS = [['SOLO', '1 player', 0x7bd88f], ['DUO', '2 players', 0x5fb8ff], ['SQUAD', '4 players', 0xff8a5f]];
+  const pad = (name, sub, color, x, z, s = 1) => {
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(3 * s, 3.2 * s, 0.5, 32), new THREE.MeshStandardMaterial({ color, roughness: 0.6, emissive: color, emissiveIntensity: 0.25 }));
+    p.position.set(x, 0.35, z); p.castShadow = true; p.receiveShadow = true; root.add(p);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(3.3 * s, 0.15, 8, 48), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.4 }));
+    ring.rotation.x = Math.PI / 2; ring.position.set(x, 0.62, z); root.add(ring);
+    const lab = labelSprite(name, sub, '#' + new THREE.Color(color).getHexString()); lab.position.set(x, 5 * s, z); lab.scale.multiplyScalar(0.75 * s); root.add(lab);
+  };
+  const title = (text, sub, x, z, color = '#ffb454', k = 1.8) => { const lab = labelSprite(text, sub, color); lab.position.set(x, 13, z); lab.scale.multiplyScalar(k); root.add(lab); };
+  // Spawn plaza: players arrive around the bonfire.
+  const VL = '../assets/props/quaternius-village/', NA = '../assets/props/quaternius-nature/';
+  prop(VL + 'Bonfire_Lit.glb', 3, 0, 0);
+  for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; prop(VL + 'Bench_1.glb', 1.1, Math.cos(a) * 9, Math.sin(a) * 9, -a + Math.PI / 2); }
+  title('SPAWN', 'players arrive here', 0, 0, '#e8e9ec', 1.4);
+  // Dungeon arc: dioramas from west round the far side to east, unlock order, gate towards the plaza.
+  const n = DUNGEONS.length, a0 = -Math.PI * 170 / 180, a1 = -Math.PI * 10 / 180;
   DUNGEONS.forEach((d, i) => {
     const theme = MAPS[d.id]; if (!theme) return;
-    const a = (i / DUNGEONS.length) * Math.PI * 2 - Math.PI / 2;
+    const a = a0 + (a1 - a0) * (n > 1 ? i / (n - 1) : 0.5);
+    const ux = Math.cos(a), uz = Math.sin(a), tx = -uz, tz = ux; // radial and tangential unit vectors
     const holder = new THREE.Group();
-    holder.position.set(Math.cos(a) * R, 0.02, Math.sin(a) * R);
-    holder.rotation.y = -a - Math.PI / 2; // gates face the plaza, hall on the far side
+    holder.position.set(ux * R, Y_PLAZA + 0.05, uz * R);
+    holder.rotation.y = Math.PI / 2 - a; // gate (lane start) faces the plaza, tower on the outside
     root.add(holder);
-    const built = buildArena(theme, d, holder, { W: 34, D: 26, propMult: 0.3, withWalkers: true, mixers, seed: d.id + 'lobby', maxWalkers: 4 });
+    const built = buildArena(theme, d, holder, { W: 44, D: 34, propMult: 0.3, withWalkers: true, mixers, seed: d.id + 'lobby', maxWalkers: 4 });
     jobs.push(...built.jobs);
-    const lab = labelSprite(d.name, `Level ${d.unlockLevel}`); lab.position.set(0, 14, 0); lab.scale.multiplyScalar(1.5); holder.add(lab);
+    const lab = labelSprite(d.name, `Level ${d.unlockLevel}`); lab.position.set(0, 16, 0); lab.scale.multiplyScalar(1.7); holder.add(lab);
+    strip(ux * 28, uz * 28, ux * (R - 18), uz * (R - 18), 5);
+    spokes.push([0, 0, ux * (R - 18), uz * (R - 18)]);
+    PADS.forEach(([name, sub, color], j) => pad(name, sub, color, ux * PAD_R + tx * (j - 1) * 8, uz * PAD_R + tz * (j - 1) * 8, 0.75));
+    keep.push([ux * R, uz * R, 34], [ux * PAD_R, uz * PAD_R, 16]);
   });
-  $('stats').innerHTML = [['Pads', 'Solo (1) · Duo (2) · Squad (4)'], ['Dioramas', `${DUNGEONS.length} dungeons, unlock order clockwise from the top`], ['Countdown', 'Pad fills when occupied; launches a reserved server for that party size (see Lobby.luau / PadLogic.luau)']]
+  // Near-side zones, each its own plaza with a path from the spawn plaza.
+  const zone = (x, z, radius, text, sub, color, floor = STONE) => {
+    flat(radius > 0 ? new THREE.CircleGeometry(radius, 48) : new THREE.PlaneGeometry(-radius, -radius), floor, Y_PLAZA).position.set(x, Y_PLAZA, z);
+    title(text, sub, x, z, color);
+    strip(0, 0, x, z, 6); spokes.push([0, 0, x, z]); keep.push([x, z, Math.abs(radius) + 8]);
+  };
+  zone(-100, 55, 24, 'SCOREBOARD', 'Hall of Fame · Solo · Duo · Squad · Siege', '#ffd166');
+  { // the board: a wall facing the plaza with one panel per leaderboard
+    const g = new THREE.Group(); g.position.set(-100, 0, 55); g.lookAt(0, 0, 0); root.add(g);
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(18, 9, 0.8), new THREE.MeshStandardMaterial({ color: 0x3b3a44, roughness: 0.8 })); wall.position.set(0, 5.5, -6); wall.castShadow = true; g.add(wall);
+    [0x7bd88f, 0x5fb8ff, 0xff8a5f, 0xd98cff].forEach((c, i) => { const p = new THREE.Mesh(new THREE.BoxGeometry(3.6, 6.5, 0.2), new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.2 })); p.position.set(-6.3 + i * 4.2, 5.8, -5.5); g.add(p); });
+    for (const s of [-8, 8]) { const post = new THREE.Mesh(new THREE.BoxGeometry(0.8, 11, 0.8), new THREE.MeshStandardMaterial({ color: 0x5a4632 })); post.position.set(s, 5.5, -6); g.add(post); }
+  }
+  zone(100, 55, 24, 'SHOP & CLASSES', 'gear, skins, class select', '#8ef0ff');
+  prop(VL + 'MarketStand_1.glb', 4.5, 94, 45, Math.PI * 0.75); prop(VL + 'MarketStand_2.glb', 4.5, 108, 49, Math.PI * 0.9);
+  prop(VL + 'Blacksmith.glb', 8, 108, 69, -Math.PI * 0.7); prop(VL + 'Crate.glb', 1.2, 88, 61); prop(VL + 'Barrel.glb', 1.3, 91, 64);
+  zone(-115, 120, -26, 'RESERVED', 'future feature', '#c9ccd3', DIRT);
+  zone(115, 120, -26, 'RESERVED', 'future feature', '#c9ccd3', DIRT);
+  zone(0, 135, -26, 'RESERVED', 'future feature', '#c9ccd3', DIRT);
+  // Grass, flowers and bushes everywhere that is not a plaza or a path; trees close the horizon.
+  const segDist = (x, z, [x1, z1, x2, z2]) => { const dx = x2 - x1, dz = z2 - z1, L = dx * dx + dz * dz; const t = Math.max(0, Math.min(1, ((x - x1) * dx + (z - z1) * dz) / L)); return Math.hypot(x - x1 - dx * t, z - z1 - dz * t); };
+  const free = (x, z) => keep.every(([kx, kz, kr]) => Math.hypot(x - kx, z - kz) > kr) && spokes.every(s => segDist(x, z, s) > 6);
+  const scatter = (files, count, rMin, rMax, hMin, hMax) => {
+    for (let i = 0; i < count; i++) {
+      let x, z, tries = 0;
+      do { const a = r() * Math.PI * 2, d = rMin + Math.sqrt(r()) * (rMax - rMin); x = Math.cos(a) * d; z = Math.sin(a) * d; tries++; } while (!free(x, z) && tries < 30);
+      if (tries >= 30) continue;
+      prop(files[Math.floor(r() * files.length)], hMin + r() * (hMax - hMin), x, z, r() * Math.PI * 2);
+    }
+  };
+  const GREEN = [NA + 'Grass.glb', NA + 'Grass_2.glb', NA + 'Grass_Short.glb', NA + 'Flowers.glb', NA + 'Flowers.glb', NA + 'Bush_1.glb', NA + 'Bush_2.glb', NA + 'Plant_1.glb', NA + 'Plant_3.glb'];
+  const TREES = [NA + 'CommonTree_1.glb', NA + 'CommonTree_2.glb', NA + 'CommonTree_3.glb', NA + 'PineTree_1.glb', NA + 'PineTree_2.glb', NA + 'Willow_1.glb'];
+  scatter(GREEN, 220, 36, FIELD - 30, 0.9, 1.8);
+  scatter(TREES, 45, 60, R + 40, 8, 13);
+  scatter(TREES, 110, R + 60, FIELD - 25, 11, 18);
+  scatter([NA + 'Rock_1.glb', NA + 'Rock_2.glb', NA + 'Rock_3.glb', NA + 'TreeStump.glb'], 30, 40, FIELD - 40, 1, 2.5);
+  $('stats').innerHTML = [['Size', `grass field radius ${FIELD} m, dungeon ring radius ${R} m`], ['Zones', 'Spawn plaza · dungeon arc · Scoreboard · Shop & classes · 3 reserved plots'], ['Pads', 'Solo (1) · Duo (2) · Squad (4) in front of every dungeon'], ['Dioramas', `${DUNGEONS.length} dungeons, unlock order west to east along the far arc`], ['Countdown', 'Pad fills when occupied; launches a reserved server for that dungeon and party size (see Lobby.luau / PadLogic.luau)']]
     .map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
-  $('source').innerHTML = 'Dioramas reuse each dungeon\'s props kit at 1/4 density. Pads and plaza are placeholder geometry; a lobby kit can replace them later.';
+  $('source').innerHTML = 'Dioramas reuse each dungeon\'s props kit at 1/4 density; greenery and the shop stalls are Quaternius Nature / Village (CC0). Paths are a painted brick texture; pads, plazas and the scoreboard are placeholder geometry.';
   const results = await Promise.allSettled(jobs);
   if (seq !== loadSeq) return;
   const failed = results.filter(x => x.status === 'rejected').length;
-  $('hud-state').textContent = `${DUNGEONS.length} dioramas · 3 pads${failed ? ` · ${failed} props failed` : ''}`;
+  $('hud-state').textContent = `${DUNGEONS.length} dioramas · ${DUNGEONS.length * 3} pads · 5 zones${failed ? ` · ${failed} props failed` : ''}`;
   log(`lobby: ${jobs.length} loads, ${failed} failed`);
 }
 
@@ -679,18 +834,18 @@ async function showMap(d) {
   scene.add(root);
   ground.visible = false; grid.visible = false;
   scene.background = skyTexture(theme, d.id);
-  scene.fog.color.set(theme.fog); scene.fog.near = 220; scene.fog.far = 900;
+  scene.fog.color.set(theme.fog); scene.fog.near = 360; scene.fog.far = 1300;
   camera.far = 2500; camera.updateProjectionMatrix();
   const mixers = [];
-  const built = buildArena(theme, d, root, { mixers });
+  const built = buildArena(theme, d, root, { mixers, propMult: 4.5 });
   const { W, D, placed, walkers, laneLen } = built;
   hemi.intensity = 1.4; sun.intensity = 2.2;
-  controls.target.set(0, 6, 0); camera.position.set(W * 0.42, D * 0.34, -D * 1.0);
+  controls.target.set(0, D * 0.14, D * 0.1); camera.position.set(W * 0.3, D * 0.3, -D * 0.98);
   controls.minDistance = 6; controls.maxDistance = 600; controls.maxPolarAngle = Math.PI / 2 - 0.03; controls.update();
   current = { def: d, root, hp: 1, maxHp: 1, state: 'map', animated: true, bob: false, actions: {}, mixer: { update: dt => { for (const m of mixers) m.update(dt); } }, stepTimer: 0 };
   $('hud-name').textContent = `${d.name} map`; $('hud-state').textContent = 'building…';
   $('dims').textContent = `Arena ${W} × ${D} m (about ${Math.round(W * 3.5)} × ${Math.round(D * 3.5)} studs). One lane, ${Math.round(laneLen)} m from the gate to the tower.`;
-  $('stats').innerHTML = [['Unlock level', d.unlockLevel], ['Lane', `${Math.round(laneLen)} m winding route`], ['Tower', (MAPS[d.id].tower ?? MAPS[d.id].hall).file.split('/').pop().replace('.glb', '').replace('.gltf', '')], ['Creatures', fam?.creatures.length ?? 0], ['Gimmick', d.gimmick], ['Props', d.props]]
+  $('stats').innerHTML = [['Unlock level', d.unlockLevel], ['Arena', `${W} × ${D} m (about ${Math.round(W * 3.5)} × ${Math.round(D * 3.5)} studs)`], ['Lane', `${Math.round(laneLen)} m winding route`], ['Tower', (MAPS[d.id].tower ?? MAPS[d.id].hall).file.split('/').pop().replace('.glb', '').replace('.gltf', '')], ['Creatures', fam?.creatures.length ?? 0], ['Gimmick', d.gimmick], ['Props', d.props]]
     .map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
   $('source').innerHTML = `Wave order: ${fam ? fam.creatures.map(c => `${c.firstWave}. ${c.id}${c.type === 'Boss' ? ' (boss)' : ''}`).join(', ') : '—'}<br><a href="#creatures" style="color:var(--accent)">Open in Creatures tab</a>`;
   const results = await Promise.allSettled(built.jobs);
@@ -698,12 +853,12 @@ async function showMap(d) {
   const failed = results.filter(x => x.status === 'rejected');
   for (const f of failed) console.warn('map prop failed', f.reason);
   $('hud-state').textContent = `${placed} props · ${walkers.length} creatures on the lane${failed.length ? ` · ${failed.length} failed` : ''}`;
-  log(`map ${d.id}: ${placed} props, ${walkers.length} creatures, ${failed.length} failed${failed.length ? ': ' + failed.map(f => f.reason?.message ?? f.reason).join('; ') : ''}`);
+  log(`map ${d.id}: ${W}x${D} m, lane ${Math.round(laneLen)} m, ${placed} props, ${walkers.length} creatures, ${failed.length} failed${failed.length ? ': ' + failed.map(f => f.reason?.message ?? f.reason).join('; ') : ''}`);
 }
 
-// A class is previewed on a KayKit Adventurer dummy: the rig's built-in weapons are hidden unless the
-// class lists them, a Kenney gun or a procedural flail is attached to the right hand slot, and the two
-// skills play their clips with a simulated cooldown. The player keeps their own avatar in game.
+// A class is previewed on a Kenney blocky character (CC0), the stand-in for a random player's own
+// avatar: the game never replaces the player's skin, it only puts the class weapon in their hand.
+// Weapons are attached to the rigid arm nodes, and the two skills play their clips with a simulated cooldown.
 function makeFlail() {
   const g = new THREE.Group();
   const wood = new THREE.MeshStandardMaterial({ color: 0x6b4a2b, roughness: 0.9 }), iron = new THREE.MeshStandardMaterial({ color: 0x8a8f99, metalness: 0.6, roughness: 0.4 });
@@ -714,62 +869,153 @@ function makeFlail() {
   g.traverse(o => { if (o.isMesh) o.castShadow = true; });
   return g;
 }
-// GLTFLoader strips dots from node names ("handslot.r" -> "handslotr"), so match loosely.
 function findBone(root, re) { let hit = null; root.traverse(o => { if (!hit && re.test(o.name)) hit = o; }); return hit; }
-const RIGHT_SLOT = /^handslot[._]?r$/i, LEFT_SLOT = /^handslot[._]?l$/i, RIGHT_HAND = /^hand[._]?r$/i;
-async function attachToHand(root, obj, { length = 0.9, forwardZ = true } = {}) {
-  const slot = findBone(root, RIGHT_SLOT) ?? findBone(root, RIGHT_HAND);
-  if (!slot) { root.add(obj); return; }
-  const box = new THREE.Box3().setFromObject(obj); const size = box.getSize(new THREE.Vector3()); const longest = Math.max(size.x, size.y, size.z);
-  const ws = new THREE.Vector3(); slot.getWorldScale(ws);
-  obj.scale.setScalar(length / Math.max(longest, 1e-3) / Math.max(ws.x, 1e-6));
-  const c = box.getCenter(new THREE.Vector3()).multiplyScalar(obj.scale.x); obj.position.sub(c);
-  if (forwardZ) obj.rotation.set(0, Math.PI / 2, 0); // Kenney guns point along +x; the hand slot's forward is +z
-  const holder = new THREE.Group(); holder.add(obj); slot.add(holder);
+const ARM_R = /^arm[-_]?right$/i, ARM_L = /^arm[-_]?left$/i;
+// Bounding box of a node's own meshes in the node's local space (the Kenney arm is a single mesh, or a group of primitives).
+function localBox(node) {
+  const box = new THREE.Box3();
+  node.traverse(m => { if (m.isMesh) { m.geometry.computeBoundingBox(); const b = m.geometry.boundingBox.clone(); if (m !== node) b.applyMatrix4(m.matrix); box.union(b); } });
+  return box;
 }
+// Rotate `obj` so the model's `axis` ('+x', '-y', '+z', ...) points along the holder's +z, keeping +y up where possible.
+function orientForward(obj, axis) {
+  const r = { '+z': [0, 0], '-z': [0, Math.PI], '+y': [Math.PI / 2, 0], '-y': [-Math.PI / 2, 0], '+x': [0, -Math.PI / 2], '-x': [0, Math.PI / 2] }[axis] ?? [0, 0];
+  obj.rotation.set(r[0], r[1], 0);
+}
+// Load a weapon: a standalone glb, or one named mesh out of a bigger file (KayKit keeps the staff and wand inside Mage.glb).
+async function loadWeapon(w) {
+  const g = await loadGltf(w.file);
+  let obj;
+  if (w.node) { const src = findBone(g.scene, new RegExp('^' + w.node + '$')); if (!src) throw new Error(`${w.node} not in ${w.file}`); obj = src.clone(true); obj.position.set(0, 0, 0); obj.quaternion.identity(); obj.scale.setScalar(1); obj.visible = true; }
+  else obj = g.scene.clone(true);
+  obj.traverse(o => { if (o.isMesh) { o.castShadow = true; o.visible = true; } });
+  return obj;
+}
+// Put `obj` in the character's hand. `len` is the weapon length as a fraction of the character height;
+// grip 'gun' points it along the arm, grip 'melee' points it the way the character faces (so it rises with
+// the arm), grip 'shield' stands it in front of the forearm. `offset` slides the hand toward the butt end.
+function holdInHand(root, obj, { side = 'right', len = 0.4, fwd = '+z', grip = 'melee', offset = 0, charHeight }) {
+  const arm = findBone(root, side === 'right' ? ARM_R : ARM_L);
+  if (!arm) { root.add(obj); return; }
+  const box = new THREE.Box3().setFromObject(obj); const size = box.getSize(new THREE.Vector3());
+  const longest = Math.max(size.x, size.y, size.z);
+  if (fwd === 'auto') fwd = size.x === longest ? '+x' : size.y === longest ? '+y' : '+z';
+  const ws = new THREE.Vector3(); arm.getWorldScale(ws);
+  const k = (len * charHeight) / Math.max(longest, 1e-3) / Math.max(ws.x, 1e-6);
+  // Cached scenes may already carry a scale/offset from a thumbnail or the Weapons tab, so normalise
+  // through a wrapper instead of overwriting the model's own transform.
+  const norm = new THREE.Group(); norm.add(obj); norm.scale.setScalar(k);
+  norm.position.copy(box.getCenter(new THREE.Vector3()).multiplyScalar(-k));
+  const inner = new THREE.Group(); inner.add(norm); orientForward(inner, fwd);
+  const holder = new THREE.Group(); holder.add(inner);
+  const ab = localBox(arm); const asz = ab.getSize(new THREE.Vector3());
+  const hand = new THREE.Vector3((ab.min.x + ab.max.x) / 2, ab.min.y + asz.y * 0.12, (ab.min.z + ab.max.z) / 2);
+  holder.position.copy(hand);
+  const L = len * charHeight / Math.max(ws.x, 1e-6);
+  if (grip === 'gun') { holder.rotation.x = Math.PI / 2; holder.position.y += L * 0.05; inner.position.z = -L * offset; }
+  else if (grip === 'shield') { holder.position.y = ab.min.y + asz.y * 0.45; holder.position.z += asz.z * 0.5 + L * 0.03; }
+  else { holder.rotation.x = -1.25; inner.position.z = L * offset; } // melee: mostly up, a little forward, so it rises with the swing
+  arm.add(holder);
+}
+
+// The Roblox default character: a procedural R15-style blocky figure in the classic colours (yellow
+// head and arms, blue torso, green legs), 5 studs tall, facing +z. Nodes use the Kenney names so the
+// same weapon attachment and the same clip names work; the clips are small keyframe tracks.
+function makeRobloxDummy() {
+  const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, metalness: 0 });
+  const yellow = mat(0xf5cd30), blue = mat(0x0d69ac), green = mat(0x4b974b);
+  const box = (w, h, d, m) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); me.castShadow = true; return me; };
+  const root = new THREE.Group(); root.name = 'roblox-dummy';
+  const legH = 2, torsoH = 2, headH = 1.2;
+  const torso = new THREE.Group(); torso.name = 'torso'; torso.position.y = legH; root.add(torso);
+  const torsoMesh = box(2, torsoH, 1, blue); torsoMesh.position.y = torsoH / 2; torso.add(torsoMesh);
+  const head = new THREE.Group(); head.name = 'head'; head.position.y = torsoH; torso.add(head);
+  // The classic Roblox head is a rounded cylinder, not a cube; the face is the classic smile, drawn on a canvas.
+  const headGeo = new THREE.CylinderGeometry(0.62, 0.62, headH, 28, 1); headGeo.scale(1, 1, 0.98);
+  const headMesh = new THREE.Mesh(headGeo, yellow); headMesh.castShadow = true; headMesh.position.y = headH / 2 + 0.05; head.add(headMesh);
+  const cap = (y) => { const c = new THREE.Mesh(new THREE.SphereGeometry(0.62, 28, 10, 0, Math.PI * 2, 0, Math.PI / 2), yellow); c.scale.set(1, 0.18, 0.98); c.position.y = y; return c; };
+  const topCap = cap(headH + 0.05); const botCap = cap(0.05); botCap.rotation.x = Math.PI; head.add(topCap, botCap);
+  const fc = document.createElement('canvas'); fc.width = 256; fc.height = 256; const fg = fc.getContext('2d');
+  fg.fillStyle = '#111'; fg.beginPath(); fg.ellipse(88, 96, 13, 22, 0, 0, Math.PI * 2); fg.fill(); fg.beginPath(); fg.ellipse(168, 96, 13, 22, 0, 0, Math.PI * 2); fg.fill();
+  fg.lineWidth = 12; fg.strokeStyle = '#111'; fg.lineCap = 'round'; fg.beginPath(); fg.arc(128, 128, 54, Math.PI * 0.2, Math.PI * 0.8); fg.stroke();
+  const faceTex = new THREE.CanvasTexture(fc); faceTex.colorSpace = THREE.SRGBColorSpace;
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.0), new THREE.MeshBasicMaterial({ map: faceTex, transparent: true })); face.position.set(0, headH / 2 + 0.05, 0.615); head.add(face);
+  const limb = (name, x, y, w, h, m) => { const g = new THREE.Group(); g.name = name; g.position.set(x, y, 0); const me = box(w, h, 1, m); me.position.y = -h / 2; g.add(me); return g; };
+  torso.add(limb('arm-right', -1.5, torsoH, 1, 2, yellow), limb('arm-left', 1.5, torsoH, 1, 2, yellow));
+  root.add(limb('leg-right', -0.5, legH, 1, legH, green), limb('leg-left', 0.5, legH, 1, legH, green));
+  // Clips: quaternion tracks on the named nodes. x rotation: negative swings a limb forward (+z).
+  const qx = a => new THREE.Quaternion().setFromEuler(new THREE.Euler(a, 0, 0));
+  const track = (node, times, angles) => new THREE.QuaternionKeyframeTrack(node + '.quaternion', times, angles.flatMap(a => qx(a).toArray()));
+  const clip = (name, duration, tracks) => new THREE.AnimationClip(name, duration, tracks);
+  const F = -Math.PI / 2; // arm straight forward
+  const animations = [
+    clip('idle', 2, [track('arm-right', [0, 1, 2], [0.05, -0.05, 0.05]), track('arm-left', [0, 1, 2], [-0.05, 0.05, -0.05]), track('head', [0, 1, 2], [0, 0.04, 0])]),
+    clip('walk', 1, [track('arm-right', [0, 0.5, 1], [-0.6, 0.6, -0.6]), track('arm-left', [0, 0.5, 1], [0.6, -0.6, 0.6]), track('leg-right', [0, 0.5, 1], [0.6, -0.6, 0.6]), track('leg-left', [0, 0.5, 1], [-0.6, 0.6, -0.6])]),
+    clip('sprint', 0.6, [track('arm-right', [0, 0.3, 0.6], [-1.1, 1.1, -1.1]), track('arm-left', [0, 0.3, 0.6], [1.1, -1.1, 1.1]), track('leg-right', [0, 0.3, 0.6], [1.0, -1.0, 1.0]), track('leg-left', [0, 0.3, 0.6], [-1.0, 1.0, -1.0]), track('torso', [0, 0.6], [0.25, 0.25])]),
+    clip('holding-right', 1, [track('arm-right', [0, 1], [F, F])]),
+    clip('holding-left', 1, [track('arm-left', [0, 1], [F, F])]),
+    clip('holding-both', 1, [track('arm-right', [0, 1], [F, F]), track('arm-left', [0, 1], [F + 0.1, F + 0.1])]),
+    clip('holding-right-shoot', 0.3, [track('arm-right', [0, 0.08, 0.3], [F, F + 0.3, F])]),
+    clip('holding-left-shoot', 0.3, [track('arm-left', [0, 0.08, 0.3], [F, F + 0.3, F])]),
+    clip('holding-both-shoot', 0.3, [track('arm-right', [0, 0.08, 0.3], [F, F + 0.3, F]), track('arm-left', [0, 0.08, 0.3], [F + 0.1, F + 0.4, F + 0.1])]),
+    clip('attack-melee-right', 0.7, [track('arm-right', [0, 0.25, 0.45, 0.7], [0, -2.8, -0.5, 0]), track('torso', [0, 0.25, 0.45, 0.7], [0, -0.15, 0.25, 0])]),
+    clip('attack-melee-left', 0.7, [track('arm-left', [0, 0.25, 0.45, 0.7], [0, -2.8, -0.5, 0])]),
+    clip('interact-right', 0.8, [track('arm-right', [0, 0.3, 0.5, 0.8], [0, -1.3, -1.3, 0])]),
+    clip('pick-up', 1, [track('torso', [0, 0.4, 0.7, 1], [0, 0.7, 0.7, 0]), track('arm-right', [0, 0.4, 0.7, 1], [0, -1.0, -1.0, 0]), track('arm-left', [0, 0.4, 0.7, 1], [0, -1.0, -1.0, 0])]),
+    clip('emote-yes', 1, [track('head', [0, 0.25, 0.5, 0.75, 1], [0, 0.35, 0, 0.35, 0]), track('arm-right', [0, 0.5, 1], [-2.9, -2.6, -2.9])]),
+    clip('emote-no', 1, [new THREE.QuaternionKeyframeTrack('head.quaternion', [0, 0.25, 0.5, 0.75, 1], [0, 0.35, 0, -0.35, 0].flatMap(a => new THREE.Quaternion().setFromEuler(new THREE.Euler(0, a, 0)).toArray()))]),
+    clip('die', 1, [new THREE.QuaternionKeyframeTrack('roblox-dummy.quaternion', [0, 1], [...qx(0).toArray(), ...new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI / 2)).toArray()])]),
+  ];
+  return { scene: root, animations };
+}
+let clsRig = new URLSearchParams(location.search).get('rig') ?? 'roblox';
+$('cls-rig-select').value = clsRig;
+$('cls-rig-select').onchange = e => { clsRig = e.target.value; if (current?.isClass) showClass(current.def); };
 let classCooldowns = {};
+const clsIdle = () => current?.def?.anims?.idle ?? 'idle';
 async function showClass(cls) {
   clear();
   const seq = ++loadSeq;
-  const gltf = await loadGltf(cls.rig);
+  const rigFile = clsRig === 'kenney' ? BLOCKY_RIGS[Math.floor(Math.random() * BLOCKY_RIGS.length)] : 'roblox-dummy';
+  const gltf = clsRig === 'kenney' ? await loadGltf(rigFile) : makeRobloxDummy();
   if (seq !== loadSeq) return;
   const root = cloneSkinned(gltf.scene);
-  root.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; if (RIG_WEAPONS.test(o.name) && !cls.show.includes(o.name)) o.visible = false; } });
-  // Hidden weapon meshes may hang off bones; parents named like weapons are hidden too.
-  root.traverse(o => { if (RIG_WEAPONS.test(o.name) && !cls.show.includes(o.name) && !o.isMesh) o.visible = false; });
+  root.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
   scene.add(root);
   const mixer = new THREE.AnimationMixer(root);
   const actions = {};
   for (const clip of gltf.animations) actions[clipName(clip)] = mixer.clipAction(clip);
-  const idle = actions.Idle; if (idle) { idle.play(); mixer.update(0.5); }
+  const idle = actions[cls.anims.idle] ?? actions.idle; if (idle) { idle.play(); mixer.update(0.5); }
   let fsize; try { fsize = frame(root); } catch (e) { scene.remove(root); throw e; }
   if (idle) idle.stop();
+  const charHeight = meshBox(root).getSize(new THREE.Vector3()).y;
   const extras = [];
-  if (cls.gun) { const g = (await loadGltf(cls.gun)).scene.clone(true); g.traverse(o => { if (o.isMesh) o.castShadow = true; }); await attachToHand(root, g, { length: cls.gun.includes('pistol') ? 0.45 : 0.95 }); }
-  if (cls.gun2) { const g = (await loadGltf(cls.gun2)).scene.clone(true); const slot = findBone(root, LEFT_SLOT); if (slot) { const b = new THREE.Box3().setFromObject(g); const sz = b.getSize(new THREE.Vector3()); const ws = new THREE.Vector3(); slot.getWorldScale(ws); g.scale.setScalar(0.45 / Math.max(sz.x, sz.y, sz.z) / Math.max(ws.x, 1e-6)); g.position.sub(b.getCenter(new THREE.Vector3()).multiplyScalar(g.scale.x)); g.rotation.set(0, Math.PI / 2, 0); slot.add(g); } }
-  if (cls.flail) { const f = makeFlail(); const slot = findBone(root, RIGHT_SLOT); if (slot) { const ws = new THREE.Vector3(); slot.getWorldScale(ws); f.scale.setScalar(1 / Math.max(ws.x, 1e-6)); f.rotation.x = Math.PI / 2; slot.add(f); } else root.add(f); }
-  if (cls.turret) { const t = (await loadGltf(cls.turret)).scene.clone(true); t.traverse(o => { if (o.isMesh) o.castShadow = true; }); fitHeight(t, 0.9); t.position.x += 1.4; t.position.z += 0.3; t.rotation.y = Math.PI; root.parent.add(t); extras.push(t); }
+  for (const w of cls.hold ?? []) {
+    const obj = w.flail ? makeFlail() : await loadWeapon(w);
+    holdInHand(root, obj, { ...w, fwd: w.flail ? '+y' : w.fwd, charHeight });
+  }
+  if (cls.turret) { const t = (await loadGltf(cls.turret)).scene.clone(true); t.traverse(o => { if (o.isMesh) o.castShadow = true; }); fitHeight(t, charHeight * 0.5); t.position.x += charHeight * 0.7; t.position.z += charHeight * 0.15; t.rotation.y = Math.PI; root.parent.add(t); extras.push(t); }
   let petMixer = null;
-  if (cls.pet) { const pg = await loadGltf(cls.pet); const pet = cloneSkinned(pg.scene); fitHeight(pet, 0.5); pet.position.set(-1.1, 1.3, 0.3); root.parent.add(pet); extras.push(pet); petMixer = new THREE.AnimationMixer(pet); const c = pg.animations.find(c => clipName(c) === cls.petAnims.idle) ?? pg.animations[0]; if (c) petMixer.clipAction(c).play(); }
+  if (cls.pet) { const pg = await loadGltf(cls.pet); const pet = cloneSkinned(pg.scene); fitHeight(pet, charHeight * 0.28); pet.position.set(-charHeight * 0.55, charHeight * 0.7, charHeight * 0.15); root.parent.add(pet); extras.push(pet); petMixer = new THREE.AnimationMixer(pet); const c = pg.animations.find(c => clipName(c) === cls.petAnims.idle) ?? pg.animations[0]; if (c) petMixer.clipAction(c).play(); }
   if (seq !== loadSeq) { scene.remove(root); extras.forEach(e => scene.remove(e)); return; }
-  log(`class ${cls.id}: size ${fsize.x.toFixed(2)}x${fsize.y.toFixed(2)}x${fsize.z.toFixed(2)} clips ${gltf.animations.length}`);
+  log(`class ${cls.id}: rig ${rigFile.split('/').pop()} size ${fsize.x.toFixed(2)}x${fsize.y.toFixed(2)}x${fsize.z.toFixed(2)} clips ${gltf.animations.length} weapons ${(cls.hold ?? []).length}`);
   classCooldowns = {};
   current = { def: cls, root, mixer, extraMixers: petMixer ? [petMixer] : [], actions, hp: 1, maxHp: 1, state: 'idle', stepTimer: 0, animated: true, bob: false, extras, isClass: true };
-  playAnim('Idle');
+  playAnim(cls.anims.idle);
   $('hud-name').textContent = `${cls.id} · ${cls.weapon}`;
   $('hud-state').textContent = cls.tier === 'Free' ? 'Free class' : `Locked · ${cls.cost} gems`;
   $('cls-anim-select').innerHTML = gltf.animations.map(c => `<option>${clipName(c)}</option>`).join('');
-  $('cls-anim-select').value = 'Idle';
+  $('cls-anim-select').value = cls.anims.idle;
   $('btn-skill1').textContent = `${cls.skills[0].name} (${cls.skills[0].cooldown}s)`;
   $('btn-skill2').textContent = `${cls.skills[1].name} (${cls.skills[1].cooldown}s)`;
   $('btn-cls-repair').classList.toggle('hidden', !cls.skills[0].repair);
   $('cooldowns').textContent = 'Both skills ready.';
   $('stats').innerHTML = [
-    ['Tier', cls.tier === 'Free' ? 'Free' : `Locked · ${cls.cost} gems`], ['Role', cls.role], ['Weapon', cls.weapon + (cls.flail ? ' (flail is a placeholder model)' : '')], ['Passive', cls.passive],
+    ['Tier', cls.tier === 'Free' ? 'Free' : `Locked · ${cls.cost} gems`], ['Role', cls.role], ['Weapon', cls.weapon + (cls.hold?.some(w => w.flail) ? ' (flail is a placeholder model)' : '')], ['Passive', cls.passive],
     [`Skill 1 · ${cls.skills[0].name}`, `${cls.skills[0].desc}. Cooldown ${cls.skills[0].cooldown} s${cls.skills[0].duration ? `, lasts ${cls.skills[0].duration} s` : ''}. Anim: ${cls.skills[0].anim}${cls.skills[0].repair ? `; repair swing: ${cls.skills[0].repair}` : ''}`],
     [`Skill 2 · ${cls.skills[1].name}`, `${cls.skills[1].desc}. Cooldown ${cls.skills[1].cooldown} s${cls.skills[1].duration ? `, lasts ${cls.skills[1].duration} s` : ''}. Anim: ${cls.skills[1].anim}`],
   ].map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
-  $('source').innerHTML = `Preview dummy: KayKit Adventurers (CC0). ${cls.gun ? 'Gun: Kenney Weapon Pack (CC0). ' : ''}${cls.turret ? 'Turret: Quaternius Cyberpunk Kit (CC0). ' : ''}${cls.pet ? 'Pet: Quaternius Cute Monsters (CC0). ' : ''}In game the player keeps their own avatar; these clips are the reference for the Roblox animations.`;
+  $('source').innerHTML = `${clsRig === 'kenney' ? 'Stand-in player: Kenney Blocky Characters (CC0), picked at random each time' : 'Stand-in player: a procedural R15-style default character in the classic colours'}, because in game the player keeps their own avatar and only the weapon is added. ${cls.hold?.some(w => w.file?.includes('kenney-weapon')) ? 'Gun: Kenney Weapon Pack (CC0). ' : ''}${cls.hold?.some(w => w.file?.includes('quaternius-medieval')) ? 'Melee: Quaternius Medieval Weapons (CC0). ' : ''}${cls.hold?.some(w => w.node) ? 'Staff/wand: KayKit Adventurers (CC0). ' : ''}${cls.turret ? 'Turret: Quaternius Cyberpunk Kit (CC0). ' : ''}${cls.pet ? 'Pet: Quaternius Cute Monsters (CC0). ' : ''}Clips are Kenney's; they are the reference for the Roblox animations.`;
 }
 function useSkill(i) {
   const cls = current?.def; if (!current?.isClass || !cls) return;
@@ -778,15 +1024,15 @@ function useSkill(i) {
   classCooldowns[i] = skill.cooldown;
   current.state = 'idle';
   play('impact_generic_light', 0.5);
-  playAnim(skill.anim, { once: !skill.anim.endsWith('ing') && skill.anim !== 'Blocking', then: () => playAnim('Idle') });
-  if (skill.duration >= 3) setTimeout(() => { if (current?.def === cls && current.state !== 'walk' && current.state !== 'run') playAnim('Idle'); }, skill.duration * 1000);
+  playAnim(skill.anim, { once: !skill.loop, then: () => playAnim(clsIdle()) });
+  if (skill.duration >= 3) setTimeout(() => { if (current?.def === cls && current.state !== 'walk' && current.state !== 'run') playAnim(clsIdle()); }, skill.duration * 1000);
 }
 $('btn-skill1').onclick = () => useSkill(0);
 $('btn-skill2').onclick = () => useSkill(1);
-$('btn-cls-repair').onclick = () => { if (current?.isClass) { play('impact_metal_light', 0.6); playAnim(current.def.skills[0].repair, { once: true, then: () => playAnim('Idle') }); } };
-$('btn-cls-walk').onclick = () => { if (current?.isClass) { current.state = 'walk'; playAnim('Walking_A'); } };
-$('btn-cls-run').onclick = () => { if (current?.isClass) { current.state = 'run'; playAnim('Running_A'); } };
-$('btn-cls-idle').onclick = () => { if (current?.isClass) { current.state = 'idle'; playAnim('Idle'); } };
+$('btn-cls-repair').onclick = () => { if (current?.isClass) { play('impact_metal_light', 0.6); playAnim(current.def.skills[0].repair, { once: true, then: () => playAnim(clsIdle()) }); } };
+$('btn-cls-walk').onclick = () => { if (current?.isClass) { current.state = 'walk'; playAnim('walk'); } };
+$('btn-cls-run').onclick = () => { if (current?.isClass) { current.state = 'run'; playAnim('sprint'); } };
+$('btn-cls-idle').onclick = () => { if (current?.isClass) { current.state = 'idle'; playAnim(clsIdle()); } };
 $('cls-anim-select').onchange = e => { if (current?.isClass) { current.state = 'idle'; playAnim(e.target.value); } };
 
 // Quaternius exports clips as "<Armature>|<Name>"; the catalog uses the bare name.
@@ -990,7 +1236,7 @@ const thumbObserver = new IntersectionObserver(entries => {
 const TABS = {
   creatures: { animated: true, groups: () => FAMILIES.map(f => ({ title: `${f.name} · ${f.map}`, items: f.creatures })) },
   dungeons: { animated: true, isDungeon: true, groups: () => [{ title: 'Unlock order (player level)', items: DUNGEONS }] },
-  lobby: { animated: true, isLobby: true, groups: () => [{ title: 'Lobby', items: [{ id: 'Lobby', name: 'Lobby', blurb: 'Three floor pads (solo, duo, squad) in the plaza, one diorama per dungeon around it.' }] }] },
+  lobby: { animated: true, isLobby: true, groups: () => [{ title: 'Lobby', items: [{ id: 'Lobby', name: 'Lobby', blurb: 'Spawn plaza, a dungeon arc with Solo / Duo / Squad pads per dungeon, Scoreboard and Shop plazas, reserved plots, grass all round.' }] }] },
   classes: { animated: true, isClass: true, groups: () => [
     { title: 'Free classes', items: CLASSES.filter(c => c.tier === 'Free') },
     { title: 'Locked classes (bought with gems)', items: CLASSES.filter(c => c.tier !== 'Free') },
@@ -1000,6 +1246,11 @@ const TABS = {
 };
 
 let tab = 'creatures';
+// Collapsed groups in the left list, remembered per tab in this browser.
+let collapsed = new Set(); try { collapsed = new Set(JSON.parse(localStorage.getItem('fd-collapsed') ?? '[]')); } catch (e) {}
+function saveCollapsed() { try { localStorage.setItem('fd-collapsed', JSON.stringify([...collapsed])); } catch (e) {} }
+$('btn-collapse-all').onclick = () => { for (const g of TABS[tab].groups()) collapsed.add(`${tab}:${g.title}`); saveCollapsed(); renderList(); };
+$('btn-expand-all').onclick = () => { for (const g of TABS[tab].groups()) collapsed.delete(`${tab}:${g.title}`); saveCollapsed(); renderList(); };
 function renderList() {
   const q = $('filter').value.trim().toLowerCase();
   const list = $('list');
@@ -1008,23 +1259,28 @@ function renderList() {
   for (const g of cfg.groups()) {
     const items = g.items.filter(i => !q || (i.id ?? i.name).toLowerCase().includes(q));
     if (!items.length) continue;
-    const h = document.createElement('div'); h.className = 'group'; h.textContent = `${g.title} (${items.length})`; list.appendChild(h);
+    const key = `${tab}:${g.title}`;
+    const h = document.createElement('div'); h.className = 'group' + (collapsed.has(key) ? ' collapsed' : ''); h.innerHTML = `<span class="chev">▾</span><span>${g.title} (${items.length})</span>`; list.appendChild(h);
+    h.onclick = () => { collapsed.has(key) ? collapsed.delete(key) : collapsed.add(key); h.classList.toggle('collapsed', collapsed.has(key)); saveCollapsed(); };
+    const body = document.createElement('div'); body.className = 'group-body'; list.appendChild(body);
     for (const item of items) {
       const el = document.createElement('div');
       el.className = 'card';
       const fam = cfg.isDungeon ? FAMILIES.find(f => f.id === item.family) : null;
       const boss = fam ? (fam.creatures.find(c => c.type === 'Boss') ?? fam.creatures[0]) : null;
-      el.innerHTML = cfg.isLobby ? `<div></div><div><b>${item.name}</b><small>${item.blurb}</small></div>` : cfg.isDungeon ? `<img class="thumb" alt=""><div><b>${item.name}</b><small>Level ${item.unlockLevel} · ${fam?.creatures.length ?? 0} creatures · ${item.lanes} lanes</small><small><br>${item.gimmick}</small></div>`
+      el.innerHTML = cfg.isLobby ? `<div></div><div><b>${item.name}</b><small>${item.blurb}</small></div>` : cfg.isDungeon ? `<img class="thumb" alt=""><div><b>${item.name}</b><small>Level ${item.unlockLevel} · ${fam?.creatures.length ?? 0} creatures · ${item.lanes} lane${item.lanes === 1 ? '' : 's'}</small><small><br>${item.gimmick}</small></div>`
         : cfg.animated ? animatedCard(item)
         : cfg.isClass ? `<img class="thumb" alt=""><div><b>${item.id}</b><small>${item.role} · ${item.weapon}</small><small><br>${item.passive}</small></div>`
         : `<img class="thumb" alt=""><b>${item.name}</b>`;
-      el.onclick = () => { for (const c of list.querySelectorAll('.card')) c.classList.remove('active'); el.classList.add('active'); cfg.isLobby ? showLobby() : cfg.isDungeon ? showMap(item) : cfg.animated ? showAnimated(item) : cfg.isClass ? showClass(item) : showStatic(item); };
-      list.appendChild(el);
+      el.onclick = () => { for (const c of list.querySelectorAll('.card')) c.classList.remove('active'); el.classList.add('active'); cfg.isLobby ? showLobby() : cfg.isDungeon ? showMap(item) : cfg.isClass ? showClass(item) : cfg.animated ? showAnimated(item) : showStatic(item); };
+      body.appendChild(el);
       const img = el.querySelector('.thumb');
       const thumbItem = cfg.isDungeon ? boss : item;
       if (!thumbItem || cfg.isLobby) continue;
       const opts = cfg.animated ? { scale: thumbItem.scale, tint: thumbItem.tint, idle: thumbItem.anims.idle } : {};
-      renderThumb(cfg.animated || cfg.isClass ? thumbItem.model : thumbItem.file, opts, img).then(url => { if (url) img.src = url; });
+      const thumbFile = cfg.isClass ? (thumbItem.hold?.find(w => w.file && !w.node)?.file ?? thumbItem.hold?.find(w => w.file)?.file ?? null) : cfg.animated ? thumbItem.model : thumbItem.file;
+      if (!thumbFile) continue;
+      renderThumb(thumbFile, cfg.isClass ? {} : opts, img).then(url => { if (url) img.src = url; });
     }
   }
 }
@@ -1034,11 +1290,12 @@ function setTab(name) {
   for (const a of document.querySelectorAll('#tabs a')) a.classList.toggle('active', a.dataset.tab === tab);
   const animated = TABS[tab].animated;
   const isClass = !!TABS[tab].isClass;
-  $('animated-controls').classList.toggle('hidden', !animated || isClass);
+  const isMapTab = !!(TABS[tab].isDungeon || TABS[tab].isLobby);
+  $('animated-controls').classList.toggle('hidden', !animated || isClass || isMapTab);
   $('class-controls').classList.toggle('hidden', !isClass);
   $('static-controls').classList.toggle('hidden', animated);
-  $('sounds-h').classList.toggle('hidden', !animated);
-  $('sounds').classList.toggle('hidden', !animated);
+  $('sounds-h').classList.toggle('hidden', !animated || isMapTab);
+  $('sounds').classList.toggle('hidden', !animated || isMapTab);
   $('hud').classList.toggle('hidden', false);
   clear();
   loadSeq++;
@@ -1052,6 +1309,14 @@ $('filter').oninput = renderList;
 addEventListener('hashchange', () => setTab(location.hash.slice(1)));
 
 // --- loop -------------------------------------------------------------------------------
+let groundTick = 0;
+// Put the posed model's lowest point on the floor (flyers hover at a share of their height instead).
+function groundNow(cur, k = 1) {
+  if (!cur || cur.bob || cur.isClass || cur.state === 'map') return;
+  const b = posedBox(cur.root); if (!isFinite(b.min.y)) return;
+  const hover = cur.def.type === 'Flyer' ? Math.min(1.2, b.getSize(new THREE.Vector3()).y * 0.3) : 0;
+  cur.root.position.y -= (b.min.y - hover) * k;
+}
 function tick() {
   requestAnimationFrame(tick);
   const dt = clock.getDelta();
@@ -1070,6 +1335,8 @@ function tick() {
       current.root.rotation.y += dt * (current.state === 'run' ? 2.5 : current.state === 'walk' ? 1.2 : 0.4);
       current.root.rotation.z = current.state === 'dead' ? Math.PI / 5 : Math.sin(t * 1.7) * 0.06;
     }
+    // Keep the feet on the pad while clips play: some run/attack clips lift or sink the whole body.
+    if ((groundTick = (groundTick + 1) % 6) === 0) groundNow(current, 0.5);
     if ((current.state === 'walk' || current.state === 'run') && $('chk-footsteps').checked && current.def.sounds.step) {
       current.stepTimer -= dt;
       if (current.stepTimer <= 0) { play(current.def.sounds.step, 0.35); current.stepTimer = current.state === 'run' ? 0.28 : 0.45; }
@@ -1101,13 +1368,16 @@ if (new URLSearchParams(location.search).has('walk')) {
   const px = new Uint8Array(160 * 120 * 4);
   const bg = scene.background.clone();
   const only = new URLSearchParams(location.search).get('only');
+  const idsOnly = new URLSearchParams(location.search).get('ids')?.split(',');
   for (const f of FAMILIES) for (const def of f.creatures) {
     if (only && !def.id.includes(only)) continue;
+    if (idsOnly && !idsOnly.includes(def.id)) continue;
     try {
       await showAnimated(def);
       playAnim(def.anims.walk);
       await new Promise(r => setTimeout(r, 120));
       current?.mixer?.update(0.6);
+      groundNow(current);
       pixelFit(current.root);
       const aspect = camera.aspect; camera.aspect = 160 / 120; camera.updateProjectionMatrix();
       renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.readRenderTargetPixels(rt, 0, 0, 160, 120, px); renderer.setRenderTarget(null);
@@ -1132,13 +1402,19 @@ if (new URLSearchParams(location.search).has('walk')) {
 }
 if (new URLSearchParams(location.search).has('cls')) {
   setTab('classes');
-  for (const c of CLASSES) { await showClass(c); await new Promise(r => setTimeout(r, 200)); useSkill(0); current?.mixer.update(0.45); await postShot('class__' + c.id + '__skill1'); useSkill(1); classCooldowns = {}; useSkill(1); current?.mixer.update(0.6); await postShot('class__' + c.id + '__skill2'); }
+  const clsOnly = new URLSearchParams(location.search).get('cls');
+  for (const c of CLASSES) { if (clsOnly && clsOnly !== '1' && !clsOnly.split(',').includes(c.id)) continue; await showClass(c); await new Promise(r => setTimeout(r, 200)); current?.mixer.update(0.6); await postShot('class__' + c.id + '__idle'); useSkill(0); current?.mixer.update(0.45); await postShot('class__' + c.id + '__skill1'); useSkill(1); classCooldowns = {}; useSkill(1); current?.mixer.update(0.6); await postShot('class__' + c.id + '__skill2'); }
   log('classes done');
 }
-if (new URLSearchParams(location.search).has('lobby')) { setTab('lobby'); await showLobby(); await new Promise(r => setTimeout(r, 500)); await postShot('lobby'); }
+if (new URLSearchParams(location.search).has('lobby')) { // ?burst=N posts N shots a second apart, nudging the camera, to catch flicker
+  setTab('lobby'); await showLobby(); await new Promise(r => setTimeout(r, 500)); const burst = Number(new URLSearchParams(location.search).get('burst')) || 1;
+  const zoom = Number(new URLSearchParams(location.search).get('zoom')); if (zoom) { controls.target.set(0, 0, -120); camera.position.set(60, 60 * zoom, 40); controls.update(); } // ?zoom=k: close-up of the dungeon arc
+  for (let i = 0; i < burst; i++) { if (i) { camera.position.x += 0.4; camera.position.y -= 0.3; await new Promise(r => setTimeout(r, 1000)); } await postShot(burst > 1 ? `lobby_${i}` : 'lobby'); }
+}
 async function postShot(name) {
   if (!new URLSearchParams(location.search).has('shots')) return;
   renderer.setSize(960, 600, false); camera.aspect = 960 / 600; camera.updateProjectionMatrix();
+  const view = new URLSearchParams(location.search).get('view'); if (view) { const d = camera.position.distanceTo(controls.target), t = controls.target; if (view === 'front') camera.position.set(t.x, t.y + d * 0.1, t.z + d); else camera.position.set(t.x - d, t.y + d * 0.1, t.z); camera.lookAt(t); }
   for (const m of (current?.mixer ? [current.mixer] : [])) m.update(0.5);
   renderer.render(scene, camera);
   await fetch('/__shot/' + encodeURIComponent(name), { method: 'POST', body: renderer.domElement.toDataURL('image/jpeg', 0.8) });
@@ -1151,6 +1427,21 @@ if (new URLSearchParams(location.search).has('zoomtest')) {
   await new Promise(r => setTimeout(r, 1000));
   const d1 = camera.position.distanceTo(controls.target);
   log(`zoomtest: one notch ${d0.toFixed(3)} -> ${d1.toFixed(3)} (${((d1 / d0 - 1) * 100).toFixed(1)}%)`);
+}
+if (new URLSearchParams(location.search).has('collapse')) { $('btn-collapse-all').click(); log(`collapse: ${$('list').querySelectorAll('.group.collapsed').length} groups collapsed, visible cards ${[...$('list').querySelectorAll('.card')].filter(c => c.offsetParent !== null).length}`); }
+// ?click=<tab>:<n> (with ?log=1): open a tab and click its n-th card the way a user would, then report errors.
+const clickSpec = new URLSearchParams(location.search).get('click');
+if (clickSpec) {
+  for (const spec of clickSpec.split(',')) {
+    const [t, n] = spec.split(':'); setTab(t); await new Promise(r => setTimeout(r, 300));
+    const cards = $('list').querySelectorAll('.card'); const card = cards[Number(n ?? 0)];
+    const before = $('errors').textContent;
+    if (!card) { log(`click ${spec}: no card (${cards.length} cards)`); continue; }
+    card.click(); await new Promise(r => setTimeout(r, 6000));
+    const after = $('errors').textContent;
+    log(`click ${spec} "${card.querySelector('b')?.textContent}": ${after !== before ? 'ERRORS ' + after.slice(before.length).trim() : 'ok'} · hud ${$('hud-name').textContent} / ${$('hud-state').textContent}`);
+  }
+  log('click done');
 }
 const snap = Number(new URLSearchParams(location.search).get('snapshot'));
 if (snap > 0) await new Promise(r => setTimeout(r, snap * 1000));
