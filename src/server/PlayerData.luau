@@ -1,5 +1,6 @@
 -- Loads, caches and saves per-player data in a DataStore.
 
+local RunService = game:GetService("RunService")
 local DataStoreService = game:GetService("DataStoreService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -41,10 +42,16 @@ function PlayerData.load(player: Player)
 			return store:GetAsync(key(player))
 		end)
 		if not ok then
-			player:Kick("Could not load your data. Please rejoin.")
-			return
+			if RunService:IsStudio() then
+				-- Studio has no DataStore access unless enabled in Game Settings; play with defaults instead of kicking.
+				warn("PlayerData: DataStore unavailable in Studio, using default data for", player.Name)
+			else
+				player:Kick("Could not load your data. Please rejoin.")
+				return
+			end
+		else
+			saved = result
 		end
-		saved = result
 	end
 
 	local data = table.clone(Config.DefaultData)

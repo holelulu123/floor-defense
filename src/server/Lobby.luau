@@ -126,9 +126,11 @@ local function billboard(
 ): TextLabel
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Sign"
-	gui.Size = UDim2.fromOffset(width, width * 0.3)
+	-- Scale units on a BillboardGui are studs, so signs shrink with distance instead of piling up on screen.
+	local studs = width / 20
+	gui.Size = UDim2.fromScale(studs, studs * 0.3)
 	gui.StudsOffsetWorldSpace = Vector3.new(0, height, 0)
-	gui.MaxDistance = 260
+	gui.MaxDistance = if width <= 170 then 110 else 260
 	gui.AlwaysOnTop = false
 	gui.Parent = parent
 
