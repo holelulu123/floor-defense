@@ -132,7 +132,7 @@
     <div class="note" id="cooldowns"></div>
     <div><button id="btn-cls-walk">Walk</button><button id="btn-cls-run">Run</button><button id="btn-cls-idle">Idle</button></div>
     <h2>Player</h2>
-    <select id="cls-rig-select"><option value="roblox">Roblox default character (R15)</option><option value="kenney">Random player skin (Kenney)</option></select>
+    <select id="cls-rig-select"><option value="avatar">My Roblox avatar (R15, exported from Studio)</option><option value="roblox">Roblox default character (R15)</option><option value="kenney">Random player skin (Kenney)</option></select>
     <h2>Any animation</h2>
     <select id="cls-anim-select"></select>
   </div>
@@ -895,8 +895,9 @@ async function loadWeapon(w) {
 // Put `obj` in the character's hand. `len` is the weapon length as a fraction of the character height;
 // grip 'gun' points it along the arm, grip 'melee' points it the way the character faces (so it rises with
 // the arm), grip 'shield' stands it in front of the forearm. `offset` slides the hand toward the butt end.
-function holdInHand(root, obj, { side = 'right', len = 0.4, fwd = '+z', grip = 'melee', offset = 0, charHeight }) {
-  const arm = findBone(root, side === 'right' ? ARM_R : ARM_L);
+function holdInHand(root, obj, { side = 'right', len = 0.4, fwd = '+z', grip = 'melee', offset = 0, charHeight, facing = 1 }) {
+  const arm = findBone(root, side === 'right' ? /^RightHand$/ : /^LeftHand$/) ?? findBone(root, side === 'right' ? ARM_R : ARM_L);
+  const att = findBone(root, side === 'right' ? /^RightGrip_Att$/ : /^LeftGrip_Att$/);
   if (!arm) { root.add(obj); return; }
   const box = new THREE.Box3().setFromObject(obj); const size = box.getSize(new THREE.Vector3());
   const longest = Math.max(size.x, size.y, size.z);
@@ -910,12 +911,15 @@ function holdInHand(root, obj, { side = 'right', len = 0.4, fwd = '+z', grip = '
   const inner = new THREE.Group(); inner.add(norm); orientForward(inner, fwd);
   const holder = new THREE.Group(); holder.add(inner);
   const ab = localBox(arm); const asz = ab.getSize(new THREE.Vector3());
-  const hand = new THREE.Vector3((ab.min.x + ab.max.x) / 2, ab.min.y + asz.y * 0.12, (ab.min.z + ab.max.z) / 2);
+  root.updateMatrixWorld(true);
+  const hand = att ? arm.worldToLocal(att.getWorldPosition(new THREE.Vector3())) : new THREE.Vector3((ab.min.x + ab.max.x) / 2, ab.min.y + asz.y * 0.12, (ab.min.z + ab.max.z) / 2);
   holder.position.copy(hand);
   const L = len * charHeight / Math.max(ws.x, 1e-6);
-  if (grip === 'gun') { holder.rotation.x = Math.PI / 2; holder.position.y += L * 0.05; inner.position.z = -L * offset; }
-  else if (grip === 'shield') { holder.position.y = ab.min.y + asz.y * 0.45; holder.position.z += asz.z * 0.5 + L * 0.03; holder.rotation.set(-Math.PI / 2, 0, 0); } // disc upright, face forward, straps toward the arm
-  else { holder.rotation.x = -1.25; inner.position.z = L * offset; } // melee: mostly up, a little forward, so it rises with the swing
+  // A rig that faces -z in its own frame (Roblox export) gets the mirrored tilt plus a half turn.
+  const tilt = (x) => facing < 0 ? holder.rotation.set(-x, Math.PI, 0) : holder.rotation.set(x, 0, 0);
+  if (grip === 'gun') { tilt(Math.PI / 2); holder.position.y += L * 0.05; inner.position.z = -L * offset; }
+  else if (grip === 'shield') { if (!att) { holder.position.y = ab.min.y + asz.y * 0.45; } holder.position.z += facing * (asz.z * 0.5 + L * 0.03); tilt(-Math.PI / 2); } // disc upright, face forward
+  else { tilt(-1.25); inner.position.z = L * offset; } // melee: mostly up, a little forward, so it rises with the swing
   arm.add(holder);
 }
 
@@ -970,32 +974,64 @@ function makeRobloxDummy() {
   };
   torso.add(arm('arm-right', -1.45, classic ? null : shirt), arm('arm-left', 1.45, classic ? null : shirt));
   root.add(leg('leg-right', -0.5), leg('leg-left', 0.5));
-  // Clips: quaternion tracks on the named nodes. x rotation: negative swings a limb forward (+z).
-  const qx = a => new THREE.Quaternion().setFromEuler(new THREE.Euler(a, 0, 0));
+  const animations = makeRigClips({ armR: 'arm-right', armL: 'arm-left', legR: 'leg-right', legL: 'leg-left', head: 'head', torso: 'torso', root: 'roblox-dummy' }, -1);
+  return { scene: root, animations };
+}
+// Keyframe clips for a jointed figure. `sign` is the x-rotation that swings a limb forward: -1 for the
+// procedural dummy (faces +z), +1 for a rig exported from Roblox (faces -z inside its own frame).
+function makeRigClips(n, sign) {
+  const qx = a => new THREE.Quaternion().setFromEuler(new THREE.Euler(a * sign, 0, 0));
   const track = (node, times, angles) => new THREE.QuaternionKeyframeTrack(node + '.quaternion', times, angles.flatMap(a => qx(a).toArray()));
   const clip = (name, duration, tracks) => new THREE.AnimationClip(name, duration, tracks);
   const F = -Math.PI / 2; // arm straight forward
   const animations = [
-    clip('idle', 2, [track('arm-right', [0, 1, 2], [0.05, -0.05, 0.05]), track('arm-left', [0, 1, 2], [-0.05, 0.05, -0.05]), track('head', [0, 1, 2], [0, 0.04, 0])]),
-    clip('walk', 1, [track('arm-right', [0, 0.5, 1], [-0.6, 0.6, -0.6]), track('arm-left', [0, 0.5, 1], [0.6, -0.6, 0.6]), track('leg-right', [0, 0.5, 1], [0.6, -0.6, 0.6]), track('leg-left', [0, 0.5, 1], [-0.6, 0.6, -0.6])]),
-    clip('sprint', 0.6, [track('arm-right', [0, 0.3, 0.6], [-1.1, 1.1, -1.1]), track('arm-left', [0, 0.3, 0.6], [1.1, -1.1, 1.1]), track('leg-right', [0, 0.3, 0.6], [1.0, -1.0, 1.0]), track('leg-left', [0, 0.3, 0.6], [-1.0, 1.0, -1.0]), track('torso', [0, 0.6], [0.25, 0.25])]),
-    clip('holding-right', 1, [track('arm-right', [0, 1], [F, F])]),
-    clip('holding-left', 1, [track('arm-left', [0, 1], [F, F])]),
-    clip('holding-both', 1, [track('arm-right', [0, 1], [F, F]), track('arm-left', [0, 1], [F + 0.1, F + 0.1])]),
-    clip('holding-right-shoot', 0.3, [track('arm-right', [0, 0.08, 0.3], [F, F + 0.3, F])]),
-    clip('holding-left-shoot', 0.3, [track('arm-left', [0, 0.08, 0.3], [F, F + 0.3, F])]),
-    clip('holding-both-shoot', 0.3, [track('arm-right', [0, 0.08, 0.3], [F, F + 0.3, F]), track('arm-left', [0, 0.08, 0.3], [F + 0.1, F + 0.4, F + 0.1])]),
-    clip('attack-melee-right', 0.7, [track('arm-right', [0, 0.25, 0.45, 0.7], [0, -2.8, -0.5, 0]), track('torso', [0, 0.25, 0.45, 0.7], [0, -0.15, 0.25, 0])]),
-    clip('attack-melee-left', 0.7, [track('arm-left', [0, 0.25, 0.45, 0.7], [0, -2.8, -0.5, 0])]),
-    clip('interact-right', 0.8, [track('arm-right', [0, 0.3, 0.5, 0.8], [0, -1.3, -1.3, 0])]),
-    clip('pick-up', 1, [track('torso', [0, 0.4, 0.7, 1], [0, 0.7, 0.7, 0]), track('arm-right', [0, 0.4, 0.7, 1], [0, -1.0, -1.0, 0]), track('arm-left', [0, 0.4, 0.7, 1], [0, -1.0, -1.0, 0])]),
-    clip('emote-yes', 1, [track('head', [0, 0.25, 0.5, 0.75, 1], [0, 0.35, 0, 0.35, 0]), track('arm-right', [0, 0.5, 1], [-2.9, -2.6, -2.9])]),
-    clip('emote-no', 1, [new THREE.QuaternionKeyframeTrack('head.quaternion', [0, 0.25, 0.5, 0.75, 1], [0, 0.35, 0, -0.35, 0].flatMap(a => new THREE.Quaternion().setFromEuler(new THREE.Euler(0, a, 0)).toArray()))]),
-    clip('die', 1, [new THREE.QuaternionKeyframeTrack('roblox-dummy.quaternion', [0, 1], [...qx(0).toArray(), ...new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI / 2)).toArray()])]),
+    clip('idle', 2, [track(n.armR, [0, 1, 2], [0.05, -0.05, 0.05]), track(n.armL, [0, 1, 2], [-0.05, 0.05, -0.05]), track(n.head, [0, 1, 2], [0, 0.04, 0])]),
+    clip('walk', 1, [track(n.armR, [0, 0.5, 1], [-0.6, 0.6, -0.6]), track(n.armL, [0, 0.5, 1], [0.6, -0.6, 0.6]), track(n.legR, [0, 0.5, 1], [0.6, -0.6, 0.6]), track(n.legL, [0, 0.5, 1], [-0.6, 0.6, -0.6])]),
+    clip('sprint', 0.6, [track(n.armR, [0, 0.3, 0.6], [-1.1, 1.1, -1.1]), track(n.armL, [0, 0.3, 0.6], [1.1, -1.1, 1.1]), track(n.legR, [0, 0.3, 0.6], [1.0, -1.0, 1.0]), track(n.legL, [0, 0.3, 0.6], [-1.0, 1.0, -1.0]), track(n.torso, [0, 0.6], [0.25, 0.25])]),
+    clip('holding-right', 1, [track(n.armR, [0, 1], [F, F])]),
+    clip('holding-left', 1, [track(n.armL, [0, 1], [F, F])]),
+    clip('holding-both', 1, [track(n.armR, [0, 1], [F, F]), track(n.armL, [0, 1], [F + 0.1, F + 0.1])]),
+    clip('holding-right-shoot', 0.3, [track(n.armR, [0, 0.08, 0.3], [F, F + 0.3, F])]),
+    clip('holding-left-shoot', 0.3, [track(n.armL, [0, 0.08, 0.3], [F, F + 0.3, F])]),
+    clip('holding-both-shoot', 0.3, [track(n.armR, [0, 0.08, 0.3], [F, F + 0.3, F]), track(n.armL, [0, 0.08, 0.3], [F + 0.1, F + 0.4, F + 0.1])]),
+    clip('attack-melee-right', 0.7, [track(n.armR, [0, 0.25, 0.45, 0.7], [0, -2.8, -0.5, 0]), track(n.torso, [0, 0.25, 0.45, 0.7], [0, -0.15, 0.25, 0])]),
+    clip('attack-melee-left', 0.7, [track(n.armL, [0, 0.25, 0.45, 0.7], [0, -2.8, -0.5, 0])]),
+    clip('interact-right', 0.8, [track(n.armR, [0, 0.3, 0.5, 0.8], [0, -1.3, -1.3, 0])]),
+    clip('pick-up', 1, [track(n.torso, [0, 0.4, 0.7, 1], [0, 0.7, 0.7, 0]), track(n.armR, [0, 0.4, 0.7, 1], [0, -1.0, -1.0, 0]), track(n.armL, [0, 0.4, 0.7, 1], [0, -1.0, -1.0, 0])]),
+    clip('emote-yes', 1, [track(n.head, [0, 0.25, 0.5, 0.75, 1], [0, 0.35, 0, 0.35, 0]), track(n.armR, [0, 0.5, 1], [-2.9, -2.6, -2.9])]),
+    clip('emote-no', 1, [new THREE.QuaternionKeyframeTrack(n.head + '.quaternion', [0, 0.25, 0.5, 0.75, 1], [0, 0.35, 0, -0.35, 0].flatMap(a => new THREE.Quaternion().setFromEuler(new THREE.Euler(0, a, 0)).toArray()))]),
+    clip('die', 1, [new THREE.QuaternionKeyframeTrack(n.root + '.quaternion', [0, 1], [...qx(0).toArray(), ...new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI / 2)).toArray()])]),
   ];
-  return { scene: root, animations };
+  return animations;
 }
-let clsRig = new URLSearchParams(location.search).get('rig') ?? 'roblox';
+// The developer's own R15 avatar, exported from Studio (File > Export as glTF) to showcase/avatar/Rig.gltf.
+// Joints are real (RightUpperArm pivots at the shoulder, ...), so the same keyframe clips drive it. The head
+// mesh and catalog clothing are rights-restricted and do not export, so a substitute head is added.
+async function makeAvatarRig() {
+  const gltf = await loadGltf('./avatar/Rig.gltf');
+  const rig = gltf.scene.clone(true);
+  rig.traverse(o => { if (/_Att$|_attachments$/.test(o.name)) o.visible = false; if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
+  const facing = new THREE.Group(); facing.name = 'avatar-facing'; facing.rotation.y = Math.PI; facing.add(rig); // Roblox rigs face -z; the showcase faces +z
+  const headNode = findBone(rig, /^Head$/);
+  if (headNode && !headNode.children.some(c => c.isMesh)) {
+    const skin = new THREE.MeshStandardMaterial({ color: 0xa3a2a5, roughness: 0.85 }), hair = new THREE.MeshStandardMaterial({ color: 0x4a2e1a, roughness: 0.9 });
+    const headH = 1.2, headGeo = new THREE.CylinderGeometry(0.6, 0.6, headH, 28, 1); headGeo.scale(1, 1, 0.98);
+    const hm = new THREE.Mesh(headGeo, skin); hm.position.y = headH * 0.5 - 0.1; hm.castShadow = true; headNode.add(hm);
+    const cap = y => { const c = new THREE.Mesh(new THREE.SphereGeometry(0.6, 28, 10, 0, Math.PI * 2, 0, Math.PI / 2), skin); c.scale.set(1, 0.18, 0.98); c.position.y = y; return c; };
+    const bc = cap(-0.1); bc.rotation.x = Math.PI; headNode.add(cap(headH - 0.1), bc);
+    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.68, 28, 12, 0, Math.PI * 2, 0, Math.PI / 2), hair); hairCap.scale.set(1, 0.5, 1); hairCap.position.y = headH * 0.78; headNode.add(hairCap);
+    const back = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.66, headH * 0.45, 28, 1, true, -Math.PI * 0.45, Math.PI * 0.9), hair); back.position.y = headH * 0.58; headNode.add(back);
+    const fringe = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.14, 0.18), hair); fringe.position.set(0, headH * 0.86, -0.58); headNode.add(fringe);
+    const fc = document.createElement('canvas'); fc.width = 256; fc.height = 256; const fg = fc.getContext('2d');
+    fg.fillStyle = '#111'; fg.beginPath(); fg.ellipse(88, 96, 13, 22, 0, 0, Math.PI * 2); fg.fill(); fg.beginPath(); fg.ellipse(168, 96, 13, 22, 0, 0, Math.PI * 2); fg.fill();
+    fg.lineWidth = 12; fg.strokeStyle = '#111'; fg.lineCap = 'round'; fg.beginPath(); fg.arc(128, 128, 54, Math.PI * 0.2, Math.PI * 0.8); fg.stroke();
+    const faceTex = new THREE.CanvasTexture(fc); faceTex.colorSpace = THREE.SRGBColorSpace;
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 0.95), new THREE.MeshBasicMaterial({ map: faceTex, transparent: true })); face.position.set(0, headH * 0.4, -0.6); face.rotation.y = Math.PI; headNode.add(face);
+  }
+  const animations = makeRigClips({ armR: 'RightUpperArm', armL: 'LeftUpperArm', legR: 'RightUpperLeg', legL: 'LeftUpperLeg', head: 'Head', torso: 'UpperTorso', root: 'Rig' }, -1);
+  return { scene: facing, animations, facing: -1 };
+}
+let clsRig = new URLSearchParams(location.search).get('rig') ?? 'avatar';
 $('cls-rig-select').value = clsRig;
 $('cls-rig-select').onchange = e => { clsRig = e.target.value; if (current?.isClass) showClass(current.def); };
 let classCooldowns = {};
@@ -1003,8 +1039,12 @@ const clsIdle = () => current?.def?.anims?.idle ?? 'idle';
 async function showClass(cls) {
   clear();
   const seq = ++loadSeq;
-  const rigFile = clsRig === 'kenney' ? BLOCKY_RIGS[Math.floor(Math.random() * BLOCKY_RIGS.length)] : 'roblox-dummy';
-  const gltf = clsRig === 'kenney' ? await loadGltf(rigFile) : makeRobloxDummy();
+  let rigFile = clsRig === 'kenney' ? BLOCKY_RIGS[Math.floor(Math.random() * BLOCKY_RIGS.length)] : clsRig === 'avatar' ? 'avatar/Rig.gltf' : 'roblox-dummy';
+  let gltf;
+  if (clsRig === 'kenney') gltf = await loadGltf(rigFile);
+  else if (clsRig === 'avatar') { try { gltf = await makeAvatarRig(); } catch (e) { log(`avatar rig missing (${e.message}); using the dummy`); gltf = makeRobloxDummy(); rigFile = 'roblox-dummy'; } }
+  else gltf = makeRobloxDummy();
+  const facing = gltf.facing ?? 1;
   if (seq !== loadSeq) return;
   const root = cloneSkinned(gltf.scene);
   root.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
@@ -1022,7 +1062,7 @@ async function showClass(cls) {
   const extras = [];
   for (const w of cls.hold ?? []) {
     const obj = w.flail ? makeFlail() : await loadWeapon(w);
-    holdInHand(root, obj, { ...w, fwd: w.flail ? '+y' : w.fwd, charHeight });
+    holdInHand(root, obj, { ...w, fwd: w.flail ? '+y' : w.fwd, charHeight, facing });
   }
   if (cls.turret) { const t = (await loadGltf(cls.turret)).scene.clone(true); t.traverse(o => { if (o.isMesh) o.castShadow = true; }); fitHeight(t, charHeight * 0.42); t.position.x += charHeight * 1.05; t.position.z -= charHeight * 0.1; t.rotation.y = Math.PI; root.parent.add(t); extras.push(t); }
   let petMixer = null;
@@ -1045,7 +1085,7 @@ async function showClass(cls) {
     [`Skill 1 · ${cls.skills[0].name}`, `${cls.skills[0].desc}. Cooldown ${cls.skills[0].cooldown} s${cls.skills[0].duration ? `, lasts ${cls.skills[0].duration} s` : ''}. Anim: ${cls.skills[0].anim}${cls.skills[0].repair ? `; repair swing: ${cls.skills[0].repair}` : ''}`],
     [`Skill 2 · ${cls.skills[1].name}`, `${cls.skills[1].desc}. Cooldown ${cls.skills[1].cooldown} s${cls.skills[1].duration ? `, lasts ${cls.skills[1].duration} s` : ''}. Anim: ${cls.skills[1].anim}`],
   ].map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
-  $('source').innerHTML = `${clsRig === 'kenney' ? 'Stand-in player: Kenney Blocky Characters (CC0), picked at random each time' : 'Stand-in player: a procedural R15-style default character in the classic colours'}, because in game the player keeps their own avatar and only the weapon is added. ${cls.hold?.some(w => w.file?.includes('kenney-weapon')) ? 'Gun: Kenney Weapon Pack (CC0). ' : ''}${cls.hold?.some(w => w.file?.includes('quaternius-medieval')) ? 'Melee: Quaternius Medieval Weapons (CC0). ' : ''}${cls.hold?.some(w => w.node) ? 'Staff/wand: KayKit Adventurers (CC0). ' : ''}${cls.turret ? 'Turret: Quaternius Cyberpunk Kit (CC0). ' : ''}${cls.pet ? 'Pet: Quaternius Cute Monsters (CC0). ' : ''}Clips are Kenney's; they are the reference for the Roblox animations.`;
+  $('source').innerHTML = `${clsRig === 'kenney' ? 'Stand-in player: Kenney Blocky Characters (CC0), picked at random each time' : rigFile.includes('avatar') ? 'Player: the developer\'s own R15 avatar exported from Studio (body only; catalog clothing and head cannot be exported)' : 'Stand-in player: a procedural R15-style figure'}, because in game the player keeps their own avatar and only the weapon is added. ${cls.hold?.some(w => w.file?.includes('kenney-weapon')) ? 'Gun: Kenney Weapon Pack (CC0). ' : ''}${cls.hold?.some(w => w.file?.includes('quaternius-medieval')) ? 'Melee: Quaternius Medieval Weapons (CC0). ' : ''}${cls.hold?.some(w => w.node) ? 'Staff/wand: KayKit Adventurers (CC0). ' : ''}${cls.turret ? 'Turret: Quaternius Cyberpunk Kit (CC0). ' : ''}${cls.pet ? 'Pet: Quaternius Cute Monsters (CC0). ' : ''}Clips are Kenney's; they are the reference for the Roblox animations.`;
 }
 function useSkill(i) {
   const cls = current?.def; if (!current?.isClass || !cls) return;

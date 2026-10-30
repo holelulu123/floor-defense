@@ -11,3 +11,6 @@ sourcemap.json
 
 # Roblox Open Cloud credentials (never commit)
 scripts/roblox/.env
+
+# Developer avatar rig exported from Studio (Roblox body meshes; regenerate via File > Export as glTF)
+showcase/avatar/
