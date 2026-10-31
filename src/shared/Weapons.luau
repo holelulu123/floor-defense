@@ -15,6 +15,7 @@ export type Weapon = {
 	burn: number?, -- seconds a hit creature keeps burning (BurnUntil attribute)
 	magazine: number?, -- rounds (or fuel units) per reload; nil for melee and magic weapons
 	reload: number?, -- base seconds to reload a magazine; nil when there is no magazine
+	scope: number?, -- zoom factor while aiming down the scope (hold right mouse button); nil: no scope
 }
 
 -- Server-side magazine of one player's primary weapon. Times are seconds on any one clock (the server
@@ -98,6 +99,7 @@ Weapons.Definitions = {
 		automatic = false,
 		magazine = 5,
 		reload = 3.0,
+		scope = 4, -- the Sniper's scope: hold right-click for a 4x zoom
 	},
 	GrenadeLauncher = {
 		name = "GrenadeLauncher",

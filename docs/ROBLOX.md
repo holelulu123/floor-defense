@@ -79,3 +79,18 @@ is in the place (execution sessions do not start the place's own Scripts). It pr
 - Client play-tests (pads, shooting, HUD) run through Studio MCP; Open Cloud only runs server-side code.
 - DataStores in Studio: Game Settings > Security > Enable Studio Access to API Services, or saves fall back to
   default data in Studio.
+
+## Password gate
+
+The live game can be kept private behind a password. `src/server/AccessGate.server.luau` holds every player who joins a
+lobby server (anchored, `AccessLocked` attribute) behind the password screen (`src/client/AccessGate.client.luau`) until
+they send the right password through `Remotes.SubmitPassword`; three wrong tries or two minutes without the right one
+kick them (rules in `src/shared/AccessGate.luau`). The password lives in the `Access` DataStore (key `password`), so it
+is never in the code or the repo:
+
+- `python3 scripts/roblox/set-password.py` asks for a new one (typed twice, hidden) and saves it through Open Cloud Luau
+  execution; live servers pick it up within a minute.
+- `--check` says whether one is set; `--clear` removes it, which opens the game to everyone who can join.
+
+Studio play-tests (no DataStore access) and reserved run servers (players arrive from a gated lobby) skip the gate. The
+experience itself still has to be Public (or Friends) for anyone to join at all.

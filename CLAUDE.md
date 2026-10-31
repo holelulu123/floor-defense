@@ -20,6 +20,7 @@ Roblox experience developed code-first with Rojo. Developer works on Arch Linux;
 - `python3 scripts/gen-roster.py` — regenerate `src/shared/Roster.luau` from `showcase/catalog.js` after creature edits
 - `scripts/make-icons.py` then `scripts/roblox/cloud.py upload <png>...` then `scripts/gen-icons.py` — draw UI icons, upload them, fill `src/shared/Icons.luau`
 - `scripts/roblox/cloud.py publish | run <script.luau> | info` — Open Cloud (key in gitignored `scripts/roblox/.env`)
+- `scripts/roblox/set-password.py [--check|--clear]` — the in-game password gate's password (kept in the live DataStore, never in the repo; the gate is off in Studio)
 
 ## Testing in Studio
 - Studio's built-in MCP server is registered as `roblox-studio` (`scripts/roblox/studio-mcp.sh`, see docs/ROBLOX.md). Use it to start/stop play-tests, read the Output, run Luau in the Edit/Client/Server datamodel, move the character and take viewport screenshots. Edit code in `src/` (Rojo syncs it), not through the MCP script tools.
