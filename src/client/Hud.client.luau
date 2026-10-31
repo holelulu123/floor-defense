@@ -32,8 +32,9 @@ gui.Name = "Hud"
 gui.ResetOnSpawn = false
 gui.Enabled = false
 
--- One top-left text row; with `iconKey` (and its id filled in) a 24 px icon sits left of the text.
-local ROW_ICON = 24
+-- One top-left row; with `iconKey` (and its id filled in) a 34 px icon sits left of the text, which then shows only the
+-- number (the icon says what it counts).
+local ROW_ICON = 34
 local function label(name: string, y: number, iconKey: string?): TextLabel
 	local iconId = if iconKey then Icons.get(iconKey) else nil
 	local x = 16
@@ -41,20 +42,20 @@ local function label(name: string, y: number, iconKey: string?): TextLabel
 		local icon = Instance.new("ImageLabel")
 		icon.Name = name .. "Icon"
 		icon.Size = UDim2.fromOffset(ROW_ICON, ROW_ICON)
-		icon.Position = UDim2.fromOffset(16, y + 2)
+		icon.Position = UDim2.fromOffset(16, y)
 		icon.BackgroundTransparency = 1
 		icon.Image = iconId
 		icon.Parent = gui
-		x = 16 + ROW_ICON + 6
+		x = 16 + ROW_ICON + 8
 	end
 	local l = Instance.new("TextLabel")
 	l.Name = name
-	l.Size = UDim2.fromOffset(320, 28)
+	l.Size = UDim2.fromOffset(320, ROW_ICON)
 	l.Position = UDim2.fromOffset(x, y)
 	l.BackgroundTransparency = 1
 	l.TextXAlignment = Enum.TextXAlignment.Left
 	l.Font = Enum.Font.GothamBold
-	l.TextSize = 22
+	l.TextSize = 26
 	l.TextColor3 = Color3.new(1, 1, 1)
 	l.TextStrokeTransparency = 0.5
 	l.Parent = gui
@@ -62,10 +63,11 @@ local function label(name: string, y: number, iconKey: string?): TextLabel
 end
 
 local waveLabel = label("Wave", 16, "wave")
-local coinsLabel = label("Coins", 46, "coins")
-local scoreLabel = label("Score", 76, "score")
-local killsLabel = label("Kills", 106, "kills")
-local classLabel = label("Class", 136)
+local coinsLabel = label("Coins", 56, "coins")
+local scoreLabel = label("Score", 96, "score")
+local killsLabel = label("Kills", 136, "kills")
+local classLabel = label("Class", 176)
+classLabel.TextSize = 20
 
 -- Health panel (left edge, under the wave/coins text) ----------------------------------------------
 
@@ -74,7 +76,7 @@ local PANEL_WIDTH = 260
 local panel = Instance.new("Frame")
 panel.Name = "HealthPanel"
 panel.AnchorPoint = Vector2.new(0, 0)
-panel.Position = UDim2.fromOffset(16, 174)
+panel.Position = UDim2.fromOffset(16, 214)
 panel.Size = UDim2.fromOffset(PANEL_WIDTH, 0)
 panel.AutomaticSize = Enum.AutomaticSize.Y
 panel.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
@@ -702,19 +704,14 @@ gui.Parent = player:WaitForChild("PlayerGui")
 runState.OnClientEvent:Connect(function(state)
 	gui.Enabled = state.phase ~= "ended"
 	showCountdown(state)
-	if state.phase == "prep" then
-		waveLabel.Text = `Wave {state.wave} in {state.secondsLeft}s`
-	elseif state.phase == "cleared" then
-		waveLabel.Text = `Wave {state.wave} cleared!`
-	else
-		waveLabel.Text = `Wave {state.wave}`
-	end
+	-- During prep the big centre countdown shows the seconds, so the row is just the wave number.
+	waveLabel.Text = if state.phase == "cleared" then `Wave {state.wave} cleared!` else `Wave {state.wave}`
 	lastTownHall.health = state.townHallHealth
 	lastTownHall.max = state.townHallMax
 	if type(state.party) == "table" then
 		party = state.party
 	end
-	coinsLabel.Text = `Coins {state.coins}`
-	scoreLabel.Text = `Score {state.score}`
-	killsLabel.Text = `Kills {state.kills}`
+	coinsLabel.Text = tostring(state.coins)
+	scoreLabel.Text = tostring(state.score)
+	killsLabel.Text = tostring(state.kills)
 end)
