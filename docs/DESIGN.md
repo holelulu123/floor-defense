@@ -53,7 +53,7 @@ Floor pad fills -> Prep phase (30 s, shop open) -> Wave N -> Town Hall standing?
 - **Boss wave:** every 5th wave swaps the horde for one boss plus a thin escort. Bosses drop a guaranteed rare item.
 - **End:** Town Hall at 0 ends the run.
 
-In-run coins are spent in the shop and reset to 0 each run. A separate persistent currency, Gems, carries between runs (see Progression). A 10 to 20 minute run keeps sessions short for Roblox's audience while leaving room for the "one more wave" pull.
+In-run coins are spent in the shop and reset to 0 each run. A separate persistent currency, Diamonds, carries between runs (see Progression). A 10 to 20 minute run keeps sessions short for Roblox's audience while leaving room for the "one more wave" pull.
 
 ## Camera
 
@@ -61,7 +61,7 @@ Both first-person and third-person, as a player setting with a hotkey to toggle 
 
 ## Classes
 
-Players keep their own Roblox avatar. A class is a health pool, a primary weapon, a melee secondary, a passive and **two skills with cooldowns**: skill 1 is quick (1 to 10 s), skill 2 is a long cooldown (25 to 50 s) and usually a timed buff. Every class is playable; five are free and five are **locked** and bought once with gems, which players earn at the end of each run (see Progression). Skills are server-validated: the server owns the cooldown clock (`Classes.canUse`) and rejects early casts.
+Players keep their own Roblox avatar. A class is a health pool, a primary weapon, a melee secondary, a passive and **two skills with cooldowns**: skill 1 is quick (1 to 10 s), skill 2 is a long cooldown (25 to 50 s) and usually a timed buff. Every class is playable; five are free and five are **locked** and bought once with Diamonds, which players earn at the end of each run (see Progression). Skills are server-validated: the server owns the cooldown clock (`Classes.canUse`) and rejects early casts.
 
 | Class | Unlock | Weapon | Passive | Skill 1 (quick) | Skill 2 (long) |
 | --- | --- | --- | --- | --- | --- |
@@ -70,11 +70,11 @@ Players keep their own Roblox avatar. A class is a health pool, a primary weapon
 | Scout | Free | Dual pistols | +20% speed | Dash, 4 s: 20 studs through creatures | Mark Target, 25 s: +30% damage taken for 8 s |
 | Medic | Free | SMG | Melee repairs the Town Hall 2x | Repair Pulse, 8 s: +150 Town Hall HP | Overcharge, 40 s: Town Hall immune 6 s |
 | Engineer | Free | Shotgun and wrench | Melee on a turret repairs it (+25% HP/hit) | Place Turret, 10 s: builds the selected turret (max 3; a 4th replaces the oldest) | Overclock, 30 s: all your turrets fire 2x for 10 s |
-| Berserker | 1200 gems | Two-handed axe | Kills heal 5 HP; melee +25% | Cleave, 4 s: hits everything in front | Rage, 30 s: +40% attack and move speed for 10 s |
-| Mage | 1200 gems | Staff | Spells cost 25% less; freeze +25% | Arcane Bolt, 2 s: homing bolt, 35 dmg | Frost Nova, 25 s: freeze 15 studs for 3 s |
-| Pyro | 1500 gems | Flamethrower | Burning creatures take +15% | Flame Sweep, 7 s: cone, ignites 4 s | Fire Wall, 40 s: wall across the lane for 8 s |
-| Sniper | 1500 gems | Bolt rifle | +50% headshot | Piercing Shot, 8 s: through 5 creatures | Overwatch, 35 s: next 5 shots crit (10 s) |
-| Demolisher | 2000 gems | Grenade launcher | +2 grenades, 20% wider blasts | Frag Toss, 6 s: 120 dmg in 8 studs | Cluster Bomb, 45 s: 6 bomblets along the lane |
+| Berserker | 1200 Diamonds | Two-handed axe | Kills heal 5 HP; melee +25% | Cleave, 4 s: hits everything in front | Rage, 30 s: +40% attack and move speed for 10 s |
+| Mage | 1200 Diamonds | Staff | Spells cost 25% less; freeze +25% | Arcane Bolt, 2 s: homing bolt, 35 dmg | Frost Nova, 25 s: freeze 15 studs for 3 s |
+| Pyro | 1500 Diamonds | Flamethrower | Burning creatures take +15% | Flame Sweep, 7 s: cone, ignites 4 s | Fire Wall, 40 s: wall across the lane for 8 s |
+| Sniper | 1500 Diamonds | Bolt rifle | +50% headshot | Piercing Shot, 8 s: through 5 creatures | Overwatch, 35 s: next 5 shots crit (10 s) |
+| Demolisher | 2000 Diamonds | Grenade launcher | +2 grenades, 20% wider blasts | Frag Toss, 6 s: 120 dmg in 8 studs | Cluster Bomb, 45 s: 6 bomblets along the lane |
 
 Loadout and health (numbers in `src/shared/Classes.luau` `maxHealth` / `secondary` and `src/shared/Weapons.luau`). Key **1** holds the primary, key **2** the melee secondary, **R** reloads; an empty magazine reloads on its own. Melee and magic weapons have no magazine. The Trooper's "+10% reload speed" divides reload time by 1.1 (`Weapons.reloadTime`).
 
@@ -91,17 +91,17 @@ Loadout and health (numbers in `src/shared/Classes.luau` `maxHealth` / `secondar
 | Sniper | 85 | Bolt rifle | 5 | 3.0 s | Combat knife, 22 dmg, 2.2/s |
 | Demolisher | 120 | Grenade launcher | 6 | 3.2 s | Hatchet, 27 dmg, 1.7/s |
 
-Turrets (Engineer): turret **types and rarities** are bought between runs with gems and never change in a run; turret **levels** are bought in-run with coins. Placed turrets have HP; creatures that bump into them damage them, the Engineer's melee (the Hammer, slot 2) repairs them. Overclock doubles fire rate for 10 s. More classes are easy to add later (the data lives in `src/shared/Classes.luau` and `showcase/catalog.js`).
+Turrets (Engineer): turret **types and rarities** are bought between runs with Diamonds and never change in a run; turret **levels** are bought in-run with coins. Placed turrets have HP; creatures that bump into them damage them, the Engineer's melee (the Hammer, slot 2) repairs them. Overclock doubles fire rate for 10 s. More classes are easy to add later (the data lives in `src/shared/Classes.luau` and `showcase/catalog.js`).
 
 Players keep their own avatar: a class never changes the player's skin, it only puts the class weapon (and for the Tank a shield) in their hands. The showcase previews every class on the Roblox default character (a procedural R15-style figure in the classic yellow/blue/green) with a toggle to a random Kenney blocky player skin (CC0), so the weapon size and grip can be judged on a default body. Weapon models: Kenney Weapon Pack guns, Quaternius Medieval axe and round shield, the KayKit staff mesh (CC0); the flail is a procedural placeholder until a CC0 flail is found. The skill clips in the preview are Kenney's generic poses (holding-right, holding-both-shoot, attack-melee-right, interact-right, pick-up, emote-yes) re-created as keyframes on the dummy; in Roblox the moves need Roblox animation assets authored in the Animation Editor using these previews as reference.
 
-Class select: on entering the lobby a panel shows the classes with their two skills and unlock cost; locked ones show a Buy button (gems). The choice is kept per player and can be changed in the lobby at any time.
+Class select: when a run starts, the prep countdown before wave 1 opens a panel (right edge) with the classes, their two skills and unlock cost; locked ones show a Buy button (Diamonds). The choice is kept per player. The panel never shows in the lobby, C toggles it only during that first prep, and once wave 1 starts the class is fixed for the run (the server rejects `SelectClass` outside that window).
 
 Implementation contract (code-first, see `src/shared/Skills.luau` for the numbers and `src/server/Skills.luau` for the handlers):
 
-- Remotes: `BuyClass(classId)` and `SelectClass(classId)` are RemoteFunctions validated with `Classes.tryBuy` / `Classes.isOwned`; selecting is only allowed in the lobby or during prep. `UseSkill(index, aimOrigin, aimDirection)` is a RemoteEvent; the server owns the cooldown clock (`Classes.canUse` with `os.clock()`), applies the effect and answers with `SkillFx` (`{kind="cooldown", index, cooldown}` to the caster, `{kind=<fx>, position, radius, ...}` to everyone for the placeholder visuals). Gems for a run come from `Classes.gemsForRun(wave, mode)` at run end.
+- Remotes: `BuyClass(classId)` and `SelectClass(classId)` are RemoteFunctions validated with `Classes.tryBuy` / `Classes.isOwned`; selecting is only allowed during the prep countdown before wave 1 of the player's run (`Run.canSwitchClass`). `UseSkill(index, aimOrigin, aimDirection)` is a RemoteEvent; the server owns the cooldown clock (`Classes.canUse` with `os.clock()`), applies the effect and answers with `SkillFx` (`{kind="cooldown", index, cooldown}` to the caster, `{kind=<fx>, position, radius, ...}` to everyone for the placeholder visuals). XP and Diamonds for a run come from `Progression.xpForRun` / `Progression.diamondsForRun(dungeonIndex, wave, mode)` at run end, are saved immediately and announced to the player with the `RunResults` RemoteEvent (`{xp, diamonds, level, levelsGained, text}`).
 - Weapons: `EquipSlot(slot)` (1 or 2, ignored when the class has no such slot) and `Reload()` are RemoteEvents; `server/Combat.luau` owns the active slot and the primary's magazine, refuses shots while reloading or empty, and uses the active slot's own weapon definition for damage, range and rate. Trooper's Ammo Crate refills every run player's magazine instantly. The Humanoid's MaxHealth comes from the class `maxHealth` when the class is applied.
-- Player attributes published by the server for the UI: `Class`, `Gems`, `OwnedClasses` (comma list), `Weapon` (active weapon), `WeaponSlot`, `Ammo`, `MagazineSize`, `Reloading`, `ReloadEnd` (server time; magazine attributes are nil for weapons without one), `Turrets`; timed buffs are `<Stat>` + `<Stat>Until` pairs (`DamageMult`, `FireRateMult`, `SpeedMult`, `CritShots`) with `Until` in `Workspace:GetServerTimeNow()` seconds so the client can read them too; read through `Skills.buffValue`.
+- Player attributes published by the server for the UI: `Class`, `Diamonds`, `Level`, `XP` (progress toward the next level), `XPToNext`, `InRun` (true while in a run; hides the lobby level tag), `OwnedClasses` (comma list), `Weapon` (active weapon), `WeaponSlot`, `Ammo`, `MagazineSize`, `Reloading`, `ReloadEnd` (server time; magazine attributes are nil for weapons without one), `Turrets`; timed buffs are `<Stat>` + `<Stat>Until` pairs (`DamageMult`, `FireRateMult`, `SpeedMult`, `CritShots`) with `Until` in `Workspace:GetServerTimeNow()` seconds so the client can read them too; read through `Skills.buffValue`.
 - Creature attributes written by skills, honoured by the creature mover: `Frozen` (boolean, no movement), `SlowUntil` + `SlowFactor` (speed multiplier while `os.clock() < SlowUntil`). `BurnUntil` + `BurnBy` and `MarkedUntil` are read by `Damage.hit`, the single entry point every weapon, skill and turret uses before `Creatures.damage`.
 - Town Hall part attribute `ShieldUntil` (Medic Overcharge): `TownHall.takeDamage` ignores damage while `os.clock() < ShieldUntil`.
 - Weapon in hand: `WeaponModels.give` builds a placeholder Tool from Parts per weapon (rifle, shotgun, SMG, bolt rifle, flamethrower, launcher, two pistols, axe, staff, flail with a left-arm shield, and the melee secondaries: knife, karambit, scalpel, hammer, sword, dagger, machete, hatchet). The primary is equipped, the secondary waits in the Backpack and `WeaponModels.equip` swaps them (the Roblox hotbar is hidden; slots are ours); the Tool is visual only, firing still goes through `Remotes.Fire`.
@@ -113,9 +113,9 @@ Agreed direction, numbers still open:
 
 - Each class has its own **special weapon**, abilities and stats. The Engineer's ability is **building turrets**.
 - Turrets have **levels**: each level is stronger and looks different (bigger barrel, extra armor, glow). Levels are bought **during a run** with in-run coins, like the shop.
-- Turrets also have **types** (10 or more) and **rarity tiers** (common, rare, epic, legendary, ...). Type and rarity are bought **between runs** with Gems. In a run you can level the turret you brought, but you can never change its rarity.
-- The same pattern applies to other classes' signature items (Medic's drone, Pyro's fire wall) and to **weapon spells**: enchantments bought with Gems that sit on the weapon between runs (slow on hit, chain lightning, bonus coins).
-- Open: turret prices, how many turrets an Engineer can place at once, whether rarity changes stats or only looks plus one perk, and the exact monetization (Gems only, Robux shortcuts, or passes). Fairness rules in Monetization still apply: nothing that moves the Hall of Fame can be Robux-only.
+- Turrets also have **types** (10 or more) and **rarity tiers** (common, rare, epic, legendary, ...). Type and rarity are bought **between runs** with Diamonds. In a run you can level the turret you brought, but you can never change its rarity.
+- The same pattern applies to other classes' signature items (Medic's drone, Pyro's fire wall) and to **weapon spells**: enchantments bought with Diamonds that sit on the weapon between runs (slow on hit, chain lightning, bonus coins).
+- Open: turret prices, how many turrets an Engineer can place at once, whether rarity changes stats or only looks plus one perk, and the exact monetization (Diamonds only, Robux shortcuts, or passes). Fairness rules in Monetization still apply: nothing that moves the Hall of Fame can be Robux-only.
 
 ## Weapons, grenades and spells
 
@@ -171,20 +171,20 @@ Scaling: a creature's roster stats are already its debut-wave stats (health x `1
 
 ## Dungeons
 
-Each dungeon is a map with its own creature family, one winding lane and one gimmick. Dungeons unlock by **player level** (see Progression); `src/shared/Dungeons.luau` is the source of truth and the showcase's Dungeons tab mirrors it.
+Each dungeon is a map with its own creature family, one winding lane and one gimmick, and is harder than the last (`difficulty`, x1.35 per dungeon). Dungeons unlock by **player level**, one per level (see Progression); `src/shared/Dungeons.luau` is the source of truth and the showcase's Dungeons tab mirrors it.
 
 | # | Dungeon | Unlock level | Creature family (models in repo) | Lanes | Gimmick |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Graveyard | 1 | Skeletons / undead | 1 | Fog rolls in on boss waves, cutting sight lines |
-| 2 | Haunted Farm | 3 | Possessed farm animals | 1 | Hay bales can be pushed into lanes as cover; animals trample them |
-| 3 | Swamp | 5 | Bugs and beasts | 1 | Shallow water slows everyone; ice spells freeze it solid |
-| 4 | Sewer | 10 | Slimes | 1 | Slimes split in two when killed above half health |
-| 5 | Bandit Village | 15 | Bandits and orcs | 1 | Bandits loot dropped coins before you can |
-| 6 | Frozen Cavern | 20 | Arctic beasts | 1 | Everything is slippery; freeze spells last twice as long |
-| 7 | Jungle Temple | 25 | Jungle beasts | 1 | Vines block sight lines until burned away |
-| 8 | Pirate Cove | 30 | Pirates | 1 | Cannons on the cliffs can be captured and fired at the lanes |
-| 9 | Factory | 35 | UFOs / robots | 1 | Conveyor belts move anything on them, including grenades |
-| 10 | Space Station | 40 | Aliens and drones | 1 | Airlocks vent a lane for 5 s when opened |
+| 2 | Haunted Farm | 2 | Possessed farm animals | 1 | Hay bales can be pushed into lanes as cover; animals trample them |
+| 3 | Swamp | 3 | Bugs and beasts | 1 | Shallow water slows everyone; ice spells freeze it solid |
+| 4 | Sewer | 4 | Slimes | 1 | Slimes split in two when killed above half health |
+| 5 | Bandit Village | 5 | Bandits and orcs | 1 | Bandits loot dropped coins before you can |
+| 6 | Frozen Cavern | 6 | Arctic beasts | 1 | Everything is slippery; freeze spells last twice as long |
+| 7 | Jungle Temple | 7 | Jungle beasts | 1 | Vines block sight lines until burned away |
+| 8 | Pirate Cove | 8 | Pirates | 1 | Cannons on the cliffs can be captured and fired at the lanes |
+| 9 | Factory | 9 | UFOs / robots | 1 | Conveyor belts move anything on them, including grenades |
+| 10 | Space Station | 10 | Aliens and drones | 1 | Airlocks vent a lane for 5 s when opened |
 
 ### Lane and arena scale
 
@@ -213,28 +213,45 @@ Siege ranked ladder: a separate Hall of Fame board by win streak.
 
 ## Progression and Hall of Fame
 
-Two things persist between runs: Gems and Score. Coins do not.
+Persistent between runs: Diamonds, XP/Level and Score. Coins do not. (Diamonds were called Gems; `SaveData.migrate` moves an old saved `Gems` balance into `Diamonds` with nothing lost.)
 
 | Currency | Earned by | Spent on | Persists |
 | --- | --- | --- | --- |
 | Coins | Kills during a run (10 per Runner, up to 500 per boss), times the party multiplier | Run shop: guns, grenades, spells | No, reset each run |
-| Gems | 1 per wave cleared, 25 per boss, 10 per Siege win, daily login bonus | Classes (slowly), gear and weapon skins, lobby cosmetics | Yes |
+| Diamonds | End of run, from the dungeon and the wave reached (`Progression.diamondsForRun`); later: Siege wins, daily login bonus | Classes (slowly), gear and weapon skins, lobby cosmetics | Yes |
 | Score | Sum of coins earned in a run plus a wave bonus of `wave x 100` | Nothing; it is the leaderboard number | Yes, best per mode kept |
 
 Hall of Fame: a wall in the lobby with four boards: Solo, Duo, Squad and Siege. Defense boards list the top 100 scores with player name, class used, wave reached and date; a Squad entry lists all four names so friends chase the board together. The Siege board ranks by longest win streak. Boards reset monthly with each month's top 10 engraved on a permanent "Legends" board, so new players always have a reachable board.
 
-XP and levels (`src/shared/Progression.luau`):
+XP and levels (`src/shared/Progression.luau`, multipliers in `src/shared/Dungeons.luau`):
 
-- A run pays `wave x 25 + kills` XP, plus 100 if the Town Hall is still standing when the run ends.
-- Level N to N+1 costs `100 x N^1.5` XP (100, 282, 519, 800, ... 2,700 at level 9, 8,900 at level 20), so each level takes longer than the last. Max level 60.
-- **Levels unlock dungeons** (table in Dungeons). Levels also unlock free gear skins and lobby emotes, never power.
-- Gems per run: `waves + 25 per boss`, plus 20 if the Town Hall survived (endless mode ends by wipe, so "survived" means ending the run voluntarily between waves with the Town Hall alive; still to confirm).
+- Level L to L+1 costs `xpToNext(L)`: 100, then x2.0, x2.3, x2.7, x3.0 and x3.0 for every level after (rounded each step): 100, 200, 460, 1,242, 3,726, 11,178, ... 905,418 at level 10. Max level 20. XP is saved as progress toward the next level (`Level`, `XP`).
+- A run pays `wave^1.5 x dungeon.xpMultiplier x party` XP (party: Solo 1, Duo 1.25, Squad 1.5), where `wave` is the wave reached. The multiplier grows about x3 per dungeon (1, 1.5, 3.5, 10, 30, 90, 270, 810, 2,430, 7,290) to keep up with the curve: at the level that unlocks a dungeon, about four wave-10 runs there buy the next level.
+- Diamonds per run: `wave^1.25 x dungeon.diamondMultiplier x party` (multiplier 1 to 5): 18 for Graveyard wave 10, 89 for Space Station wave 10.
+- **Levels unlock dungeons**, one per level (1 to 10; table in Dungeons). Levels also unlock free gear skins and lobby emotes, never power.
+- Each dungeon is harder: `Dungeons.difficulty` (Graveyard 1.0, x1.35 per dungeon, 14.89 for the Space Station) multiplies creature health and Town Hall damage in `Waves.stats`.
+- UI: a top-right widget shows Diamonds, `Lv N` and the XP bar in the lobby and in runs; a level tag with the XP bar floats over each player's head in the lobby (hidden during runs, where the HP bar stays); the run's results line ("+340 XP, +25 Diamonds, Level up! Lv 4") shows under the widget.
+
+| # | Dungeon | Unlock level | XP to next level there | XP wave 5 / 10 / 20 (Solo) | Diamonds wave 5 / 10 / 20 | Wave-10 runs per level |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Graveyard | 1 | 100 | 11 / 32 / 89 | 7 / 18 / 42 | 3.1 |
+| 2 | Haunted Farm | 2 | 200 | 17 / 47 / 134 | 9 / 22 / 53 | 4.3 |
+| 3 | Swamp | 3 | 460 | 39 / 111 / 313 | 11 / 27 / 63 | 4.1 |
+| 4 | Sewer | 4 | 1,242 | 112 / 316 / 894 | 13 / 31 / 74 | 3.9 |
+| 5 | Bandit Village | 5 | 3,726 | 335 / 949 / 2,683 | 15 / 36 / 85 | 3.9 |
+| 6 | Frozen Cavern | 6 | 11,178 | 1,006 / 2,846 / 8,050 | 19 / 44 / 106 | 3.9 |
+| 7 | Jungle Temple | 7 | 33,534 | 3,019 / 8,538 / 24,150 | 22 / 53 / 127 | 3.9 |
+| 8 | Pirate Cove | 8 | 100,602 | 9,056 / 25,614 / 72,449 | 26 / 62 / 148 | 3.9 |
+| 9 | Factory | 9 | 301,806 | 27,168 / 76,843 / 217,346 | 30 / 71 / 169 | 3.9 |
+| 10 | Space Station | 10 | 905,418 | 81,505 / 230,530 / 652,037 | 37 / 89 / 211 | 3.9 |
+
+Past level 10 there is no new dungeon, so each level takes about three times as many Space Station runs as the last (a soft cap).
 
 Other persistent progression:
 
 - **Class mastery** per class: waves reached while playing it. Mastery 10 unlocks that class's free gear skin.
-- **Daily and weekly challenges** ("freeze 50 enemies", "reach wave 10 on Swamp") paying Gems. This is the main reason to come back on a day you weren't going to.
-- **Gamble system (to discuss):** a Gem sink with random rewards (turret types, weapon spells, skins). Constraint: Roblox requires paid random items to disclose odds, and some countries restrict loot boxes for minors, so the safe shape is a Gems-only spin with published odds, duplicates converting to Gems, and a pity counter. Never Robux directly into a random roll.
+- **Daily and weekly challenges** ("freeze 50 enemies", "reach wave 10 on Swamp") paying Diamonds. This is the main reason to come back on a day you weren't going to.
+- **Gamble system (to discuss):** a Diamond sink with random rewards (turret types, weapon spells, skins). Constraint: Roblox requires paid random items to disclose odds, and some countries restrict loot boxes for minors, so the safe shape is a Diamonds-only spin with published odds, duplicates converting to Diamonds, and a pity counter. Never Robux directly into a random roll.
 
 Leaderboards use Roblox OrderedDataStores, one per board, keyed by user id, refreshed every 60 s in the lobby.
 
@@ -246,20 +263,20 @@ Sell classes, cosmetics and convenience. Never sell in-run power or score.
 | --- | --- | --- | --- |
 | Premium class | Game pass, one each | 199 | Permanent access to Pyro, Frost Mage, Sniper or Demolisher |
 | Class bundle | Game pass | 699 | All five premium classes (30% off) |
-| VIP | Game pass | 399 | +25% Gems, VIP lobby tag, one extra daily challenge, named color on the Hall of Fame |
-| Gems 500 / 1,200 / 3,000 | Developer product | 99 / 199 / 449 | Gems to spend on skins or classes |
-| Gear or weapon skin | Developer product or Gems | 49 to 149 | Cosmetic only; layered on the player's own avatar |
+| VIP | Game pass | 399 | +25% Diamonds, VIP lobby tag, one extra daily challenge, named color on the Hall of Fame |
+| Diamonds 500 / 1,200 / 3,000 | Developer product | 99 / 199 / 449 | Diamonds to spend on skins or classes |
+| Gear or weapon skin | Developer product or Diamonds | 49 to 149 | Cosmetic only; layered on the player's own avatar |
 | Private server | Server subscription | 99 / month | Play with a chosen group; the Hall of Fame still counts runs there |
 
 Fairness rules, written down so future decisions stay honest:
 
-1. Every premium class can also be bought with Gems earned in play, at a price that takes roughly 10 hours.
-2. No item sold for Robux changes damage, Town Hall health, coin gain or score. VIP's +25% Gems is the single exception, and Gems don't affect score.
+1. Every premium class can also be bought with Diamonds earned in play, at a price that takes roughly 10 hours.
+2. No item sold for Robux changes damage, Town Hall health, coin gain or score. VIP's +25% Diamonds is the single exception, and Diamonds don't affect score.
 3. The Hall of Fame shows the class used, so a free class topping it is a visible proof of fairness.
 
-Where the money comes from, in expected order: Premium Payouts from engagement (free, automatic), VIP, the class bundle, then Gem packs. Roblox takes about 30% of each sale. Developer Exchange pays out earned Robux once you pass the threshold (30,000 Robux as of this plan; confirm the current number on the DevEx page).
+Where the money comes from, in expected order: Premium Payouts from engagement (free, automatic), VIP, the class bundle, then Diamond packs. Roblox takes about 30% of each sale. Developer Exchange pays out earned Robux once you pass the threshold (30,000 Robux as of this plan; confirm the current number on the DevEx page).
 
-The existing code already supports this: `Config.GamePasses` holds pass ids, `Config.Products` holds product ids, and `Monetization.luau` grants products idempotently. Gems replace Coins as the persistent field in `PlayerData`.
+The existing code already supports this: `Config.GamePasses` holds pass ids, `Config.Products` holds product ids, and `Monetization.luau` grants products idempotently. Diamonds replace Coins as the persistent field in `PlayerData`.
 
 ## 3D assets
 
@@ -280,10 +297,10 @@ The first playable is one map, one pad size, two free classes, three enemy arche
 | 7 | Hall of Fame board in the lobby via OrderedDataStore | Score persists and shows | `src/server/Leaderboard.luau` |
 | 8 | Duo and Squad pads with multipliers | Co-op works | `Lobby.luau`, `WaveManager.luau` |
 | 9 | Siege 1v1: mirrored map, kill-sends-creature rule, win condition | PvP works on the same systems | `src/server/Siege.luau`, `WaveManager.luau` |
-| 10 | VIP pass + Gem products wired through `Monetization.luau` | Money flows | `Config.luau`, `Monetization.luau` |
+| 10 | VIP pass + Diamond products wired through `Monetization.luau` | Money flows | `Config.luau`, `Monetization.luau` |
 | 11 | Remaining free classes, Swamp map, challenges, Siege 2v2/4v4 | Enough content to retain | content files |
 
-The existing `PlayerData` and `Monetization` modules stay as they are. `Config.DefaultData` gains `Gems`, `BestScoreSolo`, `BestScoreDuo`, `BestScoreSquad`, `SiegeStreak`, `Level`, `OwnedClasses` and `Mastery`.
+The existing `PlayerData` and `Monetization` modules stay as they are. `Config.DefaultData` gains `Diamonds`, `XP`, `BestScoreSolo`, `BestScoreDuo`, `BestScoreSquad`, `SiegeStreak`, `Level`, `OwnedClasses` and `Mastery`.
 
 Server-authoritative rules that apply from milestone 3 on:
 
@@ -301,7 +318,7 @@ Server-authoritative rules that apply from milestone 3 on:
 
 ## Open questions
 
-- [ ] Endless waves or a fixed 30-wave run with a win screen? (Affects what "survived" means for XP and Gems.) Endless is simpler and feeds the Hall of Fame; fixed gives a "beat the map" moment.
+- [ ] Endless waves or a fixed 30-wave run with a win screen? (Affects what "survived" means for XP and Diamonds.) Endless is simpler and feeds the Hall of Fame; fixed gives a "beat the map" moment.
 - [ ] Art style: blocky Roblox-native or stylized low-poly (Quaternius/Synty)? Blocky is faster to build alone; low-poly looks better in thumbnails.
 - [ ] Do premium classes launch with the MVP or after the free five are proven fun?
 - [ ] Should Siege use the Defense difficulty tables as-is, or a gentler curve since the kill-send rule adds pressure?

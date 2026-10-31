@@ -11,6 +11,8 @@ Usage:
   cloud.py run <script.luau> [--timeout 120]  run a Luau script server-side in the cloud and print its output
   cloud.py public | private                   set the experience visibility (falls back to instructions)
   cloud.py info                               show universe + place metadata
+  cloud.py upload <image.png>...              upload images as decals (needs ROBLOX_USER_ID); ids are kept in
+                                              assets/ui/roblox-ids.json so an unchanged file is never re-uploaded
 No third-party packages: stdlib only.
 """
 import json
@@ -61,8 +63,8 @@ def publish(key, uni, place, path, saved=False):
     print(f"{vt} version {out.get('versionNumber')} of place {place}")
 
 
-def run_luau(key, uni, place, script_path, timeout=120):
-    src = open(script_path).read()
+def run_luau(key, uni, place, script_path, timeout=120, src=None, quiet=False):
+    src = src if src is not None else open(script_path).read()
     base = f"{API}/cloud/v2/universes/{uni}/places/{place}/luau-execution-session-tasks"
     status, out = call("POST", base, key, {"script": src})
     if status not in (200, 201):
@@ -76,6 +78,8 @@ def run_luau(key, uni, place, script_path, timeout=120):
         if task.get("state") in ("COMPLETE", "FAILED", "CANCELLED"):
             break
         time.sleep(2)
+    if quiet:
+        return task.get("output", {}).get("results")
     _, logs = call("GET", f"{API}/cloud/v2/{task_path}/logs", key)
     for page in (logs.get("luauExecutionSessionTaskLogs") or []):
         for m in page.get("messages", []):
@@ -96,6 +100,66 @@ def visibility(key, uni, public):
         print("Open Cloud refused the visibility change. Do it once by hand: Creator Dashboard > the experience > "
               "Audience/Access > Public, then re-run `cloud.py info` to confirm.")
         sys.exit(1)
+
+
+IDS = os.path.join(HERE, "..", "..", "assets", "ui", "roblox-ids.json")
+
+
+def upload_images(key, paths):
+    import hashlib
+    import uuid
+
+    user = os.environ.get("ROBLOX_USER_ID")
+    if not user:
+        sys.exit("set ROBLOX_USER_ID in scripts/roblox/.env (the number in your roblox.com/users/<id>/profile URL)")
+    ids = json.load(open(IDS)) if os.path.exists(IDS) else {}
+    for path in paths:
+        name = os.path.splitext(os.path.basename(path))[0]
+        data = open(path, "rb").read()
+        digest = hashlib.sha256(data).hexdigest()[:16]
+        if ids.get(name, {}).get("sha") == digest:
+            print(f"{name}: unchanged, decal {ids[name]['decal']}")
+            continue
+        meta = {"assetType": "Decal", "displayName": f"Floor Defense {name}"[:50], "description": "Floor Defense UI image",
+                "creationContext": {"creator": {"userId": str(user)}}}
+        b = uuid.uuid4().hex
+        body = (f'--{b}\r\nContent-Disposition: form-data; name="request"\r\nContent-Type: application/json\r\n\r\n'
+                f"{json.dumps(meta)}\r\n--{b}\r\nContent-Disposition: form-data; name=\"fileContent\"; "
+                f'filename="{os.path.basename(path)}"\r\nContent-Type: image/png\r\n\r\n').encode() + data + f"\r\n--{b}--\r\n".encode()
+        status, op = call("POST", f"{API}/assets/v1/assets", key, body, ctype=f"multipart/form-data; boundary={b}")
+        if status != 200:
+            print(f"{name}: upload failed {status} {op}")
+            continue
+        asset = None
+        for _ in range(30):  # the upload is an operation; poll until it reports the asset
+            if isinstance(op, dict) and op.get("done"):
+                asset = op.get("response", {}).get("assetId")
+                break
+            time.sleep(1)
+            status, op = call("GET", f"{API}/assets/v1/{op['path']}", key)
+        if not asset:
+            print(f"{name}: no asset id yet ({op})")
+            continue
+        ids[name] = {"decal": asset, "sha": digest}
+        json.dump(ids, open(IDS, "w"), indent=1, sort_keys=True)
+        print(f"{name}: decal {asset}")
+    # UI needs the decal's Image id; only a game server owned by the same creator can read it (InsertService).
+    todo = {n: v["decal"] for n, v in ids.items() if not v.get("image")}
+    if todo:
+        lua = ("local I = game:GetService('InsertService') local out = {} for n, id in {"
+               + ", ".join(f'["{n}"] = {v}' for n, v in todo.items())
+               + "} do local ok, m = pcall(I.LoadAsset, I, id) local d = ok and m:FindFirstChildWhichIsA('Decal', true)"
+               " out[n] = d and d.Texture or '' end return out")
+        uni, place = os.environ["ROBLOX_UNIVERSE_ID"], os.environ["ROBLOX_PLACE_ID"]
+        res = run_luau(key, uni, place, None, src=lua, quiet=True) or [{}]
+        for n, tex in (res[0] or {}).items():
+            if tex:
+                ids[n]["image"] = tex
+                print(f"{n}: image {tex}")
+            else:
+                print(f"{n}: image not ready yet (moderation?); rerun upload later")
+        json.dump(ids, open(IDS, "w"), indent=1, sort_keys=True)
+    return ids
 
 
 def info(key, uni, place):
@@ -121,6 +185,8 @@ def main(argv):
         visibility(key, uni, cmd == "public")
     elif cmd == "info":
         info(key, uni, place)
+    elif cmd == "upload":
+        upload_images(key, argv[2:])
     else:
         sys.exit(f"unknown command {cmd}")
     return 0

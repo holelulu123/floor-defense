@@ -1,10 +1,13 @@
 -- Run HUD: wave, phase, Town Hall health, coins and score (from RunState events), plus the two class
 -- skill buttons with keybind, name and cooldown countdown (from SkillFx events) and, for the
--- Engineer, the placed turret count (from the player's Turrets attribute). A right-edge panel shows the
--- Town Hall HP (its server-written Health/MaxHealth attributes) and each party member's Humanoid HP.
+-- Engineer, the placed turret count (from the player's Turrets attribute). A left-edge panel under the
+-- wave/coins text shows the Town Hall HP (its server-written Health/MaxHealth attributes) and each party
+-- member's Humanoid HP; it stays clear of the class panel on the right edge during prep.
 -- Bottom right: the two weapon slots (1 primary, 2 melee; the active one highlighted, from WeaponSlot)
 -- and the ammo readout "28 / 30" or "RELOADING" (Ammo / MagazineSize / Reloading attributes written by
 -- server Combat), hidden for weapons without a magazine.
+-- Icons (Icons.get) are shown where an asset id has been filled in: skill buttons, ammo/reload readout and
+-- the HP panel heart; without one the text-only look stays. Diamonds, level and XP: Profile.client.luau.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -13,6 +16,7 @@ local RunService = game:GetService("RunService")
 
 local Classes = require(ReplicatedStorage.Shared.Classes)
 local HealthBar = require(ReplicatedStorage.Shared.HealthBar)
+local Icons = require(ReplicatedStorage.Shared.Icons)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
@@ -46,14 +50,14 @@ local coinsLabel = label("Coins", 48)
 local scoreLabel = label("Score", 80)
 local classLabel = label("Class", 112)
 
--- Health panel (right edge) ---------------------------------------------------------------------
+-- Health panel (left edge, under the wave/coins text) ----------------------------------------------
 
 local PANEL_WIDTH = 260
 
 local panel = Instance.new("Frame")
 panel.Name = "HealthPanel"
-panel.AnchorPoint = Vector2.new(1, 0.5)
-panel.Position = UDim2.new(1, -16, 0.5, 0)
+panel.AnchorPoint = Vector2.new(0, 0)
+panel.Position = UDim2.fromOffset(16, 150)
 panel.Size = UDim2.fromOffset(PANEL_WIDTH, 0)
 panel.AutomaticSize = Enum.AutomaticSize.Y
 panel.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
@@ -144,6 +148,16 @@ local function setBar(bar: PanelBar, health: number?, maxHealth: number?)
 end
 
 local townHallBar = panelBar(1, "Town Hall", 28)
+local heartIcon = Icons.get("health")
+if heartIcon then
+	local heart = Instance.new("ImageLabel")
+	heart.Size = UDim2.fromOffset(18, 18)
+	heart.BackgroundTransparency = 1
+	heart.Image = heartIcon
+	heart.Parent = townHallBar.root
+	townHallBar.name.Position = UDim2.fromOffset(22, 0)
+	townHallBar.name.Size = UDim2.new(1, -22, 0, 18)
+end
 local partyHeader = Instance.new("TextLabel")
 partyHeader.LayoutOrder = 2
 partyHeader.Size = UDim2.new(1, 0, 0, 18)
@@ -192,7 +206,14 @@ end
 
 -- Skill buttons ---------------------------------------------------------------------------------
 
-type SkillButton = { frame: TextButton, name: TextLabel, cooldown: TextLabel, readyAt: number, total: number }
+type SkillButton = {
+	frame: TextButton,
+	icon: ImageLabel,
+	name: TextLabel,
+	cooldown: TextLabel,
+	readyAt: number,
+	total: number,
+}
 
 local skillButtons: { SkillButton } = {}
 
@@ -225,6 +246,16 @@ local function skillButton(index: number): SkillButton
 	keyCorner.CornerRadius = UDim.new(0, 4)
 	keyCorner.Parent = key
 
+	-- Skill icon (top right) once its asset id is filled in; set per class in refreshClass.
+	local icon = Instance.new("ImageLabel")
+	icon.Name = "Icon"
+	icon.AnchorPoint = Vector2.new(1, 0)
+	icon.Position = UDim2.new(1, -6, 0, 4)
+	icon.Size = UDim2.fromOffset(32, 32)
+	icon.BackgroundTransparency = 1
+	icon.Visible = false
+	icon.Parent = frame
+
 	local name = Instance.new("TextLabel")
 	name.Size = UDim2.new(1, -12, 0, 22)
 	name.Position = UDim2.fromOffset(6, 28)
@@ -248,7 +279,7 @@ local function skillButton(index: number): SkillButton
 	cooldown.Text = "Ready"
 	cooldown.Parent = frame
 
-	local button: SkillButton = { frame = frame, name = name, cooldown = cooldown, readyAt = 0, total = 1 }
+	local button: SkillButton = { frame = frame, icon = icon, name = name, cooldown = cooldown, readyAt = 0, total = 1 }
 	frame.Activated:Connect(function()
 		local bindable = player:WaitForChild("PlayerScripts"):FindFirstChild("SkillButtonPressed")
 		if bindable then
@@ -292,6 +323,17 @@ ammoLabel.TextColor3 = Color3.new(1, 1, 1)
 ammoLabel.TextStrokeTransparency = 0.4
 ammoLabel.Visible = false
 ammoLabel.Parent = gui
+
+-- Ammo / reload icon left of the readout, once the asset ids are filled in.
+local ammoIconId = Icons.get("ammo")
+local reloadIconId = Icons.get("reload")
+local ammoIcon = Instance.new("ImageLabel")
+ammoIcon.Name = "AmmoIcon"
+ammoIcon.AnchorPoint = Vector2.new(1, 0.5)
+ammoIcon.Size = UDim2.fromOffset(30, 30)
+ammoIcon.BackgroundTransparency = 1
+ammoIcon.Visible = false
+ammoIcon.Parent = gui
 
 type SlotBox = { frame: Frame, key: TextLabel, name: TextLabel }
 
@@ -354,10 +396,17 @@ local function refreshWeapon()
 	local size = player:GetAttribute("MagazineSize")
 	local showAmmo = def ~= nil and def.magazine ~= nil and active == 1 and type(size) == "number"
 	ammoLabel.Visible = showAmmo
+	ammoIcon.Visible = false
 	if not showAmmo then
 		return
 	end
-	if player:GetAttribute("Reloading") == true then
+	local reloading = player:GetAttribute("Reloading") == true
+	local iconId = if reloading then reloadIconId else ammoIconId
+	if iconId then
+		ammoIcon.Image = iconId
+		ammoIcon.Visible = true
+	end
+	if reloading then
 		ammoLabel.Text = "RELOADING"
 		ammoLabel.TextColor3 = Color3.fromRGB(255, 200, 90)
 	else
@@ -366,6 +415,9 @@ local function refreshWeapon()
 		ammoLabel.TextColor3 = if n <= math.ceil((size :: number) * 0.2)
 			then Color3.fromRGB(255, 110, 90)
 			else Color3.new(1, 1, 1)
+	end
+	if ammoIcon.Visible then -- just left of the right-aligned text
+		ammoIcon.Position = UDim2.new(1, -24 - ammoLabel.TextBounds.X - 8, 1, -44)
 	end
 end
 
@@ -382,6 +434,9 @@ local function refreshClass()
 	classLabel.Text = `{class.id}  ({class.weapon})`
 	for i, button in skillButtons do
 		button.name.Text = class.skills[i].name
+		local image = Icons.get(Icons.skillKey(class.skills[i].name))
+		button.icon.Image = image or ""
+		button.icon.Visible = image ~= nil
 		button.total = class.skills[i].cooldown
 		button.readyAt = 0
 	end

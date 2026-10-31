@@ -346,7 +346,7 @@ for (const f of FAMILIES) {
 }
 
 // Classes (DESIGN.md "Classes"). Players keep their own Roblox avatar; a class is a weapon, a passive
-// Classes. Five are free and the rest are locked; everyone can play all of them once bought with gems
+// Classes. Five are free and the rest are locked; everyone can play all of them once bought with diamonds
 // earned at the end of each run. The showcase previews each class on a random Kenney blocky character
 // (CC0), standing in for a player's own avatar: the game never changes the player's skin, it only puts
 // the class weapon in their hand. Clips are Kenney's; they are the reference for the Roblox animations.
@@ -386,7 +386,7 @@ export const CLASSES = [
     skills: [sk('Repair Pulse', 8, 'skill-cast', '+150 Town Hall HP'), sk('Overcharge', 40, 'skill-roar', 'Town Hall takes no damage for 6 s', { duration: 6 })] },
   { id: 'Engineer', tier: 'Free', cost: 0, role: 'Area control', weapon: 'Shotgun', idle: 'holding-right', hold: [gun('shotgun.glb', 0.52)], turret: PCY + 'Turret_Gun.glb',
     hp: 120, magazine: 6, reload: 2.6, melee: blade(QMED + 'Hammer_Double.glb', 'Hammer', 28, 1.6, 0.34, 0.12),
-    passive: 'Melee hits on a turret repair it (+25% HP per hit); turrets bought between runs with gems, upgraded in-run with coins',
+    passive: 'Melee hits on a turret repair it (+25% HP per hit); turrets bought between runs with diamonds, upgraded in-run with coins',
     skills: [sk('Place Turret', 10, 'skill-place', 'Builds the selected turret where you aim (max 3 up; placing a 4th removes the oldest)', { repair: 'attack-melee-right' }), sk('Overclock', 30, 'skill-cast', 'All your turrets fire 2x faster for 10 s', { duration: 10 })] },
   { id: 'Berserker', tier: 'Locked', cost: 1200, role: 'Melee damage', weapon: 'Two-handed axe', hold: [melee(QMED + 'Axe_Double.glb', 0.9, { fwd: 'auto' })],
     hp: 170, melee: blade(QMED + 'Sword.glb', 'Sword', 30, 1.8, 0.45, 0.1),
@@ -414,15 +414,15 @@ for (const c of CLASSES) { c.model = BLOCKY_RIGS[0]; c.anims = { idle: c.idle ??
 // Dungeons (src/shared/Dungeons.luau): unlock level, creature family, lanes, gimmick, props kit.
 export const DUNGEONS = [
   { id: 'Graveyard', name: 'Graveyard', unlockLevel: 1, family: 'graveyard', lanes: 1, gimmick: 'Fog rolls in on boss waves, cutting sight lines', props: 'KayKit Halloween Bits' },
-  { id: 'Farm', name: 'Haunted Farm', unlockLevel: 3, family: 'farm', lanes: 1, gimmick: 'Hay bales can be pushed into lanes as cover; animals trample them', props: 'Quaternius Village + Crops + Nature' },
-  { id: 'Swamp', name: 'Swamp', unlockLevel: 5, family: 'swamp', lanes: 1, gimmick: 'Shallow water slows everyone; ice spells freeze it solid', props: 'Quaternius Nature (willows, lilypads)' },
-  { id: 'Sewer', name: 'Sewer', unlockLevel: 10, family: 'sewer', lanes: 1, gimmick: 'Slimes split in two when killed above half health', props: 'Quaternius Modular Dungeon + Platformer pipes, KayKit Dungeon' },
-  { id: 'Village', name: 'Bandit Village', unlockLevel: 15, family: 'village', lanes: 1, gimmick: 'Bandits loot dropped coins before you can', props: 'Quaternius Medieval Village' },
-  { id: 'Frozen', name: 'Frozen Cavern', unlockLevel: 20, family: 'frozen', lanes: 1, gimmick: 'Everything is slippery; freeze spells last twice as long', props: 'Quaternius Nature (snow trees, rocks) + Space dome' },
-  { id: 'Jungle', name: 'Jungle Temple', unlockLevel: 25, family: 'jungle', lanes: 1, gimmick: 'Vines block sight lines until burned away', props: 'Quaternius Nature (palms) + Modular Dungeons ruins + Crops bamboo' },
-  { id: 'Pirate', name: 'Pirate Cove', unlockLevel: 30, family: 'pirate', lanes: 1, gimmick: 'Cannons on the cliffs can be captured and fired at the lanes', props: 'Quaternius Ships + Nature palms + Village barrels' },
-  { id: 'Factory', name: 'Factory', unlockLevel: 35, family: 'factory', lanes: 1, gimmick: 'Conveyor belts move anything on them, including grenades', props: 'Quaternius Cyberpunk Game Kit' },
-  { id: 'Station', name: 'Space Station', unlockLevel: 40, family: 'station', lanes: 1, gimmick: 'Airlocks vent a lane for 5 s when opened', props: 'Quaternius Ultimate Space Kit' },
+  { id: 'Farm', name: 'Haunted Farm', unlockLevel: 2, family: 'farm', lanes: 1, gimmick: 'Hay bales can be pushed into lanes as cover; animals trample them', props: 'Quaternius Village + Crops + Nature' },
+  { id: 'Swamp', name: 'Swamp', unlockLevel: 3, family: 'swamp', lanes: 1, gimmick: 'Shallow water slows everyone; ice spells freeze it solid', props: 'Quaternius Nature (willows, lilypads)' },
+  { id: 'Sewer', name: 'Sewer', unlockLevel: 4, family: 'sewer', lanes: 1, gimmick: 'Slimes split in two when killed above half health', props: 'Quaternius Modular Dungeon + Platformer pipes, KayKit Dungeon' },
+  { id: 'Village', name: 'Bandit Village', unlockLevel: 5, family: 'village', lanes: 1, gimmick: 'Bandits loot dropped coins before you can', props: 'Quaternius Medieval Village' },
+  { id: 'Frozen', name: 'Frozen Cavern', unlockLevel: 6, family: 'frozen', lanes: 1, gimmick: 'Everything is slippery; freeze spells last twice as long', props: 'Quaternius Nature (snow trees, rocks) + Space dome' },
+  { id: 'Jungle', name: 'Jungle Temple', unlockLevel: 7, family: 'jungle', lanes: 1, gimmick: 'Vines block sight lines until burned away', props: 'Quaternius Nature (palms) + Modular Dungeons ruins + Crops bamboo' },
+  { id: 'Pirate', name: 'Pirate Cove', unlockLevel: 8, family: 'pirate', lanes: 1, gimmick: 'Cannons on the cliffs can be captured and fired at the lanes', props: 'Quaternius Ships + Nature palms + Village barrels' },
+  { id: 'Factory', name: 'Factory', unlockLevel: 9, family: 'factory', lanes: 1, gimmick: 'Conveyor belts move anything on them, including grenades', props: 'Quaternius Cyberpunk Game Kit' },
+  { id: 'Station', name: 'Space Station', unlockLevel: 10, family: 'station', lanes: 1, gimmick: 'Airlocks vent a lane for 5 s when opened', props: 'Quaternius Ultimate Space Kit' },
 ];
 
 

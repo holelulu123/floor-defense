@@ -12,7 +12,7 @@ export type Skill = {
 export type Class = {
 	id: string,
 	free: boolean,
-	cost: number, -- gems; 0 when free
+	cost: number, -- diamonds; 0 when free
 	role: string,
 	maxHealth: number, -- Humanoid MaxHealth while playing this class
 	weapon: string, -- slot 1 (key 1), key into Weapons.Definitions
@@ -149,15 +149,6 @@ Classes.SkillKeys = { "Q", "E" }
 Classes.WeaponKeys = { "1", "2" }
 Classes.ReloadKey = "R"
 
--- Gems paid at the end of a run: one per wave, with a party bonus so Duo/Squad runs keep up with
--- the faster Solo clears. Persistent currency; classes are bought with it (see tryBuy).
-Classes.GemsPerWave = { Solo = 1, Duo = 1.25, Squad = 1.5 }
-
-function Classes.gemsForRun(wave: number, mode: string): number
-	local perWave = Classes.GemsPerWave[mode] or 1
-	return math.floor(math.max(0, wave) * perWave)
-end
-
 -- Class by id, or nil for an unknown id (use for values that came from a client).
 function Classes.find(id: any): Class?
 	if type(id) ~= "string" then
@@ -183,16 +174,16 @@ function Classes.isOwned(id: string, owned: { string }): boolean
 	return table.find(owned, id) ~= nil
 end
 
--- Returns the gems left after buying, or nil (and a reason) when the purchase is not possible.
-function Classes.tryBuy(id: string, gems: number, owned: { string }): (number?, string?)
+-- Returns the diamonds left after buying, or nil (and a reason) when the purchase is not possible.
+function Classes.tryBuy(id: string, diamonds: number, owned: { string }): (number?, string?)
 	local class = Classes.get(id)
 	if Classes.isOwned(id, owned) then
 		return nil, "already owned"
 	end
-	if gems < class.cost then
-		return nil, "not enough gems"
+	if diamonds < class.cost then
+		return nil, "not enough diamonds"
 	end
-	return gems - class.cost, nil
+	return diamonds - class.cost, nil
 end
 
 -- Weapon definition name for a class (key into Weapons.Definitions).

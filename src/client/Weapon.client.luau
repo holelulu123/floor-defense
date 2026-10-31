@@ -315,14 +315,29 @@ skillFx.OnClientEvent:Connect(function(fx)
 			0.3
 		)
 	elseif fx.position then
+		-- Area and self effects: a thin disc on the ground that grows to the effect radius and fades, instead of a
+		-- solid ball that swallowed the player (seen in the Studio test).
 		local radius = fx.radius or 3
 		local seconds = math.clamp(fx.duration or 0.4, 0.3, 1.5)
-		fxPart(
-			CFrame.new(fx.position),
-			Vector3.new(radius * 2, radius * 2, radius * 2),
+		local ground = fx.position - Vector3.new(0, 2.8, 0)
+		local disc = fxPart(
+			CFrame.new(ground) * CFrame.Angles(0, 0, math.pi / 2),
+			Vector3.new(0.15, 1, 1),
 			color,
 			seconds,
-			Enum.PartType.Ball
+			Enum.PartType.Cylinder
 		)
+		local start = os.clock()
+		local conn
+		conn = RunService.RenderStepped:Connect(function()
+			local t = math.clamp((os.clock() - start) / seconds, 0, 1)
+			if not disc.Parent or t >= 1 then
+				conn:Disconnect()
+				return
+			end
+			local d = 1 + (radius * 2 - 1) * math.sqrt(t)
+			disc.Size = Vector3.new(0.15, d, d)
+			disc.Transparency = 0.4 + 0.6 * t
+		end)
 	end
 end)

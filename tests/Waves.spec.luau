@@ -107,4 +107,12 @@ for _ in w30 do
 end
 assert(seen >= 10, `wave 29 squad mixes many creatures ({seen})`)
 
+-- dungeon difficulty scales health and Town Hall damage, not coins or speed
+local hard = Waves.stats(zombie, 10, "Solo", 2)
+eq(hard.health, 132, "zombie wave 10 solo at difficulty 2 (66 * 2)")
+eq(hard.damage, 20, "town hall damage doubles at difficulty 2")
+eq(hard.coins, Waves.stats(zombie, 10, "Solo").coins, "coins are not scaled by difficulty")
+eq(hard.speed, 28, "speed is not scaled by difficulty")
+eq(Waves.stats(zombie, 10, "Solo", 1).health, 66, "difficulty 1 is the base")
+
 print("Waves.spec: ok")

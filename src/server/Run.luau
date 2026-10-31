@@ -1,12 +1,14 @@
 -- One run of Floor Defense for a fixed group of players: builds the arena, moves the players in,
 -- runs waves, tracks per-player coins and score, and reports the result when the Town Hall falls.
--- In-run coins reset every run; only the final score is persisted via PlayerData.
+-- In-run coins reset every run; the final score, XP and Diamonds (Progression.xpForRun / diamondsForRun
+-- from the dungeon and the wave reached) are persisted via PlayerData and announced with RunResults.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Classes = require(ReplicatedStorage.Shared.Classes)
 local Config = require(ReplicatedStorage.Shared.Config)
+local Dungeons = require(ReplicatedStorage.Shared.Dungeons)
+local Progression = require(ReplicatedStorage.Shared.Progression)
 local Arena = require(script.Parent.Arena)
 local Combat = require(script.Parent.Combat)
 local PlayerData = require(script.Parent.PlayerData)
@@ -15,6 +17,7 @@ local TownHall = require(script.Parent.TownHall)
 local WaveManager = require(script.Parent.WaveManager)
 
 local runState = ReplicatedStorage.Remotes.RunState :: RemoteEvent
+local runResults = ReplicatedStorage.Remotes.RunResults :: RemoteEvent
 
 local Run = {}
 
@@ -22,11 +25,13 @@ export type PlayerRun = { coins: number, score: number, kills: number }
 
 local current: {
 	mode: string,
+	dungeonId: string,
 	players: { [number]: PlayerRun },
 	session: WaveManager.Session,
 	arena: Arena.Built,
 	townHall: TownHall.TownHall,
 	phase: string,
+	wave: number,
 	connections: { RBXScriptConnection },
 }? =
 	nil
@@ -71,9 +76,10 @@ function Run.playerRun(player: Player): PlayerRun?
 	return current and current.players[player.UserId]
 end
 
--- Class changes are allowed in the lobby and during the prep phase of the player's own run.
+-- Classes are picked in the prep countdown before wave 1 of the player's own run; never in the lobby and
+-- never once wave 1 has started.
 function Run.canSwitchClass(player: Player): boolean
-	return current == nil or current.players[player.UserId] == nil or current.phase == "prep"
+	return current ~= nil and current.players[player.UserId] ~= nil and current.phase == "prep" and current.wave <= 1
 end
 
 -- Gives the player their selected class's weapons (stats + Tools, slot 1 in hand) and passives. Called at run
@@ -95,6 +101,7 @@ function Run.start(mode: string, players: { Player }, onEnd: (mode: string, wave
 	local runPlayers: { [number]: PlayerRun } = {}
 	for i, player in players do
 		runPlayers[player.UserId] = { coins = 0, score = 0, kills = 0 }
+		player:SetAttribute("InRun", true) -- clients hide the lobby level tag
 		moveIn(player, arena.spawns[(i - 1) % #arena.spawns + 1])
 	end
 
@@ -121,6 +128,7 @@ function Run.start(mode: string, players: { Player }, onEnd: (mode: string, wave
 		onPhase = function(phase, wave, secondsLeft)
 			if current then
 				current.phase = phase
+				current.wave = wave
 			end
 			broadcast(phase, wave, secondsLeft)
 			if phase == "ended" then
@@ -133,11 +141,13 @@ function Run.start(mode: string, players: { Player }, onEnd: (mode: string, wave
 	local connections = {}
 	current = {
 		mode = mode,
+		dungeonId = arena.dungeonId,
 		players = runPlayers,
 		session = session,
 		arena = arena,
 		townHall = townHall,
 		phase = "prep",
+		wave = 1,
 		connections = connections,
 	}
 	Combat.setTownHall(townHall)
@@ -167,11 +177,26 @@ function Run.finish(wave: number)
 	end
 	Skills.endRun()
 	Combat.setTownHall(nil)
+	-- Rewards are computed here from server state only (dungeon, wave reached, mode).
+	local dungeonIndex = Dungeons.indexOf(finished.dungeonId) or 1
+	local xp = Progression.xpForRun(dungeonIndex, wave, finished.mode)
+	local diamonds = Progression.diamondsForRun(dungeonIndex, wave, finished.mode)
 	for _, player in Players:GetPlayers() do
 		local pr = finished.players[player.UserId]
 		if pr then
+			player:SetAttribute("InRun", nil)
 			PlayerData.recordScore(player, finished.mode, pr.score)
-			PlayerData.addGems(player, Classes.gemsForRun(wave, finished.mode))
+			local award = PlayerData.awardRun(player, xp, diamonds)
+			if award then
+				runResults:FireClient(player, {
+					xp = award.xp,
+					diamonds = award.diamonds,
+					level = award.level,
+					levelsGained = award.levelsGained,
+					text = Progression.resultsLine(award.xp, award.diamonds, award.levelsGained, award.level),
+				})
+				task.spawn(PlayerData.save, player) -- rewards are worth an immediate save
+			end
 			Combat.setLoadout(player, nil)
 		end
 	end

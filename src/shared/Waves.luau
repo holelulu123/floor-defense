@@ -74,11 +74,13 @@ function Waves.healthMultiplier(wave: number, modeName: string): number
 end
 
 -- Final numbers for one creature spawned on `wave`: the roster's debut-wave stats times the wave and
--- party multipliers. Damage and speed are not scaled so a lane keeps its rhythm.
-function Waves.stats(creature: Creature, wave: number, modeName: string): Stats
+-- party multipliers, and health and Town Hall damage times the dungeon's difficulty
+-- (Dungeons.difficulty, 1 when omitted). Speed is not scaled so a lane keeps its rhythm.
+function Waves.stats(creature: Creature, wave: number, modeName: string, difficulty: number?): Stats
+	local d = difficulty or 1
 	return {
-		health = math.floor(creature.health * Waves.healthMultiplier(wave, modeName) + 0.5),
-		damage = creature.damage,
+		health = math.floor(creature.health * Waves.healthMultiplier(wave, modeName) * d + 0.5),
+		damage = math.floor(creature.damage * d + 0.5),
 		coins = math.floor(creature.coins * Waves.mode(modeName).coins + 0.5),
 		speed = creature.speed,
 	}

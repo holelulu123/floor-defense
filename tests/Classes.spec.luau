@@ -25,9 +25,9 @@ assert(Classes.isOwned("Mage", { "Mage" }), "owned after purchase")
 
 local left, why = Classes.tryBuy("Mage", 1000, {})
 eq(left, nil, "cannot afford")
-eq(why, "not enough gems", "reason")
+eq(why, "not enough diamonds", "reason")
 left, why = Classes.tryBuy("Mage", 1300, {})
-eq(left, 100, "gems left after buying the Mage")
+eq(left, 100, "diamonds left after buying the Mage")
 left, why = Classes.tryBuy("Trooper", 1300, {})
 eq(why, "already owned", "free class cannot be bought")
 

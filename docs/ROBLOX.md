@@ -10,6 +10,7 @@ with a real client). Everything else runs from this machine through Roblox Open 
 | Run server-side tests in the live place | Luau Execution API runs a script inside the published place and returns its output | `scripts/roblox/cloud.py run scripts/roblox/smoke.luau` |
 | Make the experience public | Universe PATCH (visibility); if refused, toggle once in Creator Dashboard | `scripts/roblox/cloud.py public` |
 | Inspect universe/place metadata | | `scripts/roblox/cloud.py info` |
+| Upload UI images (icons, class portraits) | uploads each PNG as a decal, then reads its Image id inside the place (InsertService); ids land in `assets/ui/roblox-ids.json`, unchanged files are skipped | `scripts/roblox/cloud.py upload assets/ui/icons/*.png` |
 
 ## One-time setup (needs the account owner)
 
@@ -27,6 +28,7 @@ with a real client). Everything else runs from this machine through Roblox Open 
    ROBLOX_API_KEY=...
    ROBLOX_UNIVERSE_ID=...
    ROBLOX_PLACE_ID=...
+   ROBLOX_USER_ID=...   # owner of uploaded images (roblox.com/users/<id>/profile)
    ```
 
 ## Release loop

@@ -39,11 +39,7 @@ assert(Skills.Effects.AmmoCrate.refill == true, "Ammo Crate refills team magazin
 eq(Skills.Passives.Trooper.reloadSpeed, 1.1, "Trooper +10% reload speed")
 eq(Skills.Passives.Tank, nil, "Tank health comes from Classes.maxHealth, not a passive")
 
--- gems for a run
-eq(Classes.gemsForRun(10, "Solo"), 10, "solo: one gem per wave")
-eq(Classes.gemsForRun(10, "Squad"), 15, "squad: 1.5 gems per wave")
-eq(Classes.gemsForRun(0, "Duo"), 0, "no waves, no gems")
-eq(Classes.gemsForRun(3, "Unknown"), 3, "unknown mode falls back to 1 per wave")
+-- diamonds for a run: see Progression.spec (Progression.diamondsForRun)
 eq(#Classes.playable({}), 5, "five playable with nothing bought")
 eq(#Classes.playable({ "Mage", "Pyro" }), 7, "two purchases add two classes")
 

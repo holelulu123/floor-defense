@@ -8,6 +8,7 @@
       "Remotes": {
         "$className": "Folder",
         "RunState": { "$className": "RemoteEvent" },
+        "RunResults": { "$className": "RemoteEvent" },
         "Fire": { "$className": "RemoteEvent" },
         "EquipSlot": { "$className": "RemoteEvent" },
         "Reload": { "$className": "RemoteEvent" },

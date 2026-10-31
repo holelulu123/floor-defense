@@ -281,9 +281,9 @@ local function buildTool(weaponName: string, slot: number): Tool?
 	local gripPoint = build(handle)
 	handle.Size = handle.Size * SCALE -- builders set the handle size themselves, so scale after
 	gripPoint = CFrame.new(gripPoint.Position * SCALE) * gripPoint.Rotation
-	-- Builders model the muzzle/blade along the Handle's -Z; the hand's grip axis points the other way, so turn
-	-- the handle around or the weapon sits reversed in the hand (seen in the first Studio test).
-	tool.Grip = gripPoint * CFrame.Angles(0, math.pi, 0)
+	-- Builders model the muzzle/blade along the Handle's -Z, which is the way a held tool points, so no extra turn
+	-- (a half turn here held the rifle backwards in the Studio test of 2026-10-31).
+	tool.Grip = gripPoint
 
 	tool.Equipped:Connect(function()
 		attachOffhand(tool, weaponName)

@@ -1182,12 +1182,26 @@ async function showClass(cls) {
   // ?skill=1|2: fire that skill shortly after loading (visual checks of the skill move and effect).
   const autoSkill = Number(new URLSearchParams(location.search).get('skill'));
   if (autoSkill) { const fire = () => { if (current?.def !== cls) return; classCooldowns = {}; useSkill(autoSkill - 1); if (new URLSearchParams(location.search).has('agent')) fetch(`http://127.0.0.1:8799/__log/skillfired%20${cls.id}%20${autoSkill}`).catch(() => {}); setTimeout(fire, 6000 * timeScale); }; setTimeout(fire, 1500); }
+  // ?portrait=1: render a 256 px class portrait (upper body with the weapon, class-coloured backdrop) and post it
+  // to the local dev server as class_<id>.jpg; used for the in-game class cards.
+  if (new URLSearchParams(location.search).has('portrait')) setTimeout(() => {
+    const TINT = { Trooper: 0x46784a, Tank: 0x6e5a46, Scout: 0x3c6e96, Medic: 0x3c8c6e, Engineer: 0x967832, Berserker: 0x963232, Mage: 0x6446a0, Pyro: 0xaa501e, Sniper: 0x505a6e, Demolisher: 0x786428 };
+    ground.visible = grid.visible = false; scene.fog.near = 1e4; scene.fog.far = 2e4;
+    const bg = scene.background; scene.background = new THREE.Color(TINT[cls.id] ?? 0x333a44).multiplyScalar(0.55);
+    const size = new THREE.Vector2(); renderer.getSize(size); const aspect = camera.aspect;
+    renderer.setSize(256, 256, false); camera.aspect = 1; camera.updateProjectionMatrix();
+    const t = new THREE.Vector3(-charHeight * 0.1, charHeight * 0.64, charHeight * 0.25);
+    camera.position.set(t.x + charHeight * 0.75, t.y + charHeight * 0.1, t.z + charHeight * 1.05); camera.lookAt(t); controls.target.copy(t);
+    renderer.render(scene, camera);
+    fetch(`http://127.0.0.1:8799/__shot/class_${cls.id}`, { method: 'POST', body: renderer.domElement.toDataURL('image/jpeg', 0.92) }).catch(() => {});
+    renderer.setSize(size.x, size.y, false); camera.aspect = aspect; camera.updateProjectionMatrix(); scene.background = bg; ground.visible = grid.visible = true;
+  }, 3000);
   // ?closeup=right|left|top: after the hold pose settles, look at the weapon hand from that side (grip checks).
   const closeup = new URLSearchParams(location.search).get('closeup');
   if (closeup) setTimeout(() => { const hand = findBone(root, /^RightHand$/) ?? findBone(root, ARM_R); if (!hand) return; const p = hand.getWorldPosition(new THREE.Vector3()), d = charHeight * 1.0;
     controls.target.copy(p); camera.position.set(p.x + (closeup === 'left' ? d : closeup === 'top' ? 0.01 : -d), p.y + (closeup === 'top' ? d : d * 0.15), p.z); controls.update(); }, 600);
   $('hud-name').textContent = `${cls.id} · ${cls.weapon}`;
-  $('hud-state').textContent = cls.tier === 'Free' ? 'Free class' : `Locked · ${cls.cost} gems`;
+  $('hud-state').textContent = cls.tier === 'Free' ? 'Free class' : `Locked · ${cls.cost} diamonds`;
   $('cls-anim-select').innerHTML = gltf.animations.map(c => `<option>${clipName(c)}</option>`).join('');
   $('cls-anim-select').value = cls.anims.idle;
   const skillIcon = sk => `<img class="skill-icon" src="${ICONS}skill_${sk.name.toLowerCase().replace(/ /g, '_')}@64.png" alt="">`;
@@ -1198,7 +1212,7 @@ async function showClass(cls) {
   if (new URLSearchParams(location.search).get('slot') === '2') setTimeout(() => setSlot(2), 800);
   $('cooldowns').textContent = 'Both skills ready.';
   $('stats').innerHTML = [
-    [`${ico('gems')}Tier`, cls.tier === 'Free' ? 'Free' : `Locked · ${cls.cost} gems`], ['Role', cls.role], [`${ico('health')}Health`, `${cls.hp} HP`],
+    [`${ico('diamonds')}Tier`, cls.tier === 'Free' ? 'Free' : `Locked · ${cls.cost} diamonds`], ['Role', cls.role], [`${ico('health')}Health`, `${cls.hp} HP`],
     ['Weapon (1)', cls.weapon + (cls.hold?.some(w => w.flail) ? ' (flail is a placeholder model)' : '')],
     [`${ico('ammo')}Magazine`, cls.magazine ? `${cls.magazine}${cls.id === 'Pyro' ? ' fuel' : ' rounds'} · reload ${cls.reload} s` : cls.hold?.some(w => w.grip === 'gun') ? '-' : 'None (melee / magic, never reloads)'],
     ['Melee (2)', cls.melee ? `${cls.melee.name} · ${cls.melee.damage} damage · ${cls.melee.rate} swings/s` : 'None'], ['Passive', cls.passive],
@@ -1421,7 +1435,7 @@ try { files = await (await fetch('./files.json')).json(); } catch (e) { console.
 
 const statIcon = k => STAT_ICONS[k] ? `<img src="${ICONS}${STAT_ICONS[k]}@64.png" alt="${k}">` : '';
 function animatedCard(def) {
-  if (def.skills) return `<img class="thumb" alt=""><div><b>${def.id}</b><small>${def.role} · ${def.weapon}</small><small>${def.tier === 'Free' ? 'Free' : `${def.cost} gems`} · ${def.skills[0].name} ${def.skills[0].cooldown}s · ${def.skills[1].name} ${def.skills[1].cooldown}s</small></div>`;
+  if (def.skills) return `<img class="thumb" alt=""><div><b>${def.id}</b><small>${def.role} · ${def.weapon}</small><small>${def.tier === 'Free' ? 'Free' : `${def.cost} diamonds`} · ${def.skills[0].name} ${def.skills[0].cooldown}s · ${def.skills[1].name} ${def.skills[1].cooldown}s</small></div>`;
   const stats = def.stats.health !== undefined
     ? ['health', 'speed', 'damage', 'coins', 'firstWave'].map(k => `<span>${statIcon(k)}${def.stats[k]}</span>`).join('')
     : `<span>${def.stats.tier} · ${def.stats.role}</span>`;
@@ -1567,7 +1581,7 @@ const TABS = {
   lobby: { animated: true, isLobby: true, groups: () => [{ title: 'Lobby', items: [{ id: 'Lobby', name: 'Lobby', blurb: 'Spawn plaza, a dungeon arc with Solo / Duo / Squad pads per dungeon, Scoreboard and Shop plazas, reserved plots, grass all round.' }] }] },
   classes: { animated: true, isClass: true, groups: () => [
     { title: 'Free classes', items: CLASSES.filter(c => c.tier === 'Free') },
-    { title: 'Locked classes (bought with gems)', items: CLASSES.filter(c => c.tier !== 'Free') },
+    { title: 'Locked classes (bought with diamonds)', items: CLASSES.filter(c => c.tier !== 'Free') },
   ] },
   weapons: { animated: false, groups: () => files.weapons.map(p => ({ title: `${p.pack} · ${p.license}`, items: p.items.map(i => ({ ...i, pack: p.pack, license: p.license })) })) },
   props: { animated: false, groups: () => files.props.map(p => ({ title: `${p.pack} · ${p.license}`, items: p.items.map(i => ({ ...i, pack: p.pack, license: p.license })) })) },

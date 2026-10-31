@@ -6,6 +6,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Classes = require(ReplicatedStorage.Shared.Classes)
 local Config = require(ReplicatedStorage.Shared.Config)
+local Progression = require(ReplicatedStorage.Shared.Progression)
+local SaveData = require(ReplicatedStorage.Shared.SaveData)
 
 -- GetDataStore throws in Studio until the place is published with API access enabled.
 -- Without a store we run on in-memory defaults so the game is still playable locally.
@@ -54,14 +56,7 @@ function PlayerData.load(player: Player)
 		end
 	end
 
-	local data = table.clone(Config.DefaultData)
-	if type(saved) == "table" then
-		for field, value in saved do
-			data[field] = value
-		end
-	end
-	data.ProcessedReceipts = data.ProcessedReceipts or {}
-	data.OwnedClasses = if type(data.OwnedClasses) == "table" then data.OwnedClasses else {}
+	local data = SaveData.migrate(saved, Config.DefaultData) -- defaults, Gems -> Diamonds, Level/XP checks
 	if not Classes.find(data.Class) or not Classes.isOwned(data.Class, data.OwnedClasses) then
 		data.Class = Classes.List[1].id
 	end
@@ -78,8 +73,10 @@ function PlayerData.publish(player: Player)
 	if not data then
 		return
 	end
-	player:SetAttribute("Gems", data.Gems)
+	player:SetAttribute("Diamonds", data.Diamonds)
 	player:SetAttribute("Level", data.Level)
+	player:SetAttribute("XP", data.XP)
+	player:SetAttribute("XPToNext", Progression.xpToNext(data.Level))
 	player:SetAttribute("Class", data.Class)
 	player:SetAttribute("OwnedClasses", table.concat(data.OwnedClasses, ","))
 end
@@ -107,12 +104,29 @@ function PlayerData.release(player: Player)
 	sessions[player] = nil
 end
 
-function PlayerData.addGems(player: Player, amount: number)
+function PlayerData.addDiamonds(player: Player, amount: number)
 	local data = sessions[player]
 	if data then
-		data.Gems += amount
+		data.Diamonds += math.max(0, math.floor(amount))
 		PlayerData.publish(player)
 	end
+end
+
+export type RunAward = { xp: number, diamonds: number, level: number, levelsGained: number }
+
+-- End-of-run rewards (amounts computed server-side by Progression). Returns what was awarded, or nil when
+-- the data is not loaded.
+function PlayerData.awardRun(player: Player, xp: number, diamonds: number): RunAward?
+	local data = sessions[player]
+	if not data then
+		return nil
+	end
+	local level, progress, gained = Progression.addXp(data.Level, data.XP, xp)
+	data.Level = level
+	data.XP = progress
+	data.Diamonds += math.max(0, math.floor(diamonds))
+	PlayerData.publish(player)
+	return { xp = xp, diamonds = diamonds, level = level, levelsGained = gained }
 end
 
 -- Player level (unlocks dungeons; see Dungeons.isUnlocked). 1 until the data has loaded.
@@ -127,17 +141,17 @@ function PlayerData.classOf(player: Player): string
 	return if data then data.Class else Classes.List[1].id
 end
 
--- Spends gems on a locked class. Returns false and a reason when the purchase is not possible.
+-- Spends diamonds on a locked class. Returns false and a reason when the purchase is not possible.
 function PlayerData.buyClass(player: Player, classId: string): (boolean, string?)
 	local data = sessions[player]
 	if not data then
 		return false, "data not loaded"
 	end
-	local left, why = Classes.tryBuy(classId, data.Gems, data.OwnedClasses)
+	local left, why = Classes.tryBuy(classId, data.Diamonds, data.OwnedClasses)
 	if left == nil then
 		return false, why
 	end
-	data.Gems = left
+	data.Diamonds = left
 	table.insert(data.OwnedClasses, classId)
 	PlayerData.publish(player)
 	return true, nil

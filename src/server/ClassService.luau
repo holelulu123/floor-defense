@@ -12,7 +12,7 @@ local selectClass = ReplicatedStorage.Remotes.SelectClass :: RemoteFunction
 local ClassService = {}
 
 export type Hooks = {
-	-- May this player change class right now? (lobby, or the prep phase of their run)
+	-- May this player change class right now? (only during the prep countdown before wave 1 of their run)
 	canSwitch: (Player) -> boolean,
 	-- Called after a successful switch so an in-progress run can re-equip the player.
 	onSwitch: (Player) -> (),
@@ -20,7 +20,7 @@ export type Hooks = {
 
 local function reply(ok: boolean, reason: string?, player: Player)
 	local data = PlayerData.get(player)
-	return { ok = ok, reason = reason, gems = data and data.Gems or 0, class = PlayerData.classOf(player) }
+	return { ok = ok, reason = reason, diamonds = data and data.Diamonds or 0, class = PlayerData.classOf(player) }
 end
 
 function ClassService.init(hooks: Hooks)
@@ -40,7 +40,7 @@ function ClassService.init(hooks: Hooks)
 			return reply(false, "unknown class", player)
 		end
 		if not hooks.canSwitch(player) then
-			return reply(false, "cannot change class mid-run", player)
+			return reply(false, "class is picked before wave 1", player)
 		end
 		local ok, why = PlayerData.selectClass(player, classId)
 		if ok then

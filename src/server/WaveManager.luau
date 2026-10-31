@@ -24,6 +24,7 @@ export type Session = {
 	mode: string,
 	dungeonId: string,
 	familyId: string,
+	difficulty: number, -- Dungeons.difficulty: creature health and Town Hall damage
 	townHall: TownHall.TownHall,
 	arena: Arena.Built,
 	hooks: Hooks,
@@ -43,7 +44,7 @@ end
 
 local function spawnWave(session: Session)
 	for _, group in Waves.composition(session.familyId, session.wave, session.mode) do
-		local stats = Waves.stats(group.creature, session.wave, session.mode)
+		local stats = Waves.stats(group.creature, session.wave, session.mode, session.difficulty)
 		for _ = 1, group.count do
 			if not session.running then
 				return
@@ -69,6 +70,7 @@ function WaveManager.start(
 		mode = mode,
 		dungeonId = dungeonId,
 		familyId = Dungeons.get(dungeonId).family,
+		difficulty = Dungeons.get(dungeonId).difficulty,
 		townHall = townHall,
 		arena = arena,
 		hooks = hooks,

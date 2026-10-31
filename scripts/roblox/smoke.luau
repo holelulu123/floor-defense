@@ -15,7 +15,7 @@ local server = ServerScriptService:FindFirstChild("Server")
 check("Server folder synced", server ~= nil)
 
 if shared then
-	for _, name in { "Config", "Dungeons", "Waves", "Classes", "Weapons", "Progression", "PadLogic", "Enemies" } do
+	for _, name in { "Config", "Dungeons", "Waves", "Classes", "Weapons", "Progression", "PadLogic", "Enemies", "SaveData", "Icons" } do
 		local mod = shared:FindFirstChild(name)
 		if not mod then
 			check("module " .. name, false, "missing")

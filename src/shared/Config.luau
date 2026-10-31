@@ -5,9 +5,11 @@ return {
 	DataStoreName = "PlayerData_v1",
 
 	-- Persistent per-player fields. In-run coins and score live in Run.luau and are never saved.
+	-- Older saves are migrated by SaveData.migrate (e.g. Gems -> Diamonds).
 	DefaultData = {
-		Gems = 0,
+		Diamonds = 0,
 		Level = 1,
+		XP = 0, -- progress toward the next level (Progression.xpToNext)
 		BestScoreSolo = 0,
 		BestScoreDuo = 0,
 		BestScoreSquad = 0,
@@ -20,7 +22,7 @@ return {
 	},
 
 	Products = {
-		Gems500 = 0,
+		Diamonds500 = 0,
 	},
 
 	-- Lobby pads are generated per dungeon and mode by LobbyLayout.pads(). In Studio every dungeon's

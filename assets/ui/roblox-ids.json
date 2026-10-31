@@ -1,0 +1,172 @@
+{
+ "ammo": {
+  "decal": "71722808946665",
+  "image": "rbxassetid://137845073299116",
+  "sha": "31a57f129af1720d"
+ },
+ "class_Berserker": {
+  "decal": "75471405975961",
+  "image": "rbxassetid://95039017655402",
+  "sha": "9090c2584e50923d"
+ },
+ "class_Demolisher": {
+  "decal": "79583156298350",
+  "image": "rbxassetid://84069399876006",
+  "sha": "6d0c20a6740eb754"
+ },
+ "class_Engineer": {
+  "decal": "74178312970765",
+  "image": "rbxassetid://111812228402961",
+  "sha": "d137fe04f69a0f0a"
+ },
+ "class_Mage": {
+  "decal": "94931808118242",
+  "image": "rbxassetid://137927440614076",
+  "sha": "948b71237bb7d213"
+ },
+ "class_Medic": {
+  "decal": "113751860993677",
+  "image": "rbxassetid://100478320013051",
+  "sha": "21d4bef668b7351b"
+ },
+ "class_Pyro": {
+  "decal": "86790222276803",
+  "image": "rbxassetid://94899626630309",
+  "sha": "81e2f9e328a202d7"
+ },
+ "class_Scout": {
+  "decal": "139454518755293",
+  "image": "rbxassetid://115595999237805",
+  "sha": "7ecd410d676327a1"
+ },
+ "class_Sniper": {
+  "decal": "126578920000687",
+  "image": "rbxassetid://78604487191719",
+  "sha": "bb9b2c05c61cbe52"
+ },
+ "class_Tank": {
+  "decal": "126855393158930",
+  "image": "rbxassetid://82050586769837",
+  "sha": "b186e5236dd3f6b8"
+ },
+ "class_Trooper": {
+  "decal": "115357129030784",
+  "image": "rbxassetid://76869255899252",
+  "sha": "e1795f1e4aa935bc"
+ },
+ "diamonds": {
+  "decal": "117145750988033",
+  "image": "rbxassetid://70824592917420",
+  "sha": "d029ddb7bbe15b12"
+ },
+ "health": {
+  "decal": "90557480681587",
+  "image": "rbxassetid://106034030060762",
+  "sha": "00cf549f3396b135"
+ },
+ "reload": {
+  "decal": "73749917979717",
+  "image": "rbxassetid://78345908581049",
+  "sha": "4e81eceaebe74584"
+ },
+ "skill_ammo_crate": {
+  "decal": "134093159844390",
+  "image": "rbxassetid://93656823461946",
+  "sha": "9671957de881bdfa"
+ },
+ "skill_arcane_bolt": {
+  "decal": "92186838801255",
+  "image": "rbxassetid://75087538941583",
+  "sha": "494f0b7250ae8bf3"
+ },
+ "skill_burst_fire": {
+  "decal": "127548723087792",
+  "image": "rbxassetid://102291000254103",
+  "sha": "3d34922b6228c6fc"
+ },
+ "skill_cleave": {
+  "decal": "138257464661605",
+  "image": "rbxassetid://76463841151849",
+  "sha": "f3a03dc6988d7491"
+ },
+ "skill_cluster_bomb": {
+  "decal": "114908416995779",
+  "image": "rbxassetid://78032686647472",
+  "sha": "641fd92744f3649a"
+ },
+ "skill_dash": {
+  "decal": "94070426175062",
+  "image": "rbxassetid://135774125412355",
+  "sha": "091912fa4e7a8bd9"
+ },
+ "skill_fire_wall": {
+  "decal": "84598116037550",
+  "image": "rbxassetid://119296692733925",
+  "sha": "a2bbc46dd31deb7e"
+ },
+ "skill_flail_sweep": {
+  "decal": "102907661853875",
+  "image": "rbxassetid://81009563615840",
+  "sha": "2cd4cba3851161e7"
+ },
+ "skill_flame_sweep": {
+  "decal": "104270111755888",
+  "image": "rbxassetid://121712263462907",
+  "sha": "f26428a0ff769dff"
+ },
+ "skill_frag_toss": {
+  "decal": "102877134363805",
+  "image": "rbxassetid://107733009848917",
+  "sha": "bb84da8f8207400c"
+ },
+ "skill_frost_nova": {
+  "decal": "99138377765874",
+  "image": "rbxassetid://129469923881332",
+  "sha": "35b4f36ddd6f48b3"
+ },
+ "skill_iron_wall": {
+  "decal": "83786768480571",
+  "image": "rbxassetid://89433846502826",
+  "sha": "485355f5f2f92798"
+ },
+ "skill_mark_target": {
+  "decal": "114075163157163",
+  "image": "rbxassetid://70520446362233",
+  "sha": "e0bdab67d61b5740"
+ },
+ "skill_overcharge": {
+  "decal": "74925661425917",
+  "image": "rbxassetid://100937203016341",
+  "sha": "a55239a036f05317"
+ },
+ "skill_overclock": {
+  "decal": "92510335125846",
+  "image": "rbxassetid://126974932623982",
+  "sha": "ba322f55ec8ec793"
+ },
+ "skill_overwatch": {
+  "decal": "128361332420773",
+  "image": "rbxassetid://97302221172149",
+  "sha": "eefb68f3b4aa6de7"
+ },
+ "skill_piercing_shot": {
+  "decal": "104710483411714",
+  "image": "rbxassetid://124565391912819",
+  "sha": "eab233f63deab7d9"
+ },
+ "skill_place_turret": {
+  "decal": "137516052736240",
+  "image": "rbxassetid://83464147591707",
+  "sha": "809a141faf625883"
+ },
+ "skill_rage": {
+  "decal": "110186292638221",
+  "image": "rbxassetid://91967528469182",
+  "sha": "4f005e73c11e0775"
+ },
+ "skill_repair_pulse": {
+  "decal": "124789599843607",
+  "image": "rbxassetid://77033438763458",
+  "sha": "8a8524c6d0d4d892"
+ }
+}
