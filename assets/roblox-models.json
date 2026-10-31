@@ -39,6 +39,71 @@
   "sha": "1ff4a7c03bac16d4",
   "src": "build/animations/RecoilRifle.rbxm"
  },
+ "Anim_SkillAim": {
+  "asset": 107947724328693,
+  "sha": "05fdc12a9fc686a0",
+  "src": "build/animations/SkillAim.rbxm"
+ },
+ "Anim_SkillBurst": {
+  "asset": 124671689452525,
+  "sha": "9a7030d940d95b76",
+  "src": "build/animations/SkillBurst.rbxm"
+ },
+ "Anim_SkillCast": {
+  "asset": 94268311273554,
+  "sha": "8184b211a508c89e",
+  "src": "build/animations/SkillCast.rbxm"
+ },
+ "Anim_SkillCleave": {
+  "asset": 131240654081836,
+  "sha": "ac90a84aee063e8d",
+  "src": "build/animations/SkillCleave.rbxm"
+ },
+ "Anim_SkillDash": {
+  "asset": 114442206214576,
+  "sha": "a654a56a78ad7da3",
+  "src": "build/animations/SkillDash.rbxm"
+ },
+ "Anim_SkillNova": {
+  "asset": 72634379531343,
+  "sha": "473a762669b4a964",
+  "src": "build/animations/SkillNova.rbxm"
+ },
+ "Anim_SkillPlace": {
+  "asset": 102367625593588,
+  "sha": "61b073a53c6d21b7",
+  "src": "build/animations/SkillPlace.rbxm"
+ },
+ "Anim_SkillRecoil": {
+  "asset": 128633176812651,
+  "sha": "60d17f446ceeb355",
+  "src": "build/animations/SkillRecoil.rbxm"
+ },
+ "Anim_SkillRoar": {
+  "asset": 96473011496920,
+  "sha": "1587abfda4dedfc9",
+  "src": "build/animations/SkillRoar.rbxm"
+ },
+ "Anim_SkillShield": {
+  "asset": 73644366665689,
+  "sha": "520032ee2bbcf437",
+  "src": "build/animations/SkillShield.rbxm"
+ },
+ "Anim_SkillSpin": {
+  "asset": 86605927576311,
+  "sha": "79b777ee4176a6b3",
+  "src": "build/animations/SkillSpin.rbxm"
+ },
+ "Anim_SkillSweep": {
+  "asset": 131359742937101,
+  "sha": "e9a0701677179512",
+  "src": "build/animations/SkillSweep.rbxm"
+ },
+ "Anim_SkillToss": {
+  "asset": 125234933676589,
+  "sha": "536f9c36f7567b1f",
+  "src": "build/animations/SkillToss.rbxm"
+ },
  "Anim_Swing": {
   "asset": 109867838106610,
   "sha": "69261fae19cca11b",
@@ -50,1057 +115,1057 @@
   "src": "build/animations/SwingHeavy.rbxm"
  },
  "AssaultRifle": {
-  "asset": 72488813696814,
+  "asset": 88147393014324,
   "sha": "e28b2024f333e04a",
   "src": "assets/weapons/kenney-weapon-pack/machinegun.glb"
  },
  "BoltRifle": {
-  "asset": 90184049218238,
+  "asset": 91121227197040,
   "sha": "ca6875768214f068",
   "src": "assets/weapons/kenney-weapon-pack/sniper.glb"
  },
  "CombatKnife": {
-  "asset": 122246202517665,
+  "asset": 107102413952554,
   "sha": "9403ed54dcb881e6",
   "src": "assets/weapons/kenney-weapon-pack/knife_sharp.glb"
  },
  "Creature_Alien": {
   "asset": 75272401475690,
-  "sha": "c041e8ed0eff82f0",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-space/alien.glb"
  },
  "Creature_Alley_Cat": {
-  "asset": 119113546475955,
+  "asset": 118849877854907,
   "sha": "7e253c9e88c22553",
   "src": "assets/creatures/quaternius-monsters/Blob_Cat.glb"
  },
  "Creature_Alpaca": {
-  "asset": 102163798871370,
+  "asset": 131764843543948,
   "sha": "7af78b392e3ce2a0",
   "src": "assets/creatures/quaternius-animals/Alpaca.glb"
  },
  "Creature_Alpaking": {
   "asset": 84743156877066,
-  "sha": "a23e298bd67487b8",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Flying_Alpaking.glb"
  },
  "Creature_Alpaking_Evolved": {
   "asset": 87150533239535,
-  "sha": "62103bb36fa3837e",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Flying_Alpaking_Evolved.glb"
  },
  "Creature_Arctic_Fox": {
   "asset": 114404189428398,
-  "sha": "1785e9ce83610727",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-animals/Fox.glb"
  },
  "Creature_Armabee": {
   "asset": 125395337061209,
-  "sha": "3478f14cb4048c6f",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Flying_Armabee.glb"
  },
  "Creature_Armabee_Evolved": {
   "asset": 107887495456990,
-  "sha": "e7a522b694e2c1d1",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Flying_Armabee_Evolved.glb"
  },
  "Creature_Bandit_King": {
   "asset": 72539895833193,
-  "sha": "4a14277ff581bbd1",
+  "sha": "rebake",
   "src": "assets/creatures/kaykit-bandits/Knight.glb"
  },
  "Creature_Bat": {
-  "asset": 88780019105624,
+  "asset": 78076501784700,
   "sha": "d17edba3d25a15a4",
   "src": "assets/creatures/quaternius-cute-monsters/Bat.glb"
  },
  "Creature_Bee_Mech": {
   "asset": 84079082291604,
-  "sha": "00768dbee436cba9",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Mech_BarbaraTheBee.glb"
  },
  "Creature_Blue_Demon": {
-  "asset": 81968601863509,
+  "asset": 86394533004482,
   "sha": "0b95917d87831e57",
   "src": "assets/creatures/quaternius-monsters/Big_BlueDemon.glb"
  },
  "Creature_Boatswain": {
   "asset": 92573448384540,
-  "sha": "ed151fc47c5cd6be",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-characters/character-male-f.glb"
  },
  "Creature_Bog_Fish": {
-  "asset": 71832109530429,
+  "asset": 99817220720341,
   "sha": "8cf22e7a5fc456d4",
   "src": "assets/creatures/quaternius-monsters/Big_Fish.glb"
  },
  "Creature_Bog_Frog": {
-  "asset": 101096764044056,
+  "asset": 122868421839359,
   "sha": "92dc96c90e722867",
   "src": "assets/creatures/quaternius-easy-enemies/Frog.glb"
  },
  "Creature_Bog_Spider": {
-  "asset": 114115248889980,
+  "asset": 82068173453009,
   "sha": "d759e35f6cf5adc7",
   "src": "assets/creatures/quaternius-easy-enemies/Spider.glb"
  },
  "Creature_Bomb_Bee": {
-  "asset": 136168781705191,
+  "asset": 135246921949191,
   "sha": "29a3ac29e6859208",
   "src": "assets/creatures/quaternius-platformer/Bee.glb"
  },
  "Creature_Bomb_Hen": {
-  "asset": 109232901894959,
+  "asset": 135823617411222,
   "sha": "8330dfb5c576e6c0",
   "src": "assets/creatures/quaternius-monsters/Blob_Chicken.glb"
  },
  "Creature_Bone_Dragon": {
-  "asset": 72505050099140,
+  "asset": 80573965815510,
   "sha": "8cba239b41af34aa",
   "src": "assets/creatures/quaternius-monsters/Flying_Dragon_Evolved.glb"
  },
  "Creature_Bone_Walker": {
-  "asset": 75203097584838,
+  "asset": 113589228784287,
   "sha": "512acbd23472a88e",
   "src": "assets/creatures/quaternius-animated-monsters/Skeleton.glb"
  },
  "Creature_Brood_Alien": {
   "asset": 120530130756378,
-  "sha": "8cdbad682ffcb4b8",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Big_Alien.glb"
  },
  "Creature_Brood_Guard": {
   "asset": 88667182203711,
-  "sha": "c4b89b51360d3599",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Enemy_Large.glb"
  },
  "Creature_Bruiser": {
   "asset": 82968077936301,
-  "sha": "1e21bf399a1c8374",
+  "sha": "rebake",
   "src": "assets/creatures/kaykit-bandits/Barbarian.glb"
  },
  "Creature_Bull": {
-  "asset": 127953577229031,
+  "asset": 102143543846854,
   "sha": "92cb51be2846adb2",
   "src": "assets/creatures/quaternius-animals/Bull.glb"
  },
  "Creature_Bulwark": {
   "asset": 127056930057844,
-  "sha": "20b4346c268e0540",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-ufo/enemy-ufo-d.glb"
  },
  "Creature_Cactoro": {
   "asset": 126610519459915,
-  "sha": "3f1cabaccbf7875b",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Big_Cactoro.glb"
  },
  "Creature_Cactoro_Runt": {
-  "asset": 74543167012156,
+  "asset": 124240664108944,
   "sha": "97ae3e0fd77fef16",
   "src": "assets/creatures/quaternius-monsters/Blob_Cactoro.glb"
  },
  "Creature_Cactus": {
   "asset": 84689438187288,
-  "sha": "2978ec0aad13e001",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-monsters/Cactus.glb"
  },
  "Creature_Chicken": {
-  "asset": 85472726638442,
+  "asset": 140286775019837,
   "sha": "8133141309068541",
   "src": "assets/creatures/quaternius-cute-monsters/Chicken.glb"
  },
  "Creature_Cow": {
-  "asset": 111011531661367,
+  "asset": 118023912879328,
   "sha": "23f82a318dd3c05f",
   "src": "assets/creatures/quaternius-animals/Cow.glb"
  },
  "Creature_Crab": {
-  "asset": 124741962066258,
+  "asset": 136270039209580,
   "sha": "b5487be2c83059cf",
   "src": "assets/creatures/quaternius-platformer/Crab.glb"
  },
  "Creature_Crossbowman": {
-  "asset": 74928061537041,
+  "asset": 134376963576259,
   "sha": "d1fa91360b851cc5",
   "src": "assets/creatures/kaykit-bandits/Rogue_Hooded.glb"
  },
  "Creature_Crusher": {
   "asset": 110529544412697,
-  "sha": "1d21ee204a808089",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cyberpunk/Enemy_Large.glb"
  },
  "Creature_Cutpurse": {
-  "asset": 131621359908480,
+  "asset": 119921923161365,
   "sha": "8cfcff43460da8b4",
   "src": "assets/creatures/kenney-mini-characters/character-female-a.glb"
  },
  "Creature_Cyber_Raider": {
   "asset": 118615168386290,
-  "sha": "006e28f474c8fc20",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cyberpunk/Character.glb"
  },
  "Creature_Cyclops": {
-  "asset": 87931494453418,
+  "asset": 139716285867001,
   "sha": "7683b383542a787b",
   "src": "assets/creatures/quaternius-cute-monsters/Cyclops.glb"
  },
  "Creature_Deckhand": {
   "asset": 137402182856143,
-  "sha": "dd12b2e75ffb1cdb",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-characters/character-male-d.glb"
  },
  "Creature_Deep_One": {
   "asset": 102693457736084,
-  "sha": "68ebc0a439c547e3",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-monsters/Cthulhu.glb"
  },
  "Creature_Dino": {
   "asset": 131917139037047,
-  "sha": "593f276dac01d8ed",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Big_Dino.glb"
  },
  "Creature_Doe": {
   "asset": 87076161785827,
-  "sha": "b6558249bfb22531",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-animals/Deer.glb"
  },
  "Creature_Donkey": {
-  "asset": 114896715286432,
+  "asset": 130697700414115,
   "sha": "79cbb14d88a2ca41",
   "src": "assets/creatures/quaternius-animals/Donkey.glb"
  },
  "Creature_Dozer_Mech": {
   "asset": 111014718395421,
-  "sha": "5daaf45a3b467dca",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-mechs/George.glb"
  },
  "Creature_Drain_Birb": {
-  "asset": 87281733990687,
+  "asset": 106635487127945,
   "sha": "9f75191bc37aff8f",
   "src": "assets/creatures/quaternius-monsters/Blob_Birb.glb"
  },
  "Creature_Drain_Fish": {
-  "asset": 117996249344357,
+  "asset": 91743935980664,
   "sha": "450fca92fa0aceb9",
   "src": "assets/creatures/quaternius-monsters/Blob_Fish.glb"
  },
  "Creature_Farm_Dog": {
-  "asset": 94279213112654,
+  "asset": 74733802950372,
   "sha": "4c8d4d9361a3abd4",
   "src": "assets/creatures/quaternius-animals/ShibaInu.glb"
  },
  "Creature_Fat_Pigeon": {
-  "asset": 110393375755255,
+  "asset": 74067589444733,
   "sha": "cfecfb04319bac59",
   "src": "assets/creatures/quaternius-monsters/Blob_Pigeon.glb"
  },
  "Creature_First_Mate": {
   "asset": 118238254187861,
-  "sha": "77572792bfe2773b",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-characters/character-male-a.glb"
  },
  "Creature_Flamingo_Mech": {
   "asset": 94328144748634,
-  "sha": "62709d868551d244",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Mech_FernandoTheFlamingo.glb"
  },
  "Creature_Floater": {
   "asset": 93031592244869,
-  "sha": "8c3b46a15be25096",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Enemy_Small.glb"
  },
  "Creature_Footpad": {
-  "asset": 106771819783948,
+  "asset": 114029944466498,
   "sha": "de28bda75cd2c983",
   "src": "assets/creatures/kaykit-bandits/Rogue.glb"
  },
  "Creature_Frog_Mech": {
   "asset": 94276399830878,
-  "sha": "86ba4d2af3097703",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Mech_FinnTheFrog.glb"
  },
  "Creature_Frost_Dragon": {
   "asset": 93023527974675,
-  "sha": "eb3f5bf8e11c277d",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Flying_Dragon.glb"
  },
  "Creature_Frost_Wolf": {
   "asset": 131009776783645,
-  "sha": "8382f3d3b97e2338",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-animals/Wolf.glb"
  },
  "Creature_Glub": {
-  "asset": 97386398687152,
+  "asset": 131138876647855,
   "sha": "669cac1a62104f63",
   "src": "assets/creatures/quaternius-monsters/Flying_Glub.glb"
  },
  "Creature_Glub_Evolved": {
-  "asset": 78548386565313,
+  "asset": 124891940741210,
   "sha": "f647db0e739d6686",
   "src": "assets/creatures/quaternius-monsters/Flying_Glub_Evolved.glb"
  },
  "Creature_Goleling": {
   "asset": 139697053418659,
-  "sha": "ea5996befda0c253",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Flying_Goleling.glb"
  },
  "Creature_Goleling_Evolved": {
   "asset": 135399048062864,
-  "sha": "5aef40cb0d1f591d",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Flying_Goleling_Evolved.glb"
  },
  "Creature_Green_Blob": {
-  "asset": 132340206924547,
+  "asset": 92730600380363,
   "sha": "6fa368269c1de439",
   "src": "assets/creatures/quaternius-monsters/Blob_GreenBlob.glb"
  },
  "Creature_Green_Demon": {
-  "asset": 85778951800819,
+  "asset": 89928013711340,
   "sha": "8614a154df3d818b",
   "src": "assets/creatures/quaternius-cute-monsters/GreenDemon.glb"
  },
  "Creature_Grey": {
   "asset": 120873055552367,
-  "sha": "5ec29f3804ac2407",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-monsters/Alien.glb"
  },
  "Creature_Gun_Drone": {
   "asset": 100241834715281,
-  "sha": "af82b5b458530b31",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cyberpunk/Enemy_Flying_Gun.glb"
  },
  "Creature_Gun_Walker": {
   "asset": 76782641330806,
-  "sha": "fda86deed47bef08",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cyberpunk/Enemy_2Legs_Gun.glb"
  },
  "Creature_Gunner": {
   "asset": 76094194378721,
-  "sha": "933f6b08f657d47f",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-platformer/Character_Gun.glb"
  },
  "Creature_Gunship": {
   "asset": 130938436485356,
-  "sha": "320499b9b50a0353",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-ufo/enemy-ufo-b-weapon.glb"
  },
  "Creature_Hauler": {
   "asset": 91217623370123,
-  "sha": "cd8ef37eb29e553f",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-ufo/enemy-ufo-c.glb"
  },
  "Creature_Hell_Demon": {
-  "asset": 133178440431568,
+  "asset": 123634432529002,
   "sha": "28158fb7b8bec06e",
   "src": "assets/creatures/quaternius-monsters/Big_Demon.glb"
  },
  "Creature_Helmet_Visitor": {
   "asset": 130956868687286,
-  "sha": "299e1414961ea2d5",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-alien/Alien_Helmet.glb"
  },
  "Creature_Hornet": {
-  "asset": 111531618027012,
+  "asset": 91321440811798,
   "sha": "050fe9f39c61f62c",
   "src": "assets/creatures/quaternius-easy-enemies/Wasp.glb"
  },
  "Creature_Horse": {
-  "asset": 118153474297268,
+  "asset": 76236665096261,
   "sha": "fbddb2c97179eca8",
   "src": "assets/creatures/quaternius-animals/Horse.glb"
  },
  "Creature_Hover_Drone": {
   "asset": 74458782216491,
-  "sha": "7e3a27532b43807b",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cyberpunk/Enemy_Flying.glb"
  },
  "Creature_Husky": {
   "asset": 115192527146411,
-  "sha": "b2cb13fa470367cd",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-animals/Husky.glb"
  },
  "Creature_Hywirl": {
   "asset": 129640400559794,
-  "sha": "c6849ae29dee43de",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Flying_Hywirl.glb"
  },
  "Creature_Ice_Fish": {
   "asset": 104931193669070,
-  "sha": "c1572e188ffa73ed",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-fish/BlueTang.glb"
  },
  "Creature_Ice_Stag": {
   "asset": 80593480421119,
-  "sha": "34818768f3e9298c",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-animals/Stag.glb"
  },
  "Creature_Imp": {
-  "asset": 106839457001163,
+  "asset": 116131390131723,
   "sha": "0232e03f9ee3cce9",
   "src": "assets/creatures/quaternius-cute-monsters/Demon.glb"
  },
  "Creature_Jungle_Bee": {
   "asset": 81210839961552,
-  "sha": "e6aab5e1803ac1a3",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-monsters/Bee.glb"
  },
  "Creature_Kamikaze": {
   "asset": 100625356236275,
-  "sha": "9fd6156535693105",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-ufo/enemy-ufo-a-weapon.glb"
  },
  "Creature_Keeper": {
-  "asset": 102470721467602,
+  "asset": 133516793244721,
   "sha": "d11d277c7e780023",
   "src": "assets/creatures/kenney-graveyard/character-keeper.glb"
  },
  "Creature_Kraken": {
   "asset": 76876100763072,
-  "sha": "43fb67eb018728af",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Flying_Squidle.glb"
  },
  "Creature_Lancer": {
   "asset": 119856348726164,
-  "sha": "bf1ad0c021c587b9",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-ufo/enemy-ufo-c-weapon.glb"
  },
  "Creature_Lieutenant": {
   "asset": 96432838252105,
-  "sha": "672a6506f7475bbd",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-characters/character-male-c.glb"
  },
  "Creature_Llama": {
-  "asset": 110467327227508,
+  "asset": 103868350682414,
   "sha": "e66010a8da89e949",
   "src": "assets/creatures/quaternius-farm-animals/Llama.glb"
  },
  "Creature_Longneck": {
   "asset": 111133792781333,
-  "sha": "b0fc50a2d7c973c2",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-dinosaurs/Apatosaurus.glb"
  },
  "Creature_Lookout": {
   "asset": 70496702921467,
-  "sha": "67f61708743bd34f",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-characters/character-female-d.glb"
  },
  "Creature_Mad_Cow": {
-  "asset": 114253911969449,
+  "asset": 136161597125946,
   "sha": "4ac76e598fa962f6",
   "src": "assets/creatures/quaternius-farm-animals/Cow.glb"
  },
  "Creature_Mage": {
-  "asset": 107572245152120,
+  "asset": 140615925318188,
   "sha": "e05b0f5cfa395271",
   "src": "assets/creatures/kaykit-skeletons/Skeleton_Mage.glb"
  },
  "Creature_Marsh_Rat": {
-  "asset": 127942219901946,
+  "asset": 91098750520838,
   "sha": "68f67077981102e9",
   "src": "assets/creatures/quaternius-easy-enemies/Rat.glb"
  },
  "Creature_Mercenary": {
-  "asset": 72036535011383,
+  "asset": 102186410867947,
   "sha": "f4d2e223bb8c42c1",
   "src": "assets/creatures/kenney-mini-dungeon/character-human.glb"
  },
  "Creature_Minion": {
-  "asset": 97746073619172,
+  "asset": 124643238136251,
   "sha": "6ffc003f895bed0b",
   "src": "assets/creatures/kaykit-skeletons/Skeleton_Minion.glb"
  },
  "Creature_Monkroose": {
-  "asset": 128355245556476,
+  "asset": 99503820196832,
   "sha": "51495a85d74ad46a",
   "src": "assets/creatures/quaternius-monsters/Big_Monkroose.glb"
  },
  "Creature_Mothership": {
   "asset": 106662477517677,
-  "sha": "f276a5812bd7c5fd",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-ufo/enemy-ufo-d-weapon.glb"
  },
  "Creature_Mushnub": {
-  "asset": 102395629227901,
+  "asset": 98348681916988,
   "sha": "25d29ef8edb6dba7",
   "src": "assets/creatures/quaternius-monsters/Blob_Mushnub.glb"
  },
  "Creature_Mushnub_Evolved": {
-  "asset": 121189354949204,
+  "asset": 118927509316061,
   "sha": "842f8fc6dfd8008e",
   "src": "assets/creatures/quaternius-monsters/Blob_Mushnub_Evolved.glb"
  },
  "Creature_Mushroom_King": {
-  "asset": 77847354960463,
+  "asset": 99654078506846,
   "sha": "11166c2aa0689feb",
   "src": "assets/creatures/quaternius-monsters/Big_MushroomKing.glb"
  },
  "Creature_Mutant_Bunny": {
-  "asset": 112925960992990,
+  "asset": 123837752818662,
   "sha": "9f34648e6c26e072",
   "src": "assets/creatures/quaternius-monsters/Big_Bunny.glb"
  },
  "Creature_Mutt": {
-  "asset": 88191302509048,
+  "asset": 131398001612377,
   "sha": "eec60320cde6af6c",
   "src": "assets/creatures/quaternius-monsters/Blob_Dog.glb"
  },
  "Creature_Necromancer": {
-  "asset": 94125970329168,
+  "asset": 116674772507320,
   "sha": "503ed1c54d558951",
   "src": "assets/creatures/quaternius-monsters/Blob_Wizard.glb"
  },
  "Creature_Ninja": {
   "asset": 101610559757678,
-  "sha": "7b9ab097716751c2",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Big_Ninja.glb"
  },
  "Creature_Ninja_Runt": {
-  "asset": 101111358166238,
+  "asset": 132964823231989,
   "sha": "5330ded9f9fa3edf",
   "src": "assets/creatures/quaternius-monsters/Blob_Ninja.glb"
  },
  "Creature_Oobi": {
-  "asset": 110936437945707,
+  "asset": 109745951151208,
   "sha": "42cb1889e1ef6404",
   "src": "assets/creatures/kenney-blobs/character-oobi.glb"
  },
  "Creature_Oodi": {
-  "asset": 89476727247975,
+  "asset": 73710919372173,
   "sha": "3790919a738ed907",
   "src": "assets/creatures/kenney-blobs/character-oodi.glb"
  },
  "Creature_Ooli": {
-  "asset": 96269686687245,
+  "asset": 90223546302591,
   "sha": "fa500369104ed72b",
   "src": "assets/creatures/kenney-blobs/character-ooli.glb"
  },
  "Creature_Oopi": {
-  "asset": 85072168763967,
+  "asset": 87088428193065,
   "sha": "faaecd9c4a9648c8",
   "src": "assets/creatures/kenney-blobs/character-oopi.glb"
  },
  "Creature_Oozi": {
-  "asset": 79076126444120,
+  "asset": 121433272981169,
   "sha": "a33d91691313d46d",
   "src": "assets/creatures/kenney-blobs/character-oozi.glb"
  },
  "Creature_Orc": {
   "asset": 71652938440825,
-  "sha": "f14cf4b2c484969b",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-dungeon/character-orc.glb"
  },
  "Creature_Orc_Chief": {
   "asset": 70972271576508,
-  "sha": "ff9cd9a4f05ece27",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Big_Orc.glb"
  },
  "Creature_Orc_Runt": {
-  "asset": 132875326280947,
+  "asset": 123971749429542,
   "sha": "95cdbe21f24dd831",
   "src": "assets/creatures/quaternius-monsters/Blob_Orc.glb"
  },
  "Creature_Orc_Skull": {
-  "asset": 116340474815293,
+  "asset": 109976998407661,
   "sha": "51221c5f6891851d",
   "src": "assets/creatures/quaternius-monsters/Big_Orc_Skull.glb"
  },
  "Creature_Panda_Mech": {
   "asset": 80113636769200,
-  "sha": "e697bf3216e7fc6f",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Mech_RaeTheRedPanda.glb"
  },
  "Creature_Para": {
   "asset": 140069840738000,
-  "sha": "163d80abed38e380",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-dinosaurs/Parasaurolophus.glb"
  },
  "Creature_Pig": {
-  "asset": 106278706544861,
+  "asset": 125310171952882,
   "sha": "8b961d5d3de99697",
   "src": "assets/creatures/quaternius-farm-animals/Pig.glb"
  },
  "Creature_Pigeon": {
-  "asset": 133553928503051,
+  "asset": 88789806418451,
   "sha": "d2c3fdd529ee961f",
   "src": "assets/creatures/quaternius-monsters/Flying_Pigeon.glb"
  },
  "Creature_Piglet": {
-  "asset": 98626195382880,
+  "asset": 86994328470421,
   "sha": "e8a24c186d4589f9",
   "src": "assets/creatures/quaternius-cute-monsters/Pig.glb"
  },
  "Creature_Pink_Blob": {
-  "asset": 79137230849825,
+  "asset": 125526204438129,
   "sha": "825e19abde800d12",
   "src": "assets/creatures/quaternius-monsters/Blob_PinkBlob.glb"
  },
  "Creature_Piranha": {
-  "asset": 100799868904878,
+  "asset": 72231833213231,
   "sha": "bca92fec1795ca80",
   "src": "assets/creatures/quaternius-cute-fish/Piranha.glb"
  },
  "Creature_Poltergeist": {
-  "asset": 109614813083276,
+  "asset": 94976088410359,
   "sha": "3cf736d83b0b1896",
   "src": "assets/creatures/quaternius-cute-monsters/Ghost.glb"
  },
  "Creature_Powder_Monkey": {
   "asset": 97449840989027,
-  "sha": "cd76681090ce2986",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-characters/character-male-e.glb"
  },
  "Creature_Powder_Thief": {
   "asset": 104761365858677,
-  "sha": "791fc0c203924c17",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-characters/character-male-b.glb"
  },
  "Creature_Puffin": {
   "asset": 133381431461115,
-  "sha": "3517ea148b134cf6",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-monsters/Penguin.glb"
  },
  "Creature_Pug": {
   "asset": 107554491958049,
-  "sha": "0d9b6725a8bcde6d",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-farm-animals/Pug.glb"
  },
  "Creature_Quack": {
   "asset": 126043659011980,
-  "sha": "e6c942473182df55",
+  "sha": "rebake",
   "src": "assets/creatures/kaykit-bandits/Mage.glb"
  },
  "Creature_Quartermaster": {
   "asset": 127313749122598,
-  "sha": "3ee3939f80d71894",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-characters/character-female-e.glb"
  },
  "Creature_Raptor": {
   "asset": 99445674571681,
-  "sha": "1d9ecad0a65c0c85",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-dinosaurs/Velociraptor.glb"
  },
  "Creature_Red_Panda": {
   "asset": 93638993399943,
-  "sha": "f7425c88eec43543",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-monsters/Panda.glb"
  },
  "Creature_Reef_Crab": {
   "asset": 126086484870898,
-  "sha": "ade186c9c17e8d3e",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-monsters/Crab.glb"
  },
  "Creature_Reindeer": {
   "asset": 103103976400890,
-  "sha": "68f3586487758695",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-monsters/Deer.glb"
  },
  "Creature_Rex": {
   "asset": 72144328437817,
-  "sha": "e1c9862deef89f09",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-dinosaurs/Trex.glb"
  },
  "Creature_Riot_Mech": {
   "asset": 130233467572050,
-  "sha": "bd4237ac8836faf5",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-mechs/Stan.glb"
  },
  "Creature_Rogue": {
-  "asset": 80599081713407,
+  "asset": 81857717140214,
   "sha": "4003f2b77891bb56",
   "src": "assets/creatures/kaykit-skeletons/Skeleton_Rogue.glb"
  },
  "Creature_Rogue_Bee": {
   "asset": 87357255617822,
-  "sha": "a4ac1dc8bc3dd73e",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Astronaut_BarbaraTheBee.glb"
  },
  "Creature_Rogue_Flamingo": {
   "asset": 136530939137534,
-  "sha": "d796c2577496a409",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Astronaut_FernandoTheFlamingo.glb"
  },
  "Creature_Rogue_Frog": {
   "asset": 93575875012282,
-  "sha": "3b17480d9fad4f17",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Astronaut_FinnTheFrog.glb"
  },
  "Creature_Rogue_Panda": {
   "asset": 79376222145605,
-  "sha": "11e9e2e105370c63",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Astronaut_RaeTheRedPanda.glb"
  },
  "Creature_S_Ghost": {
-  "asset": 129786797829779,
+  "asset": 81502643574684,
   "sha": "d4334bc0c7c0ca27",
   "src": "assets/creatures/kenney-graveyard/character-ghost.glb"
  },
  "Creature_Scarecrow_Tree": {
-  "asset": 101779511414419,
+  "asset": 124512427437626,
   "sha": "3c6e85c6a2910cbb",
   "src": "assets/creatures/quaternius-cute-monsters/Tree.glb"
  },
  "Creature_Scout_Mech": {
   "asset": 73417426131763,
-  "sha": "2b4e9ca7ab85b88f",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-mechs/Leela.glb"
  },
  "Creature_Scout_UFO": {
   "asset": 96513204532847,
-  "sha": "6943f5a229eafddf",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-ufo/enemy-ufo-a.glb"
  },
  "Creature_Sea_Dragon": {
   "asset": 121593043786082,
-  "sha": "9ca3032ad9aed8c1",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-animated-monsters/Dragon.glb"
  },
  "Creature_Sewer_Bat": {
-  "asset": 129430435493968,
+  "asset": 110138428133015,
   "sha": "4c0fe6b818d5b745",
   "src": "assets/creatures/quaternius-animated-monsters/Bat.glb"
  },
  "Creature_Sewer_Beast": {
-  "asset": 111907976234356,
+  "asset": 95678103551643,
   "sha": "1432712fb6a0734a",
   "src": "assets/creatures/quaternius-platformer/Enemy.glb"
  },
  "Creature_Sewer_Grub": {
-  "asset": 120221168608275,
+  "asset": 88552311516075,
   "sha": "ed6f5c7ea6734ca9",
   "src": "assets/creatures/quaternius-monsters/Blob_Alien.glb"
  },
  "Creature_Sheep": {
-  "asset": 134449199286631,
+  "asset": 71913501589461,
   "sha": "d5f409fe2dc020dd",
   "src": "assets/creatures/quaternius-farm-animals/Sheep.glb"
  },
  "Creature_Shield_Thug": {
   "asset": 122595410471253,
-  "sha": "2ff4311897bfaf99",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-characters/character-female-f.glb"
  },
  "Creature_Shroomling": {
-  "asset": 129639959735171,
+  "asset": 89847885442181,
   "sha": "621105b37dc81d81",
   "src": "assets/creatures/quaternius-cute-monsters/Mushroom.glb"
  },
  "Creature_Siege_Unit": {
   "asset": 123081823332306,
-  "sha": "5c5f5b28c002592f",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cyberpunk/Enemy_Large_Gun.glb"
  },
  "Creature_Skeleton": {
-  "asset": 73261306374214,
+  "asset": 120957808509332,
   "sha": "72f20c53c6311488",
   "src": "assets/creatures/kenney-graveyard/character-skeleton.glb"
  },
  "Creature_Skull_Hopper": {
-  "asset": 120779865461899,
+  "asset": 82767895289861,
   "sha": "65ce6536fde5964b",
   "src": "assets/creatures/quaternius-cute-monsters/Skull.glb"
  },
  "Creature_Skull_Wraith": {
-  "asset": 74370540286302,
+  "asset": 129743344528109,
   "sha": "7f766dadad2e37bc",
   "src": "assets/creatures/quaternius-monsters/Flying_Ghost_Skull.glb"
  },
  "Creature_Slime": {
-  "asset": 138468403133726,
+  "asset": 116408656250760,
   "sha": "698fd7a9a420366d",
   "src": "assets/creatures/quaternius-animated-monsters/Slime.glb"
  },
  "Creature_Snow_Birb": {
   "asset": 131399826782113,
-  "sha": "e7b45171d1e63260",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Big_Birb.glb"
  },
  "Creature_Spiky_Blob": {
-  "asset": 93327081142693,
+  "asset": 87456563157489,
   "sha": "f5ec16935ca5bda1",
   "src": "assets/creatures/quaternius-monsters/Blob_GreenSpikyBlob.glb"
  },
  "Creature_Spore": {
   "asset": 72866960858145,
-  "sha": "c106f8e57fc06632",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Enemy_ExtraSmall.glb"
  },
  "Creature_Stallion": {
-  "asset": 105164774963671,
+  "asset": 106580559964770,
   "sha": "52dccd05bbcf5d20",
   "src": "assets/creatures/quaternius-farm-animals/Horse.glb"
  },
  "Creature_Stego": {
   "asset": 97781049568202,
-  "sha": "a3dff577342e98f8",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-dinosaurs/Stegosaurus.glb"
  },
  "Creature_Stinger": {
   "asset": 85572442333829,
-  "sha": "4e0fad3a0f8d5010",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-space/Enemy_Flying.glb"
  },
  "Creature_Surgeon": {
   "asset": 102695129073033,
-  "sha": "3cd9e1b5d6409fce",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-characters/character-female-c.glb"
  },
  "Creature_Swabbie": {
   "asset": 112703026461234,
-  "sha": "2288438e7baf9acc",
+  "sha": "rebake",
   "src": "assets/creatures/kenney-mini-characters/character-female-b.glb"
  },
  "Creature_Swamp_Snake": {
-  "asset": 87263881217091,
+  "asset": 97223214230158,
   "sha": "70b4af1088dec939",
   "src": "assets/creatures/quaternius-easy-enemies/Snake.glb"
  },
  "Creature_Swordfish": {
   "asset": 132699640140374,
-  "sha": "db7771638680c54c",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-fish/Swordfish.glb"
  },
  "Creature_Tall_Grey": {
   "asset": 107993010057157,
-  "sha": "e7d17b1b21d900dd",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-monsters/Alien_Tall.glb"
  },
  "Creature_Toad_King": {
-  "asset": 97858489493545,
+  "asset": 94894196330806,
   "sha": "87ac4e3c8ef1c725",
   "src": "assets/creatures/quaternius-monsters/Big_Frog.glb"
  },
  "Creature_Tribal": {
-  "asset": 75739990847389,
+  "asset": 117974551472654,
   "sha": "4ba74b02f763c06f",
   "src": "assets/creatures/quaternius-monsters/Big_Tribal.glb"
  },
  "Creature_Tribal_Flyer": {
   "asset": 81435097829184,
-  "sha": "fc2fdb0fc82ba47a",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Flying_Tribal.glb"
  },
  "Creature_Trike": {
   "asset": 106473652189570,
-  "sha": "79ade346de5e778a",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-dinosaurs/Triceratops.glb"
  },
  "Creature_Vampire": {
-  "asset": 133960694389444,
+  "asset": 70525264298749,
   "sha": "89e646e46d9a0670",
   "src": "assets/creatures/kenney-graveyard/character-vampire.glb"
  },
  "Creature_Viper": {
-  "asset": 133752405596558,
+  "asset": 72450363054957,
   "sha": "41aab79b037ac1e3",
   "src": "assets/creatures/quaternius-easy-enemies/Snake_angry.glb"
  },
  "Creature_Visitor": {
   "asset": 128107252740804,
-  "sha": "73c209347572963c",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-alien/Alien.glb"
  },
  "Creature_Walker": {
   "asset": 75366226750941,
-  "sha": "d5d1de1481560415",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cyberpunk/Enemy_2Legs.glb"
  },
  "Creature_Warrior": {
-  "asset": 137489272242999,
+  "asset": 81309660429922,
   "sha": "178b6fda810b814c",
   "src": "assets/creatures/kaykit-skeletons/Skeleton_Warrior.glb"
  },
  "Creature_Welder_Mech": {
   "asset": 111222616264853,
-  "sha": "38d92d04cb3880d4",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-mechs/Mike.glb"
  },
  "Creature_Wraith": {
-  "asset": 124920879437289,
+  "asset": 74415314582114,
   "sha": "9b710b90b5c50e23",
   "src": "assets/creatures/quaternius-monsters/Flying_Ghost.glb"
  },
  "Creature_Yellow_Dragon": {
   "asset": 85408343784947,
-  "sha": "50871be26eca9706",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-monsters/YellowDragon.glb"
  },
  "Creature_Yeti": {
   "asset": 81060764665340,
-  "sha": "df4791cdab239ccf",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Big_Yeti.glb"
  },
  "Creature_Yeti_Cub": {
   "asset": 92928277022714,
-  "sha": "c8740e2c3729192e",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-monsters/Blob_Yeti.glb"
  },
  "Creature_Young_Yeti": {
   "asset": 92981848631208,
-  "sha": "563496ec63366f09",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-cute-monsters/Yeti.glb"
  },
  "Creature_Zebra": {
   "asset": 97348984604465,
-  "sha": "fcb796f804856c98",
+  "sha": "rebake",
   "src": "assets/creatures/quaternius-farm-animals/Zebra.glb"
  },
  "Creature_Zombie": {
-  "asset": 115716174862895,
+  "asset": 138635633918521,
   "sha": "1a49bedce8647de5",
   "src": "assets/creatures/kenney-graveyard/character-zombie.glb"
  },
  "Dagger": {
-  "asset": 110880278275101,
+  "asset": 109118001022978,
   "sha": "7b9a26d5c5b1f267",
   "src": "assets/weapons/quaternius-medieval/Dagger.glb"
  },
  "DualPistols": {
-  "asset": 110555641393887,
+  "asset": 137734390696847,
   "sha": "7e48e23afc8d368a",
   "src": "assets/weapons/kenney-weapon-pack/pistol.glb"
  },
  "Flamethrower": {
-  "asset": 118238615674484,
+  "asset": 90326835468883,
   "sha": "89da676f09bd0835",
   "src": "assets/weapons/kenney-weapon-pack/flamethrower_long.glb"
  },
  "GreatAxe": {
-  "asset": 113950922153108,
+  "asset": 71319665047928,
   "sha": "932421cd009c116b",
   "src": "assets/weapons/quaternius-medieval/Axe_Double.glb"
  },
  "GrenadeLauncher": {
-  "asset": 136117931316274,
+  "asset": 95369312620358,
   "sha": "e28a992406e4b478",
   "src": "assets/weapons/kenney-weapon-pack/rocketlauncherModern.glb"
  },
  "Hammer": {
-  "asset": 92952281133847,
+  "asset": 79198032958152,
   "sha": "5ebe511952f2f780",
   "src": "assets/weapons/quaternius-medieval/Hammer_Double.glb"
  },
  "Karambit": {
-  "asset": 75352617718401,
+  "asset": 105584453236092,
   "sha": "75aaec1330d0424c",
   "src": "assets/weapons/kenney-weapon-pack/knifeRound_sharp.glb"
  },
  "Machete": {
-  "asset": 132451939944933,
+  "asset": 106903884961422,
   "sha": "0832e888b3d2ff78",
   "src": "assets/weapons/kenney-weapon-pack/knifeRound_smooth.glb"
  },
  "Prop_Arch_Door": {
   "asset": 80478439612637,
-  "sha": "78525c991bfeeb32",
+  "sha": "rebake",
   "src": "assets/props/quaternius-ruins/Arch_Door.glb"
  },
  "Prop_Bars": {
   "asset": 126667314858704,
-  "sha": "a88902d54995b47f",
+  "sha": "rebake",
   "src": "assets/props/quaternius-dungeon/Bars.glb"
  },
  "Prop_Base_Large": {
   "asset": 112568597867189,
-  "sha": "b9c749b069595217",
+  "sha": "rebake",
   "src": "assets/props/quaternius-space-props/Base_Large.glb"
  },
  "Prop_BirchTree_Dead_Snow_1": {
   "asset": 74057790370345,
-  "sha": "918a071e969b15ea",
+  "sha": "rebake",
   "src": "assets/props/quaternius-nature/BirchTree_Dead_Snow_1.glb"
  },
  "Prop_Boat": {
   "asset": 113743764120696,
-  "sha": "971239c4d24de2a3",
+  "sha": "rebake",
   "src": "assets/props/quaternius-ships/Boat.glb"
  },
  "Prop_Door": {
   "asset": 94495741334766,
-  "sha": "0b8a27b3eae479ec",
+  "sha": "rebake",
   "src": "assets/props/quaternius-cyberpunk-props/Door.glb"
  },
  "Prop_Fence": {
   "asset": 105657043897088,
-  "sha": "39f1306790e50996",
+  "sha": "rebake",
   "src": "assets/props/quaternius-village/Fence.glb"
  },
  "Prop_Mill": {
   "asset": 102703099107422,
-  "sha": "bf61fae3dc7c5442",
+  "sha": "rebake",
   "src": "assets/props/quaternius-village/Mill.glb"
  },
  "Prop_Ramp": {
   "asset": 123469174149394,
-  "sha": "6d6dfc684ed79245",
+  "sha": "rebake",
   "src": "assets/props/quaternius-space-props/Ramp.glb"
  },
  "Prop_Sail_ship": {
   "asset": 103864163517787,
-  "sha": "797c86a5d558e543",
+  "sha": "rebake",
   "src": "assets/props/quaternius-ships/Sail_ship.glb"
  },
  "Prop_Temple_FirstAge_Level3": {
   "asset": 135045715047149,
-  "sha": "56c9023468471553",
+  "sha": "rebake",
   "src": "assets/props/quaternius-rts/Temple_FirstAge_Level3.glb"
  },
  "Prop_Temple_SecondAge_Level3": {
   "asset": 81654703167047,
-  "sha": "bb5b65e2bcdf88dc",
+  "sha": "rebake",
   "src": "assets/props/quaternius-rts/Temple_SecondAge_Level3.glb"
  },
  "Prop_TownCenter_SecondAge_Level3": {
   "asset": 87579008912671,
-  "sha": "9b37d1b3eac036e7",
+  "sha": "rebake",
   "src": "assets/props/quaternius-rts/TownCenter_SecondAge_Level3.glb"
  },
  "Prop_Turret_Cannon": {
   "asset": 115118084009311,
-  "sha": "1c731f445be1f701",
+  "sha": "rebake",
   "src": "assets/props/quaternius-cyberpunk-props/Turret_Cannon.glb"
  },
  "Prop_WatchTower_FirstAge_Level3": {
   "asset": 130106169556735,
-  "sha": "b43938378b0b3894",
+  "sha": "rebake",
   "src": "assets/props/quaternius-rts/WatchTower_FirstAge_Level3.glb"
  },
  "Prop_Willow_Dead_1": {
   "asset": 136142525618801,
-  "sha": "5a411dae0eaa40f1",
+  "sha": "rebake",
   "src": "assets/props/quaternius-nature/Willow_Dead_1.glb"
  },
  "Prop_Wonder_SecondAge_Level3": {
   "asset": 89105599584856,
-  "sha": "17b65a5d5eacc883",
+  "sha": "rebake",
   "src": "assets/props/quaternius-rts/Wonder_SecondAge_Level3.glb"
  },
  "Prop_arch_gate": {
   "asset": 100574754161114,
-  "sha": "f2874a339f9af672",
+  "sha": "rebake",
   "src": "assets/props/kaykit-halloween/arch_gate.gltf"
  },
  "Prop_crypt": {
   "asset": 128911779115041,
-  "sha": "0d8b98430f4b6261",
+  "sha": "rebake",
   "src": "assets/props/kaykit-halloween/crypt.gltf"
  },
  "SMG": {
-  "asset": 130861674046210,
+  "asset": 86632493295008,
   "sha": "2c48155183a81170",
   "src": "assets/weapons/kenney-weapon-pack/uzi.glb"
  },
  "Scalpel": {
-  "asset": 127694542400948,
+  "asset": 77957144532383,
   "sha": "b4248db0f290b8ad",
   "src": "assets/weapons/kenney-weapon-pack/knife_smooth.glb"
  },
  "Shield": {
-  "asset": 119067167380801,
+  "asset": 110035837116217,
   "sha": "562d6101149ff5fe",
   "src": "assets/weapons/quaternius-medieval/Shield_Round.glb"
  },
  "Shotgun": {
-  "asset": 108412206542476,
+  "asset": 87998922551732,
   "sha": "af8336ed6713fe44",
   "src": "assets/weapons/kenney-weapon-pack/shotgun.glb"
  },
@@ -1115,12 +1180,12 @@
   "src": "build/sounds/Whoosh.wav"
  },
  "Staff": {
-  "asset": 72249957777712,
+  "asset": 82470084956331,
   "sha": "0ecfcf700a1673eb",
   "src": "assets/characters/kaykit-adventurers/Mage.glb#2H_Staff"
  },
  "Sword": {
-  "asset": 102978584052053,
+  "asset": 113125113581915,
   "sha": "c70d6eb917b8a740",
   "src": "assets/weapons/quaternius-medieval/Sword.glb"
  }

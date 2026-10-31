@@ -1,6 +1,7 @@
 -- Client side of shooting: input, aiming, a local cooldown for feel, tracers and a crosshair.
 -- The server decides hits; this script only tells it where we aimed. Skill keys (Q/E) send the
--- skill index plus the same aim ray; SkillFx events from the server are drawn here as placeholders.
+-- skill index plus the same aim ray; when the server confirms a skill, its move (shared SkillVisuals) plays here and
+-- SkillEffects.client.luau draws the effect.
 -- Weapon keys: 1 = primary, 2 = melee secondary (Remotes.EquipSlot), R = reload (Remotes.Reload). The
 -- server owns the active slot and the magazine; the client only skips shots it knows would be refused.
 -- Shots start at the equipped Tool's "Muzzle" attachment (WeaponModels.luau; the Scout alternates with "MuzzleLeft")
@@ -15,7 +16,9 @@ local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
+local Classes = require(ReplicatedStorage.Shared.Classes)
 local ModelIds = require(ReplicatedStorage.Shared.ModelIds) :: { [string]: number }
+local SkillVisuals = require(ReplicatedStorage.Shared.SkillVisuals)
 local Skills = require(ReplicatedStorage.Shared.Skills)
 local WeaponMeshes = require(ReplicatedStorage.Shared.WeaponMeshes)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
@@ -259,6 +262,14 @@ local function updateHold()
 		holdTrack = nil
 	end
 	if tool then
+		-- Load this class's skill moves now so their first use plays at full length.
+		local class = Classes.find(player:GetAttribute("Class"))
+		for _, skill in if class then class.skills else {} do
+			local visual = SkillVisuals.forSkill(skill.id)
+			if visual then
+				track(visual.anim)
+			end
+		end
 		local holdName = WeaponMeshes.animationsFor(tool.Name)
 		local t = track(holdName)
 		if t then
@@ -500,114 +511,53 @@ hitFx.OnClientEvent:Connect(
 	end
 )
 
--- Skill effects: short-lived neon placeholders so every skill reads on screen before real VFX exist.
+-- Skill moves: when the server confirms one of our skills (the SkillFx broadcast tagged `cast` with us as caster),
+-- play its animation from shared SkillVisuals. Played on our own Animator, so it replicates to everyone else. The
+-- effects themselves are drawn by SkillEffects.client.luau for every player in the run.
 
-local function fxPart(cframe: CFrame, size: Vector3, color: Color3, seconds: number, shape: Enum.PartType?): Part
-	local part = Instance.new("Part")
-	part.Anchored = true
-	part.CanCollide = false
-	part.CanQuery = false
-	part.CanTouch = false
-	part.Material = Enum.Material.Neon
-	part.Transparency = 0.4
-	part.Color = color
-	part.Shape = shape or Enum.PartType.Block
-	part.Size = size
-	part.CFrame = cframe
-	part.Parent = camera
-	task.delay(seconds, part.Destroy, part)
-	return part
-end
+local skillPlays = 0
 
-local FX_COLORS = {
-	sweep = Color3.fromRGB(230, 230, 240),
-	nova = Color3.fromRGB(120, 200, 255),
-	flame = Color3.fromRGB(255, 120, 30),
-	firewall = Color3.fromRGB(255, 90, 20),
-	blast = Color3.fromRGB(255, 170, 40),
-	buff = Color3.fromRGB(255, 240, 120),
-	crate = Color3.fromRGB(120, 200, 90),
-	wall = Color3.fromRGB(160, 170, 200),
-	pulse = Color3.fromRGB(90, 255, 140),
-	shield = Color3.fromRGB(90, 200, 255),
-	build = Color3.fromRGB(240, 160, 60),
-	mark = Color3.fromRGB(255, 60, 60),
-	dash = Color3.fromRGB(200, 240, 255),
-}
-
-skillFx.OnClientEvent:Connect(function(fx)
-	if type(fx) ~= "table" or type(fx.kind) ~= "string" then
+local function playSkillMove(skillId: any, duration: any)
+	local visual = SkillVisuals.forSkill(skillId)
+	local t = visual and track(visual.anim)
+	if not visual or not t then
 		return
 	end
-	local color = FX_COLORS[fx.kind] or Color3.new(1, 1, 1)
-	if fx.kind == "turretShot" and fx.from and fx.to then
-		drawTracer(fx.from, fx.to)
-	elseif (fx.kind == "pierce" or fx.kind == "flame") and fx.position and fx.direction then
-		local length = fx.range or 20
-		local width = if fx.kind == "flame" then 3 else 0.3
-		fxPart(
-			CFrame.lookAt(fx.position, fx.position + fx.direction) * CFrame.new(0, 0, -length / 2),
-			Vector3.new(width, width, length),
-			if fx.kind == "flame" then FX_COLORS.flame else Color3.fromRGB(255, 255, 200),
-			0.25
-		)
-	elseif fx.kind == "firewall" and fx.cframe and fx.size then
-		fxPart(fx.cframe, fx.size, color, fx.duration or 8)
-	elseif (fx.kind == "bolt" or fx.kind == "throw") and fx.position then
-		local target = if typeof(fx.target) == "Instance" then (fx.target :: BasePart).Position else fx.target
-		if typeof(target) == "Vector3" then
-			local projectile = fxPart(
-				CFrame.new(fx.position),
-				Vector3.new(0.6, 0.6, 0.6),
-				color,
-				fx.duration or 0.5,
-				Enum.PartType.Ball
-			)
-			local start = os.clock()
-			local seconds = fx.duration or 0.5
-			local from = fx.position
-			local conn
-			conn = RunService.RenderStepped:Connect(function()
-				local t = math.clamp((os.clock() - start) / seconds, 0, 1)
-				if projectile.Parent then
-					projectile.Position = from:Lerp(target, t) + Vector3.new(0, math.sin(t * math.pi) * 3, 0)
-				end
-				if t >= 1 then
-					conn:Disconnect()
-				end
-			end)
-		end
-	elseif fx.kind == "dash" and fx.position and fx.direction then
-		fxPart(
-			CFrame.lookAt(fx.position, fx.position + fx.direction) * CFrame.new(0, 0, -(fx.range or 10) / 2),
-			Vector3.new(1, 0.2, fx.range or 10),
-			color,
-			0.3
-		)
-	elseif fx.position then
-		-- Area and self effects: a thin disc on the ground that grows to the effect radius and fades, instead of a
-		-- solid ball that swallowed the player (seen in the Studio test).
-		local radius = fx.radius or 3
-		local seconds = math.clamp(fx.duration or 0.4, 0.3, 1.5)
-		local ground = fx.position - Vector3.new(0, 2.8, 0)
-		local disc = fxPart(
-			CFrame.new(ground) * CFrame.Angles(0, 0, math.pi / 2),
-			Vector3.new(0.15, 1, 1),
-			color,
-			seconds,
-			Enum.PartType.Cylinder
-		)
-		local start = os.clock()
-		local conn
-		conn = RunService.RenderStepped:Connect(function()
-			local t = math.clamp((os.clock() - start) / seconds, 0, 1)
-			if not disc.Parent or t >= 1 then
-				conn:Disconnect()
-				return
+	skillPlays += 1
+	local play = skillPlays
+	t.Looped = false
+	t:Stop(0)
+	t:Play(0.1)
+	local length = if t.Length > 0 then t.Length else 1
+	if visual.holdPose and type(duration) == "number" and duration > length then
+		-- Freeze on the last (braced) frame for the skill's duration, then let the hold pose back in.
+		task.delay(length - 0.05, function()
+			if play == skillPlays and t.IsPlaying then
+				t:AdjustSpeed(0)
 			end
-			local d = 1 + (radius * 2 - 1) * math.sqrt(t)
-			disc.Size = Vector3.new(0.15, d, d)
-			disc.Transparency = 0.4 + 0.6 * t
 		end)
+		task.delay(duration, function()
+			if play == skillPlays then
+				t:Stop(0.3)
+			end
+		end)
+	else
+		-- Blend back into the hold pose instead of snapping from the clip's rest frame.
+		task.delay(math.max(0, length - 0.2), function()
+			if play == skillPlays and t.IsPlaying then
+				t:Stop(0.2)
+			end
+		end)
+	end
+end
+
+skillFx.OnClientEvent:Connect(function(fx)
+	if type(fx) ~= "table" then
+		return
+	end
+	if fx.kind == "turretShot" and typeof(fx.from) == "Vector3" and typeof(fx.to) == "Vector3" then
+		drawTracer(fx.from, fx.to)
+	elseif fx.cast == true and fx.caster == player then
+		playSkillMove(fx.skill, fx.duration)
 	end
 end)

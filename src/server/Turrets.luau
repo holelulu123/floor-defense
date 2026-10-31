@@ -172,6 +172,15 @@ function Turrets.get(inst: Instance?): Turret?
 	return if inst and inst:IsA("BasePart") then byPart[inst] else nil
 end
 
+-- The player's turret models (for skill effects drawn on them).
+function Turrets.models(player: Player): { Model }
+	local out = {}
+	for _, t in byPlayer[player] or ({} :: { Turret }) do
+		table.insert(out, t.model)
+	end
+	return out
+end
+
 function Turrets.count(player: Player): number
 	local list = byPlayer[player]
 	return if list then #list else 0

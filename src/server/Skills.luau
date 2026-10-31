@@ -70,7 +70,20 @@ local function buff(player: Player, stat: string, default: number): number
 	)
 end
 
+-- The skill being applied right now (set around the handler call): every broadcast is tagged with its id and caster
+-- so clients pick the visuals (shared SkillVisuals) and the caster plays the move; the first one also carries
+-- `cast = true`. Payloads are visual only; clients never send them back.
+local casting: { skill: string, caster: Player, cast: boolean }? = nil
+
 local function broadcastFx(payload: { [string]: any })
+	if casting then
+		payload.skill = casting.skill
+		payload.caster = casting.caster
+		if casting.cast then
+			payload.cast = true
+			casting.cast = false
+		end
+	end
 	skillFx:FireAllClients(payload)
 end
 
@@ -233,6 +246,7 @@ end
 type Ctx = {
 	player: Player,
 	classId: string,
+	skillId: string,
 	root: BasePart,
 	humanoid: Humanoid,
 	origin: Vector3,
@@ -249,7 +263,13 @@ handlers.buff = function(ctx)
 		setBuff(ctx.player, "SpeedMult", ctx.effect.speed, ctx.effect.duration)
 		refreshSpeed(ctx.player)
 	end
-	broadcastFx({ kind = ctx.effect.fx, position = ctx.root.Position, radius = 4 })
+	broadcastFx({
+		kind = ctx.effect.fx,
+		position = ctx.root.Position,
+		direction = ctx.direction,
+		radius = 4,
+		duration = ctx.effect.duration,
+	})
 	return true
 end
 
@@ -260,7 +280,14 @@ handlers.teamBuff = function(ctx)
 			Combat.refill(player) -- Ammo Crate: the whole team reloads instantly
 		end
 	end
-	broadcastFx({ kind = ctx.effect.fx, position = groundAt(ctx.root.Position, ctx.player.Character), radius = 3 })
+	local flat = Vector3.new(ctx.direction.X, 0, ctx.direction.Z)
+	local ahead = ctx.root.Position + (if flat.Magnitude > 0.1 then flat.Unit else ctx.root.CFrame.LookVector) * 3
+	broadcastFx({
+		kind = ctx.effect.fx,
+		position = groundAt(ahead, ctx.player.Character),
+		radius = 3,
+		duration = ctx.effect.duration,
+	})
 	return true
 end
 
@@ -332,7 +359,12 @@ handlers.repair = function(ctx)
 		return false
 	end
 	townHall:repair(ctx.effect.heal)
-	broadcastFx({ kind = ctx.effect.fx, position = townHall.part.Position, radius = townHall.part.Size.X })
+	broadcastFx({
+		kind = ctx.effect.fx,
+		position = townHall.part.Position,
+		radius = townHall.part.Size.X,
+		amount = ctx.effect.heal,
+	})
 	return true
 end
 
@@ -360,8 +392,8 @@ handlers.turret = function(ctx)
 	if (ground - ctx.root.Position).Magnitude > ctx.effect.range + 4 then
 		return false
 	end
-	Turrets.place(ctx.player, ground, ground + flat.Unit * 10)
-	broadcastFx({ kind = ctx.effect.fx, position = ground, radius = 2 })
+	local turret = Turrets.place(ctx.player, ground, ground + flat.Unit * 10)
+	broadcastFx({ kind = ctx.effect.fx, position = ground, radius = 2, target = turret.model })
 	return true
 end
 
@@ -370,7 +402,13 @@ handlers.overclock = function(ctx)
 		return false
 	end
 	Turrets.overclock(ctx.player, ctx.effect.duration)
-	broadcastFx({ kind = ctx.effect.fx, position = ctx.root.Position, radius = 3 })
+	broadcastFx({
+		kind = ctx.effect.fx,
+		position = ctx.root.Position,
+		radius = 3,
+		duration = ctx.effect.duration,
+		turrets = Turrets.models(ctx.player),
+	})
 	return true
 end
 
@@ -475,30 +513,44 @@ handlers.line = function(ctx)
 		ctx.effect.radius,
 		ctx.effect.maxTargets
 	)
+	local hitAt = {}
 	for _, i in hits do
+		table.insert(hitAt, creatures[i].part.Position)
 		Damage.hit(creatures[i], ctx.effect.damage, ctx.player.UserId)
 	end
-	broadcastFx({ kind = ctx.effect.fx, position = ctx.origin, direction = ctx.direction, range = ctx.effect.range })
+	broadcastFx({
+		kind = ctx.effect.fx,
+		position = ctx.origin,
+		direction = ctx.direction,
+		range = ctx.effect.range,
+		hits = hitAt,
+	})
 	return true
 end
 
 handlers.crit = function(ctx)
 	setBuff(ctx.player, "CritShots", ctx.effect.count, ctx.effect.duration)
-	broadcastFx({ kind = ctx.effect.fx, position = ctx.root.Position, radius = 3 })
+	broadcastFx({
+		kind = ctx.effect.fx,
+		position = ctx.root.Position,
+		direction = ctx.direction,
+		radius = 3,
+		duration = ctx.effect.duration,
+	})
 	return true
 end
 
-local function explode(center: Vector3, radius: number, damage: number, userId: number, fx: string)
-	Damage.area(center, radius, damage, userId)
-	broadcastFx({ kind = fx, position = center, radius = radius })
+-- Runs after a task.delay, outside the handler, so it tags its broadcast itself.
+local function explode(center: Vector3, radius: number, damage: number, player: Player, fx: string, skillId: string)
+	Damage.area(center, radius, damage, player.UserId)
+	skillFx:FireAllClients({ kind = fx, position = center, radius = radius, skill = skillId, caster = player })
 end
 
 handlers.grenade = function(ctx)
 	local target = aimPoint(ctx.player, ctx.origin, ctx.direction, ctx.effect.range)
 	local radius = SharedSkills.splashRadius(ctx.classId, ctx.effect.radius)
 	broadcastFx({ kind = "throw", position = ctx.origin, target = target, duration = ctx.effect.delay })
-	local userId = ctx.player.UserId
-	task.delay(ctx.effect.delay, explode, target, radius, ctx.effect.damage, userId, ctx.effect.fx)
+	task.delay(ctx.effect.delay, explode, target, radius, ctx.effect.damage, ctx.player, ctx.effect.fx, ctx.skillId)
 	return true
 end
 
@@ -511,15 +563,26 @@ handlers.cluster = function(ctx)
 		ctx.effect.startDistance
 	)
 	local radius = SharedSkills.splashRadius(ctx.classId, ctx.effect.radius)
-	local userId = ctx.player.UserId
+	local centers = {}
 	for n, p in points do
 		local center = groundAt(Vector3.new(p.X, p.Y, p.Z), ctx.player.Character)
-		task.delay(ctx.effect.delay + (n - 1) * 0.15, explode, center, radius, ctx.effect.damage, userId, ctx.effect.fx)
+		centers[n] = center
+		task.delay(
+			ctx.effect.delay + (n - 1) * 0.15,
+			explode,
+			center,
+			radius,
+			ctx.effect.damage,
+			ctx.player,
+			ctx.effect.fx,
+			ctx.skillId
+		)
 	end
 	broadcastFx({
 		kind = "throw",
 		position = ctx.origin,
-		target = Vector3.new(points[1].X, points[1].Y, points[1].Z),
+		target = centers[1],
+		points = centers,
 		duration = ctx.effect.delay,
 	})
 	return true
@@ -558,9 +621,11 @@ local function onUseSkill(player: Player, index: any, origin: any, direction: an
 	end
 
 	local aimOrigin, aimDir = aimRay(player, root, origin, direction)
-	local applied = handler({
+	casting = { skill = skill.id, caster = player, cast = true }
+	local ran, applied = pcall(handler, {
 		player = player,
 		classId = classId,
+		skillId = skill.id,
 		root = root,
 		humanoid = humanoid,
 		origin = aimOrigin,
@@ -568,6 +633,11 @@ local function onUseSkill(player: Player, index: any, origin: any, direction: an
 		effect = effect,
 		now = now,
 	})
+	casting = nil
+	if not ran then
+		warn(`Skill {skill.id} failed: {applied}`)
+		applied = false
+	end
 	if not applied then
 		skillFx:FireClient(player, { kind = "failed", index = index })
 		return

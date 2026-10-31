@@ -76,8 +76,6 @@ is in the place (execution sessions do not start the place's own Scripts). It pr
 
 - Importing the glb creatures, towers, weapons and props as MeshParts, then recording the asset ids in
   `src/shared/Assets.luau` (Studio MCP `insert_asset` can place them once uploaded).
-- R15 animations for the 20 class skills (the showcase clips in `showcase/index.html` `makeRigClips` are the
-  reference), published as animation assets.
 - Client play-tests (pads, shooting, HUD) run through Studio MCP; Open Cloud only runs server-side code.
 - DataStores in Studio: Game Settings > Security > Enable Studio Access to API Services, or saves fall back to
   default data in Studio.
