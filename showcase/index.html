@@ -57,6 +57,7 @@
   td { padding: 7px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
   td:last-child { text-align: right; font-weight: 600; }
   td img { width: 28px; height: 28px; vertical-align: middle; margin-right: 10px; }
+  button .skill-icon { width: 22px; height: 22px; vertical-align: middle; margin: -4px 6px -4px -4px; border-radius: 5px; }
   td:last-child { font-size: 17px; }
   label.row { display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--muted); }
   .note { color: var(--muted); font-size: 12px; }
@@ -174,6 +175,7 @@ import { FAMILIES, CLASSES, DUNGEONS, MAPS, BLOCKY_RIGS, STAT_ICONS, STAT_LABELS
 
 const SFX = '../assets/sounds/kenney-impact/';
 const ICONS = '../assets/ui/icons/';
+const ico = name => `<img class="stat-icon" src="${ICONS}${name}@64.png" alt="">`;
 const $ = id => document.getElementById(id);
 const log = window.showcaseLog;
 log('module start');
@@ -1188,19 +1190,20 @@ async function showClass(cls) {
   $('hud-state').textContent = cls.tier === 'Free' ? 'Free class' : `Locked · ${cls.cost} gems`;
   $('cls-anim-select').innerHTML = gltf.animations.map(c => `<option>${clipName(c)}</option>`).join('');
   $('cls-anim-select').value = cls.anims.idle;
-  $('btn-skill1').textContent = `${cls.skills[0].name} (${cls.skills[0].cooldown}s)`;
-  $('btn-skill2').textContent = `${cls.skills[1].name} (${cls.skills[1].cooldown}s)`;
+  const skillIcon = sk => `<img class="skill-icon" src="${ICONS}skill_${sk.name.toLowerCase().replace(/ /g, '_')}@64.png" alt="">`;
+  $('btn-skill1').innerHTML = `${skillIcon(cls.skills[0])}${cls.skills[0].name} (${cls.skills[0].cooldown}s)`;
+  $('btn-skill2').innerHTML = `${skillIcon(cls.skills[1])}${cls.skills[1].name} (${cls.skills[1].cooldown}s)`;
   $('btn-cls-repair').classList.toggle('hidden', !cls.skills[0].repair);
   $('btn-cls-slot').classList.toggle('hidden', !cls.melee); $('btn-cls-slot').textContent = 'Switch to melee (2)';
   if (new URLSearchParams(location.search).get('slot') === '2') setTimeout(() => setSlot(2), 800);
   $('cooldowns').textContent = 'Both skills ready.';
   $('stats').innerHTML = [
-    ['Tier', cls.tier === 'Free' ? 'Free' : `Locked · ${cls.cost} gems`], ['Role', cls.role], ['Health', `${cls.hp} HP`],
+    [`${ico('gems')}Tier`, cls.tier === 'Free' ? 'Free' : `Locked · ${cls.cost} gems`], ['Role', cls.role], [`${ico('health')}Health`, `${cls.hp} HP`],
     ['Weapon (1)', cls.weapon + (cls.hold?.some(w => w.flail) ? ' (flail is a placeholder model)' : '')],
-    ['Magazine', cls.magazine ? `${cls.magazine}${cls.id === 'Pyro' ? ' fuel' : ' rounds'} · reload ${cls.reload} s` : cls.hold?.some(w => w.grip === 'gun') ? '-' : 'None (melee / magic, never reloads)'],
+    [`${ico('ammo')}Magazine`, cls.magazine ? `${cls.magazine}${cls.id === 'Pyro' ? ' fuel' : ' rounds'} · reload ${cls.reload} s` : cls.hold?.some(w => w.grip === 'gun') ? '-' : 'None (melee / magic, never reloads)'],
     ['Melee (2)', cls.melee ? `${cls.melee.name} · ${cls.melee.damage} damage · ${cls.melee.rate} swings/s` : 'None'], ['Passive', cls.passive],
-    [`Skill 1 · ${cls.skills[0].name}`, `${cls.skills[0].desc}. Cooldown ${cls.skills[0].cooldown} s${cls.skills[0].duration ? `, lasts ${cls.skills[0].duration} s` : ''}. Anim: ${cls.skills[0].anim}${cls.skills[0].repair ? `; repair swing: ${cls.skills[0].repair}` : ''}`],
-    [`Skill 2 · ${cls.skills[1].name}`, `${cls.skills[1].desc}. Cooldown ${cls.skills[1].cooldown} s${cls.skills[1].duration ? `, lasts ${cls.skills[1].duration} s` : ''}. Anim: ${cls.skills[1].anim}`],
+    [`${skillIcon(cls.skills[0])}Skill 1 · ${cls.skills[0].name}`, `${cls.skills[0].desc}. Cooldown ${cls.skills[0].cooldown} s${cls.skills[0].duration ? `, lasts ${cls.skills[0].duration} s` : ''}. Anim: ${cls.skills[0].anim}${cls.skills[0].repair ? `; repair swing: ${cls.skills[0].repair}` : ''}`],
+    [`${skillIcon(cls.skills[1])}Skill 2 · ${cls.skills[1].name}`, `${cls.skills[1].desc}. Cooldown ${cls.skills[1].cooldown} s${cls.skills[1].duration ? `, lasts ${cls.skills[1].duration} s` : ''}. Anim: ${cls.skills[1].anim}`],
   ].map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
   $('source').innerHTML = `${clsRig === 'kenney' ? 'Stand-in player: Kenney Blocky Characters (CC0), picked at random each time' : rigFile.includes('avatar') ? 'Player: the developer\'s own R15 avatar exported from Studio (body only; catalog clothing and head cannot be exported)' : 'Stand-in player: a procedural R15-style figure'}, because in game the player keeps their own avatar and only the weapon is added. ${cls.hold?.some(w => w.file?.includes('kenney-weapon')) ? 'Gun: Kenney Weapon Pack (CC0). ' : ''}${cls.hold?.some(w => w.file?.includes('quaternius-medieval')) ? 'Melee: Quaternius Medieval Weapons (CC0). ' : ''}${cls.hold?.some(w => w.node) ? 'Staff/wand: KayKit Adventurers (CC0). ' : ''}${cls.turret ? 'Turret: Quaternius Cyberpunk Kit (CC0). ' : ''}${cls.pet ? 'Pet: Quaternius Cute Monsters (CC0). ' : ''}Clips are Kenney's; they are the reference for the Roblox animations.`;
 }

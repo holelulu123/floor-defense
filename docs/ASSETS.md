@@ -31,7 +31,7 @@ Moved out of DESIGN.md so the design doc stays about the game. Rule: CC0 packs, 
 | KayKit Adventurers (Knight, Barbarian, Mage, Rogue, Rogue Hooded; 76 clips each) used only for their **weapon meshes** (staff, wand) in the class preview; the rigs are not used as player bodies | `assets/characters/kaykit-adventurers/` | CC0 1.0 | `LICENSE.txt` in the pack |
 | Quaternius Ultimate Fantasy RTS towers and halls (13: watch towers, temples, town centres, wonders) used as the per-dungeon tower | `assets/props/quaternius-rts/` | CC0 1.0 | pack page states CC0; glTF mirror |
 | Quaternius Modular Weapons (12 melee weapons, shields, bow) and RPG items (9) | `assets/weapons/quaternius-medieval/`, `assets/props/quaternius-rpg-items/` | CC0 1.0 | pack pages state CC0; glTF mirror |
-| Stat icons (health, speed, damage, coins, wave, kills) | `assets/ui/icons/` | Ours, CC0; drawn by `scripts/make-icons.py` | — |
+| Stat, currency and skill icons (health, speed, damage, coins, wave, kills, gems, ammo, reload, one per class skill) | `assets/ui/icons/` | Ours, CC0; drawn by `scripts/make-icons.py` | — |
 
 Role mapping (KayKit family): Minion = Runner, Warrior = Brute (and Boss at 2.4x, red tint), Mage = Spitter, Rogue = Elite Runner. Kenney family: Zombie = Runner, Skeleton = Elite, S-Ghost = Spitter, Vampire = Brute, Keeper = Boss. Players keep their own avatar (see Classes), so no player-body packs are kept. Browse everything with `scripts/showcase.sh` (`showcase/index.html`: tabs for creatures, classes, weapons, props; animations, hit/death sounds, stats with icons, auto-rendered thumbnails). `scripts/showcase-index.py` regenerates the weapons/props list from the `assets/` folders.
 
