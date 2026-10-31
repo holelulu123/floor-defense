@@ -188,5 +188,95 @@
   "decal": "78692853778627",
   "image": "rbxassetid://138561711626108",
   "sha": "2683e62e1f6097b4"
+ },
+ "weapon_AssaultRifle": {
+  "decal": "88662191830727",
+  "image": "rbxassetid://129462397216962",
+  "sha": "8b4ce9d6a0608779"
+ },
+ "weapon_BoltRifle": {
+  "decal": "97845730496509",
+  "image": "rbxassetid://82106259425057",
+  "sha": "e803e3f032e1db86"
+ },
+ "weapon_CombatKnife": {
+  "decal": "94419347522413",
+  "image": "rbxassetid://91317598397857",
+  "sha": "a5dc97f7388756ad"
+ },
+ "weapon_Dagger": {
+  "decal": "112367259133747",
+  "image": "rbxassetid://118789424760395",
+  "sha": "c1a94d8cca514e64"
+ },
+ "weapon_DualPistols": {
+  "decal": "117754658461568",
+  "image": "rbxassetid://131781241228341",
+  "sha": "c3d0a0ba7c57ce9e"
+ },
+ "weapon_Flail": {
+  "decal": "71703048743953",
+  "image": "rbxassetid://116616482495005",
+  "sha": "c9116c194fb010a2"
+ },
+ "weapon_Flamethrower": {
+  "decal": "125192684115028",
+  "image": "rbxassetid://100476003111078",
+  "sha": "b85ee26a16439f85"
+ },
+ "weapon_GreatAxe": {
+  "decal": "110058004979433",
+  "image": "rbxassetid://138166515091405",
+  "sha": "0350bb7768a7d95c"
+ },
+ "weapon_GrenadeLauncher": {
+  "decal": "128818747117021",
+  "image": "rbxassetid://95429321090843",
+  "sha": "b8f3342409c380eb"
+ },
+ "weapon_Hammer": {
+  "decal": "73657958022292",
+  "image": "rbxassetid://91138242050833",
+  "sha": "2304b943cbf6a94c"
+ },
+ "weapon_Hatchet": {
+  "decal": "122853294438812",
+  "image": "rbxassetid://91528257292807",
+  "sha": "f54a8163fe314da0"
+ },
+ "weapon_Karambit": {
+  "decal": "86249530749988",
+  "image": "rbxassetid://109439579309447",
+  "sha": "9a59d856b1612d45"
+ },
+ "weapon_Machete": {
+  "decal": "84500621499941",
+  "image": "rbxassetid://136792605181883",
+  "sha": "83cd293096b04966"
+ },
+ "weapon_SMG": {
+  "decal": "97163258231086",
+  "image": "rbxassetid://86273041052266",
+  "sha": "a9de39769fe3d39a"
+ },
+ "weapon_Scalpel": {
+  "decal": "71678817405249",
+  "image": "rbxassetid://93599633684335",
+  "sha": "dd3808a8fdbd6981"
+ },
+ "weapon_Shotgun": {
+  "decal": "93262126215810",
+  "image": "rbxassetid://118605831880404",
+  "sha": "d794eb04c9b71c03"
+ },
+ "weapon_Staff": {
+  "decal": "129356006012306",
+  "image": "rbxassetid://94775707219776",
+  "sha": "f726773a299463ab"
+ },
+ "weapon_Sword": {
+  "decal": "109951459574600",
+  "image": "rbxassetid://140390394846870",
+  "sha": "00f1041b7d0d3d86"
  }
 }

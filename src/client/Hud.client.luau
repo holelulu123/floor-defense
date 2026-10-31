@@ -351,14 +351,16 @@ ammoIcon.BackgroundTransparency = 1
 ammoIcon.Visible = false
 ammoIcon.Parent = gui
 
-type SlotBox = { frame: Frame, key: TextLabel, name: TextLabel }
+type SlotBox = { frame: Frame, key: TextLabel, icon: ImageLabel, name: TextLabel }
+
+local SLOT_W, SLOT_H, SLOT_ICON = 176, 50, 42
 
 local function slotBox(slot: number): SlotBox
 	local frame = Instance.new("Frame")
 	frame.Name = "Slot" .. slot
 	frame.AnchorPoint = Vector2.new(1, 1)
-	frame.Position = UDim2.new(1, -24 - (2 - slot) * 156, 1, -70)
-	frame.Size = UDim2.fromOffset(148, 30)
+	frame.Position = UDim2.new(1, -24 - (2 - slot) * (SLOT_W + 8), 1, -70)
+	frame.Size = UDim2.fromOffset(SLOT_W, SLOT_H)
 	frame.BackgroundColor3 = SLOT_IDLE
 	frame.BackgroundTransparency = 0.25
 	frame.BorderSizePixel = 0
@@ -369,7 +371,7 @@ local function slotBox(slot: number): SlotBox
 
 	local key = Instance.new("TextLabel")
 	key.Size = UDim2.fromOffset(22, 22)
-	key.Position = UDim2.fromOffset(4, 4)
+	key.Position = UDim2.fromOffset(4, (SLOT_H - 22) / 2)
 	key.BackgroundColor3 = Color3.fromRGB(230, 230, 240)
 	key.TextColor3 = Color3.fromRGB(20, 20, 30)
 	key.Font = Enum.Font.GothamBold
@@ -380,9 +382,19 @@ local function slotBox(slot: number): SlotBox
 	keyCorner.CornerRadius = UDim.new(0, 4)
 	keyCorner.Parent = key
 
+	-- Weapon icon (Icons "weapon_<Name>"), hidden when the weapon has none.
+	local icon = Instance.new("ImageLabel")
+	icon.Name = "Icon"
+	icon.Size = UDim2.fromOffset(SLOT_ICON, SLOT_ICON)
+	icon.Position = UDim2.fromOffset(30, (SLOT_H - SLOT_ICON) / 2)
+	icon.BackgroundTransparency = 1
+	icon.ScaleType = Enum.ScaleType.Fit
+	icon.Parent = frame
+
 	local name = Instance.new("TextLabel")
-	name.Size = UDim2.new(1, -34, 1, 0)
-	name.Position = UDim2.fromOffset(30, 0)
+	name.Size = UDim2.new(1, -(34 + SLOT_ICON + 4), 1, 0)
+	name.Position = UDim2.fromOffset(34 + SLOT_ICON, 0)
+	name.TextWrapped = true
 	name.BackgroundTransparency = 1
 	name.Font = Enum.Font.GothamBold
 	name.TextSize = 14
@@ -390,7 +402,7 @@ local function slotBox(slot: number): SlotBox
 	name.TextXAlignment = Enum.TextXAlignment.Left
 	name.TextTruncate = Enum.TextTruncate.AtEnd
 	name.Parent = frame
-	return { frame = frame, key = key, name = name }
+	return { frame = frame, key = key, icon = icon, name = name }
 end
 
 local slotBoxes = { slotBox(1), slotBox(2) }
@@ -401,7 +413,10 @@ local function refreshWeapon()
 	for slot, box in slotBoxes do
 		local weaponName = class and Classes.weaponInSlot(class.id, slot)
 		box.frame.Visible = weaponName ~= nil
-		box.name.Text = weaponName or ""
+		box.name.Text = if weaponName then weaponName:gsub("(%l)(%u)", "%1 %2") else "" -- "Assault Rifle"
+		local image = weaponName and Icons.get("weapon_" .. weaponName)
+		box.icon.Image = image or ""
+		box.icon.Visible = image ~= nil
 		local isActive = active == slot
 		box.frame.BackgroundColor3 = if isActive then SLOT_ACTIVE else SLOT_IDLE
 		box.name.TextColor3 = if isActive then Color3.fromRGB(20, 20, 30) else Color3.new(1, 1, 1)

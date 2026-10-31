@@ -1,6 +1,7 @@
 -- UI icon asset ids, keyed by name. Fill the values with "rbxassetid://<id>" after uploading the PNGs
 -- from assets/ui/icons/ (drawn by scripts/make-icons.py). An empty string means "no icon yet": the UI
--- then keeps its text-only look. Keys: currency and stats, skill_<snake_case skill name>, class_<ClassId>.
+-- then keeps its text-only look. Keys: currency and stats, skill_<snake_case skill name>, class_<ClassId>,
+-- weapon_<Weapons.luau name>.
 
 local Icons = {}
 
@@ -47,6 +48,26 @@ Icons.Ids = {
 	class_Pyro = "rbxassetid://121218896294012",
 	class_Sniper = "rbxassetid://132670245486532",
 	class_Demolisher = "rbxassetid://92946352174441",
+
+	-- weapon icons for the weapon-slot buttons (Weapons.luau names)
+	weapon_AssaultRifle = "rbxassetid://129462397216962",
+	weapon_Shotgun = "rbxassetid://118605831880404",
+	weapon_DualPistols = "rbxassetid://131781241228341",
+	weapon_SMG = "rbxassetid://86273041052266",
+	weapon_Flamethrower = "rbxassetid://100476003111078",
+	weapon_BoltRifle = "rbxassetid://82106259425057",
+	weapon_GrenadeLauncher = "rbxassetid://95429321090843",
+	weapon_Flail = "rbxassetid://116616482495005",
+	weapon_GreatAxe = "rbxassetid://138166515091405",
+	weapon_Staff = "rbxassetid://94775707219776",
+	weapon_CombatKnife = "rbxassetid://91317598397857",
+	weapon_Karambit = "rbxassetid://109439579309447",
+	weapon_Scalpel = "rbxassetid://93599633684335",
+	weapon_Hammer = "rbxassetid://91138242050833",
+	weapon_Sword = "rbxassetid://140390394846870",
+	weapon_Dagger = "rbxassetid://118789424760395",
+	weapon_Machete = "rbxassetid://136792605181883",
+	weapon_Hatchet = "rbxassetid://91528257292807",
 } :: { [string]: string }
 
 -- "Arcane Bolt" -> "skill_arcane_bolt".

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draws the stat and skill icons used by the HUD and the showcase into assets/ui/icons/ and the class emblems
+"""Draws the stat, skill and weapon icons used by the HUD and the showcase into assets/ui/icons/ and the class emblems
 into assets/ui/classes/ (our own, CC0).
 Run after changing a shape: scripts/make-icons.py"""
 import math
@@ -502,6 +502,358 @@ def em_demolisher(p):
     p.poly(star(104, 18, 10, 4, 6), fill=GOLD)
 
 
+# ---- Weapon icons (weapon_<Name> from Weapons.luau): side-view silhouettes pointing right, on a transparent
+# background with a dark outline so they read on the HUD's dark weapon-slot buttons. Melee weapons are drawn upright
+# or level and then rotated to a diagonal so they fill the square.
+WP = 32  # the weapon layer reaches WP units past each side of the 128 grid, so a part may stick out before rotating
+
+
+class WPen(Pen):
+    """A Pen whose layer is 128 + 2*WP units wide; coordinates stay on the 0..128 grid of the final icon."""
+
+    def __init__(self):
+        n = (S + 2 * WP) * K
+        self.im = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+        self.d = ImageDraw.Draw(self.im)
+
+    def _b(self, box):
+        return [(v + WP) * K for v in box]
+
+    def _p(self, pts):
+        return [((x + WP) * K, (y + WP) * K) for x, y in pts]
+
+
+def weapon(name, *layers, angle=0, outline=2.5, margin=4):
+    """Each layer is a draw function (or (fn, False) for no outline, e.g. a glow). Layers are outlined in near-black
+    and stacked in order, rotated `angle` degrees counter-clockwise, then scaled to fit the icon with `margin` units spare."""
+    from PIL import ImageFilter
+
+    n = (S + 2 * WP) * K
+    out = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+    size = int(outline * K) * 2 + 1
+    for layer in layers:
+        fn, edge = layer if isinstance(layer, tuple) else (layer, True)
+        p = WPen()
+        fn(p)
+        if edge:
+            ring = Image.new("RGBA", (n, n), (16, 18, 24, 0))
+            ring.putalpha(p.im.getchannel("A").filter(ImageFilter.MaxFilter(size)))
+            out.alpha_composite(ring)
+        out.alpha_composite(p.im)
+    if angle:
+        out = out.rotate(angle, resample=Image.BICUBIC, expand=True)
+    # fit the drawn weapon (outline included) into the icon with a small margin, centred
+    out = out.crop(out.getbbox())
+    box = (S - 2 * margin) * K
+    f = min(box / out.width, box / out.height)
+    out = out.resize((round(out.width * f), round(out.height * f)), Image.LANCZOS)
+    icon = Image.new("RGBA", (S * K, S * K), (0, 0, 0, 0))
+    icon.alpha_composite(out, ((S * K - out.width) // 2, (S * K - out.height) // 2))
+    save(icon.resize((S, S), Image.LANCZOS), "weapon_" + name)
+
+
+def shade(c, f):
+    return (min(255, int(c[0] * f)), min(255, int(c[1] * f)), min(255, int(c[2] * f)), c[3] if len(c) > 3 else 255)
+
+
+def part(p, box, c, r=0):
+    """A rounded box with a lighter top band and a darker bottom band."""
+    x0, y0, x1, y1 = box
+    h = y1 - y0
+    p.rect(box, r=r, fill=shade(c, 0.72))
+    p.rect((x0, y0, x1, y1 - h * 0.22), r=r, fill=c)
+    p.rect((x0 + min(r, 2), y0, x1 - min(r, 2), y0 + max(1.5, h * 0.25)), r=min(r, 1.5), fill=shade(c, 1.35))
+
+
+GUN, TAN = (128, 134, 148, 255), (190, 160, 110, 255)
+WOOD, LEATHER = (176, 110, 58, 255), (120, 78, 48, 255)
+BLADE = (206, 214, 226, 255)
+INK = (24, 26, 32, 255)
+
+
+def trigger_guard(p, x0, x1, y, c=GUN):
+    p.line([(x0, y), (x0 + 2, y + 8), (x1, y + 8), (x1, y)], 2.5, c)
+
+
+def wp_assault_rifle(p):
+    p.poly([(4, 52), (16, 50), (32, 53), (32, 65), (18, 70), (8, 80), (4, 80)], fill=TAN)
+    p.poly([(4, 52), (16, 50), (32, 53), (32, 57), (4, 57)], fill=shade(TAN, 1.25))
+    p.rect((2, 49, 7, 82), r=1.5, fill=shade(GUN, 0.55))
+    p.poly([(36, 63), (48, 63), (44, 88), (32, 86)], fill=shade(TAN, 0.85))
+    p.poly([(56, 63), (70, 63), (77, 92), (64, 96)], fill=shade(GUN, 0.7))
+    p.line([(62, 68), (68, 90)], 2, shade(GUN, 0.95))
+    trigger_guard(p, 47, 56, 64)
+    part(p, (30, 46, 88, 64), GUN, r=2)
+    p.rect((50, 51, 66, 55), r=1, fill=INK)
+    p.rect((40, 38, 64, 43), r=1.5, fill=GUN)
+    for x in (42, 58):
+        p.rect((x, 41, x + 4, 47), fill=GUN)
+    part(p, (86, 47, 110, 62), TAN, r=3)
+    for x in (91, 98, 105):
+        p.rect((x - 1.5, 53, x + 1.5, 58), r=1, fill=shade(TAN, 0.6))
+    p.poly([(101, 47), (104, 37), (108, 37), (108, 47)], fill=GUN)
+    p.rect((108, 51, 120, 57), fill=shade(GUN, 0.8))
+    p.rect((117, 49, 126, 59), r=1.5, fill=GUN)
+
+
+def wp_shotgun(p):
+    p.poly([(2, 57), (38, 53), (38, 66), (30, 68), (22, 77), (4, 85), (2, 85)], fill=WOOD)
+    p.poly([(2, 57), (38, 53), (38, 58), (2, 62)], fill=shade(WOOD, 1.25))
+    p.rect((1, 55, 6, 86), r=1.5, fill=INK)
+    trigger_guard(p, 40, 52, 65)
+    part(p, (36, 50, 64, 66), GUN, r=2)
+    p.rect((62, 61, 112, 66), r=2, fill=shade(GUN, 0.75))
+    part(p, (62, 50, 126, 57), GUN, r=1.5)
+    p.ellipse((119, 46, 124, 51), fill=GOLD)
+    part(p, (72, 58, 102, 70), WOOD, r=3)
+    for x in (78, 84, 90, 96):
+        p.line([(x, 61), (x, 67)], 1.6, shade(WOOD, 0.6))
+
+
+def pistol(p, x, y, c):
+    """A pistol 78 units long with its slide's top-left corner at (x, y)."""
+    p.poly([(x + 6, y + 18), (x + 24, y + 18), (x + 20, y + 52), (x + 2, y + 50)], fill=shade(c, 0.6))
+    p.rect((x + 6, y + 22, x + 18, y + 46), r=2, fill=shade(c, 0.45))
+    p.line([(x + 24, y + 18), (x + 26, y + 28), (x + 38, y + 28), (x + 40, y + 18)], 2.5, c)
+    p.rect((x + 4, y + 14, x + 66, y + 22), r=2, fill=shade(c, 0.8))
+    part(p, (x, y, x + 78, y + 16), c, r=2.5)
+    for i in range(4):
+        p.line([(x + 6 + i * 4, y + 4), (x + 6 + i * 4, y + 12)], 1.4, shade(c, 0.6))
+    p.rect((x + 72, y - 3, x + 75, y), fill=c)
+
+
+def wp_dual_pistols(p):
+    pistol(p, 4, 24, (110, 116, 130, 255))
+
+
+def wp_dual_pistols_front(p):
+    pistol(p, 44, 52, (196, 202, 212, 255))
+
+
+def wp_smg(p):
+    p.line([(8, 50), (30, 50)], 3, GUN, joint=None)
+    p.line([(8, 50), (8, 68), (30, 64)], 3, GUN)
+    p.poly([(56, 62), (68, 62), (71, 114), (59, 114)], fill=shade(GUN, 0.65))
+    p.line([(62, 68), (64, 108)], 2, shade(GUN, 0.9))
+    p.poly([(32, 62), (45, 62), (42, 88), (29, 86)], fill=shade(GUN, 0.6))
+    trigger_guard(p, 44, 54, 62)
+    p.rect((80, 60, 89, 82), r=3, fill=shade(GUN, 0.6))
+    part(p, (28, 44, 94, 63), GUN, r=3)
+    p.rect((36, 38, 44, 45), r=1, fill=GUN)
+    p.rect((84, 39, 88, 45), fill=GUN)
+    part(p, (92, 47, 116, 59), shade(GUN, 0.8), r=2)
+    for x in (97, 103, 109):
+        p.ellipse((x - 1.6, 51.4, x + 1.6, 54.6), fill=INK)
+    p.rect((114, 50, 122, 56), r=1, fill=GUN)
+
+
+def wp_flamethrower(p):
+    red, hi = (214, 52, 40, 255), (255, 120, 100, 255)
+    p.line([(46, 84), (14, 78), (12, 58), (24, 54)], 4, INK)
+    p.poly([(24, 58), (36, 58), (33, 84), (21, 82)], fill=shade(GUN, 0.6))
+    part(p, (40, 62, 90, 88), red, r=12)
+    p.rect((48, 65, 82, 69), r=2, fill=hi)
+    for x in (50, 78):
+        p.rect((x, 63, x + 3, 87), fill=shade(red, 0.6))
+    p.ellipse((80, 54, 92, 66), fill=STEEL)
+    p.ellipse((83, 57, 89, 63), fill=INK)
+    part(p, (20, 46, 98, 60), GUN, r=3)
+    for x in (56, 72):
+        p.rect((x, 46, x + 5, 60), fill=red)
+    p.poly([(96, 44), (114, 40), (114, 64), (96, 62)], fill=shade(GUN, 0.75))
+    p.rect((112, 38, 118, 66), r=2, fill=GUN)
+
+
+def wp_flamethrower_fire(p):
+    p.ellipse((114, 44, 126, 60), fill=(255, 120, 30, 255))
+    p.ellipse((116, 48, 123, 56), fill=(255, 220, 90, 255))
+
+
+def wp_bolt_rifle(p):
+    p.poly([(2, 58), (30, 56), (46, 60), (46, 70), (36, 70), (22, 78), (4, 84), (2, 84)], fill=WOOD)
+    p.poly([(2, 58), (30, 56), (46, 60), (46, 63), (2, 63)], fill=shade(WOOD, 1.25))
+    p.rect((1, 56, 5, 85), r=1.5, fill=INK)
+    trigger_guard(p, 48, 58, 68)
+    part(p, (64, 57, 126, 62), GUN, r=1.5)
+    part(p, (44, 60, 104, 69), WOOD, r=3)
+    part(p, (38, 55, 70, 61), GUN, r=1.5)
+    p.line([(48, 60), (54, 68)], 2.5, GUN)
+    p.ellipse((51, 65, 58, 72), fill=STEEL)
+    for x in (50, 76):
+        p.rect((x, 45, x + 4, 56), fill=GUN)
+    dark = (70, 74, 86, 255)
+    p.poly([(40, 40), (32, 37), (32, 50), (40, 48)], fill=dark)
+    part(p, (38, 40, 88, 48), dark, r=2)
+    p.poly([(86, 40), (98, 35), (98, 53), (86, 48)], fill=dark)
+    p.rect((60, 35, 67, 40), r=1, fill=dark)
+    p.rect((95, 37, 99, 51), r=1, fill=(120, 200, 255, 255))
+
+
+def wp_grenade_launcher(p):
+    olive = (112, 128, 76, 255)
+    p.poly([(4, 50), (36, 48), (36, 64), (4, 76)], fill=shade(GUN, 0.8))
+    p.rect((2, 48, 7, 78), r=1.5, fill=INK)
+    p.poly([(44, 68), (57, 68), (53, 98), (40, 96)], fill=shade(GUN, 0.6))
+    trigger_guard(p, 56, 68, 70)
+    p.rect((80, 68, 90, 92), r=3, fill=shade(GUN, 0.6))
+    p.poly([(62, 40), (65, 28), (74, 28), (74, 40)], fill=GUN)
+    part(p, (32, 38, 112, 72), olive, r=7)
+    p.rect((88, 38, 95, 72), fill=GOLD)
+    part(p, (108, 35, 122, 75), GUN, r=3)
+    p.rect((114, 42, 118, 68), r=1.5, fill=INK)
+
+
+def wp_flail(p):
+    p.line([(14, 118), (42, 90)], 11, WOOD)
+    p.line([(18, 114), (30, 102)], 11, LEATHER)
+    p.ellipse((8, 112, 22, 126), fill=GUN)
+    p.ellipse((38, 82, 50, 94), fill=GUN)
+    for i in range(5):
+        t = i / 4
+        x, y = 46 + 26 * t, 86 - 26 * t
+        if i % 2 == 0:
+            p.ellipse((x - 5, y - 3, x + 5, y + 3), outline=STEEL, width=2.5)
+        else:
+            p.ellipse((x - 3, y - 5, x + 3, y + 5), outline=STEEL, width=2.5)
+    p.poly(star(90, 40, 34, 18, 8), fill=(110, 116, 128, 255))
+    p.ellipse((70, 20, 110, 60), fill=(130, 136, 148, 255))
+    p.ellipse((78, 26, 92, 40), fill=(190, 196, 206, 255))
+
+
+def wp_great_axe(p):
+    p.line([(64, 6), (64, 126)], 8, WOOD)
+    p.line([(64, 100), (64, 124)], 8, LEATHER)
+    for s in (-1, 1):
+        edge = [(64 + s * 34, 6), (64 + s * 44, 18), (64 + s * 50, 38), (64 + s * 44, 58), (64 + s * 34, 70)]
+        p.poly([(64, 26)] + edge + [(64, 50)], fill=STEEL)
+        p.poly(edge + [(64 + s * 40, 58), (64 + s * 44, 38), (64 + s * 38, 18)], fill=(236, 240, 246, 255))
+    p.rect((57, 22, 71, 54), r=3, fill=(100, 104, 116, 255))
+    p.poly([(59, 22), (64, 4), (69, 22)], fill=STEEL)
+
+
+def wp_staff(p):
+    p.line([(64, 124), (64, 44)], 8, (130, 86, 48, 255))
+    for y in (60, 100):
+        p.rect((59, y, 69, y + 5), r=1.5, fill=GOLD)
+    for s in (-1, 1):
+        p.line([(64, 50), (64 + s * 15, 38), (64 + s * 12, 18)], 4.5, GOLD)
+
+
+def wp_staff_glow(p):
+    p.ellipse((30, -4, 98, 64), fill=(190, 110, 255, 60))
+    p.ellipse((38, 4, 90, 56), fill=(190, 110, 255, 90))
+
+
+def wp_staff_orb(p):
+    p.ellipse((48, 14, 80, 46), fill=(160, 80, 250, 255))
+    p.ellipse((52, 18, 76, 42), fill=(200, 140, 255, 255))
+    p.ellipse((55, 20, 65, 30), fill=(250, 235, 255, 255))
+
+
+def wp_combat_knife(p):
+    p.poly([(4, 58), (46, 58), (46, 72), (40, 75), (35, 71), (29, 75), (23, 71), (17, 75), (10, 72), (4, 72)], fill=(66, 72, 62, 255))
+    p.rect((6, 60, 44, 63), r=1.5, fill=(100, 108, 94, 255))
+    p.rect((0, 57, 7, 73), r=2, fill=GUN)
+    p.rect((44, 51, 51, 79), r=2, fill=shade(GUN, 0.8))
+    p.poly([(50, 57), (100, 57), (112, 60), (128, 66), (116, 72), (100, 75), (50, 75)], fill=BLADE)
+    p.poly([(50, 57), (100, 57), (112, 60), (128, 66), (50, 64)], fill=(160, 168, 182, 255))
+    for i in range(6):
+        x = 58 + i * 6
+        p.poly([(x, 56.5), (x + 3, 61), (x + 6, 56.5)], fill=INK)
+    p.line([(52, 72), (100, 72), (118, 68)], 2, (245, 248, 252, 255))
+
+
+def wp_karambit(p):
+    p.ellipse((4, 58, 34, 88), outline=GUN, width=6)
+    p.poly([(30, 62), (78, 56), (82, 72), (32, 82)], fill=(66, 72, 62, 255))
+    p.line([(34, 66), (76, 61)], 2, (100, 108, 94, 255))
+    for x, y in ((46, 70), (66, 66)):
+        p.ellipse((x - 2.5, y - 2.5, x + 2.5, y + 2.5), fill=STEEL)
+    spine = [(76, 56), (90, 46), (106, 43), (119, 49), (126, 62), (126, 80), (121, 96)]
+    inner = [(116, 80), (114, 68), (108, 60), (98, 60), (88, 66), (82, 74)]
+    p.poly(spine + inner, fill=BLADE)
+    p.poly(spine[:5] + [(118, 58), (108, 52), (96, 52), (84, 58)], fill=(160, 168, 182, 255))
+    p.line([(121, 92), (116, 78), (112, 68), (104, 62), (94, 63), (86, 70)], 2, (245, 248, 252, 255))
+
+
+def wp_scalpel(p):
+    p.rect((-6, 59, 82, 69), r=3, fill=(176, 186, 200, 255))
+    p.rect((-4, 60, 80, 63), r=1.5, fill=(220, 228, 238, 255))
+    for x in range(8, 40, 5):
+        p.line([(x, 61), (x, 67)], 1.2, (120, 130, 146, 255))
+    p.rect((44, 61, 70, 67), r=2, fill=(80, 200, 180, 255))
+    p.poly([(80, 61), (100, 59), (114, 61), (124, 65), (114, 71), (96, 72), (80, 67)], fill=(236, 242, 250, 255))
+    p.poly([(80, 61), (100, 59), (114, 61), (124, 65), (80, 64)], fill=(190, 200, 214, 255))
+
+
+def wp_hammer(p):
+    p.line([(64, 44), (64, 124)], 10, WOOD)
+    p.line([(64, 96), (64, 124)], 10, LEATHER)
+    for y in (102, 110, 118):
+        p.line([(59, y), (69, y - 3)], 1.5, shade(LEATHER, 0.6))
+    part(p, (28, 16, 100, 46), STEEL, r=3)
+    p.rect((56, 16, 72, 46), fill=(110, 114, 126, 255))
+    for x0 in (24, 96):
+        part(p, (x0, 12, x0 + 8, 50), (150, 156, 168, 255), r=2)
+
+
+def wp_sword(p):
+    p.ellipse((-18, 57, -4, 71), fill=GOLD)
+    p.rect((-6, 59, 22, 69), r=2, fill=LEATHER)
+    for x in (0, 7, 14):
+        p.line([(x, 60), (x + 4, 68)], 1.5, shade(LEATHER, 0.6))
+    part(p, (20, 46, 29, 82), GOLD, r=3)
+    p.poly([(29, 57), (130, 57), (148, 64), (130, 71), (29, 71)], fill=BLADE)
+    p.poly([(29, 57), (130, 57), (148, 64), (29, 64)], fill=(236, 240, 248, 255))
+    p.line([(34, 64), (120, 64)], 2, (140, 150, 166, 255))
+
+
+def wp_dagger(p):
+    p.ellipse((2, 55, 18, 73), fill=GOLD)
+    p.ellipse((6, 59, 14, 69), fill=(220, 40, 60, 255))
+    p.rect((15, 59, 40, 69), r=2, fill=(90, 56, 40, 255))
+    p.poly([(38, 46), (46, 50), (46, 78), (38, 82), (42, 64)], fill=GOLD)
+    p.poly([(46, 56), (86, 51), (124, 64), (86, 77), (46, 72)], fill=BLADE)
+    p.poly([(46, 56), (86, 51), (124, 64), (46, 64)], fill=(236, 240, 248, 255))
+    p.line([(48, 64), (118, 64)], 1.8, (140, 150, 166, 255))
+
+
+def wp_machete(p):
+    p.rect((-8, 58, 32, 72), r=4, fill=(52, 52, 60, 255))
+    for x in (2, 18):
+        p.ellipse((x - 2.5, 62.5, x + 2.5, 67.5), fill=STEEL)
+    p.poly([(30, 55), (116, 50), (138, 52), (148, 60), (134, 76), (110, 82), (30, 76)], fill=(186, 192, 202, 255))
+    p.poly([(30, 55), (116, 50), (138, 52), (148, 60), (30, 62)], fill=(150, 156, 168, 255))
+    p.line([(32, 74), (110, 80), (134, 74), (146, 61)], 2.5, (245, 248, 252, 255))
+
+
+def wp_hatchet(p):
+    p.poly([(59, 40), (69, 40), (71, 124), (59, 124)], fill=WOOD)
+    p.poly([(59, 40), (63, 40), (62, 124), (59, 124)], fill=shade(WOOD, 1.25))
+    p.poly([(52, 24), (72, 24), (78, 30), (100, 16), (108, 36), (106, 58), (98, 70), (80, 50), (72, 54), (52, 54)], fill=STEEL)
+    p.poly([(100, 16), (108, 36), (106, 58), (98, 70), (98, 56), (102, 36)], fill=(240, 244, 250, 255))
+    p.rect((46, 26, 56, 52), r=2, fill=(120, 124, 136, 255))
+
+
+weapon("AssaultRifle", wp_assault_rifle)
+weapon("Shotgun", wp_shotgun)
+weapon("DualPistols", wp_dual_pistols, wp_dual_pistols_front)
+weapon("SMG", wp_smg)
+weapon("Flamethrower", wp_flamethrower, wp_flamethrower_fire)
+weapon("BoltRifle", wp_bolt_rifle)
+weapon("GrenadeLauncher", wp_grenade_launcher)
+weapon("Flail", wp_flail)
+weapon("GreatAxe", wp_great_axe, angle=-30)
+weapon("Staff", (wp_staff_glow, False), wp_staff, wp_staff_orb, angle=-30)
+weapon("CombatKnife", wp_combat_knife, angle=40)
+weapon("Karambit", wp_karambit)
+weapon("Scalpel", wp_scalpel, angle=40)
+weapon("Hammer", wp_hammer, angle=-30)
+weapon("Sword", wp_sword, angle=45)
+weapon("Dagger", wp_dagger, angle=45)
+weapon("Machete", wp_machete, angle=40)
+weapon("Hatchet", wp_hatchet, angle=-30)
+
 for fn in (heart, speed, damage, coin, wave, skull, trophy, gem, ammo, reload_icon):
     fn()
 for name, fn in list(globals().items()):
@@ -510,5 +862,5 @@ for name, fn in list(globals().items()):
 for cls in CLASS_TINT:
     emblem(cls, globals()["em_" + cls.lower()])
 (CLASS_OUT / "LICENSE.txt").write_text("Class emblems drawn by scripts/make-icons.py for this project. CC0 1.0.\n")
-(OUT / "LICENSE.txt").write_text("Stat, currency and skill icons drawn by scripts/make-icons.py for this project. CC0 1.0.\n")
+(OUT / "LICENSE.txt").write_text("Stat, currency, skill and weapon icons drawn by scripts/make-icons.py for this project. CC0 1.0.\n")
 print("icons written to", OUT)
