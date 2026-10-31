@@ -27,7 +27,9 @@ local LOCKED_MESSAGE_SECONDS = 2
 -- Ground layers, top surface heights. Each sits a little above the last so nothing z-fights.
 local Y_FIELD = 0
 local Y_PATCH = 0.05
-local Y_PATH = 0.15
+local Y_PATH = 0.15 -- dungeon spokes (they only overlap each other under the plaza)
+local Y_ZONE_PATH = 0.17 -- paths to the scoreboard, shop and reserved plots (+0.008 each, up to 0.21)
+local Y_ROAD = 0.22 -- ring road segments, crossing the spokes; consecutive segments alternate +0.03
 local Y_PLAZA = 0.3
 local PAD_HEIGHT = 0.5
 
@@ -86,11 +88,8 @@ local function disc(name: string, x: number, z: number, radius: number, thicknes
 	return p
 end
 
--- Strips overlap at their joints; equal tops there z-fight (flickering paths seen in Studio), so each new strip
--- sits on one of three levels 0.02 studs apart.
-local stripCount = 0
-
--- A flat strip from (x1, z1) to (x2, z2) with its top at `top` (plus the anti-flicker level).
+-- A flat strip from (x1, z1) to (x2, z2) with its top at `top`. Strips that overlap must get different tops (equal
+-- tops z-fight: the flickering paths seen in Studio), see the Y_ layer constants.
 local function strip(
 	name: string,
 	x1: number,
@@ -104,8 +103,6 @@ local function strip(
 	local a = Vector3.new(x1, 0, z1)
 	local b = Vector3.new(x2, 0, z2)
 	local length = (b - a).Magnitude
-	stripCount += 1
-	top += (stripCount % 3) * 0.02
 	local thickness = 0.2
 	local mid = (a + b) / 2 + Vector3.new(0, top - thickness / 2, 0)
 	local p = part({
@@ -213,10 +210,24 @@ local function buildField(folder: Folder, random: Random)
 	local patches = Instance.new("Folder")
 	patches.Name = "Meadow"
 	patches.Parent = folder
+	-- Patches never overlap each other: two coplanar discs z-fight (flickering meadow seen in Studio).
+	local placed: { { number } } = {}
 	for i = 1, 40 do
 		local a = random:NextNumber() * math.pi * 2
 		local d = 56 + random:NextNumber() * (LobbyLayout.FieldRadius - 84)
-		disc(`Patch{i}`, math.cos(a) * d, math.sin(a) * d, 17 + random:NextNumber() * 42, 0.2, Y_PATCH, {
+		local x, z, radius = math.cos(a) * d, math.sin(a) * d, 17 + random:NextNumber() * 42
+		local clear = true
+		for _, q in placed do
+			if math.sqrt((x - q[1]) ^ 2 + (z - q[2]) ^ 2) < radius + q[3] + 2 then
+				clear = false
+				break
+			end
+		end
+		if not clear then
+			continue
+		end
+		table.insert(placed, { x, z, radius })
+		disc(`Patch{i}`, x, z, radius, 0.2, Y_PATCH, {
 			Color = PATCHES[i % 3 + 1],
 			Material = Enum.Material.Grass,
 			Parent = patches,
@@ -299,7 +310,7 @@ local function buildRingRoad(folder: Folder)
 			math.cos(e) * r,
 			math.sin(e) * r,
 			LobbyLayout.RingRoadWidth,
-			Y_PATH + 0.02,
+			Y_ROAD + (i % 2) * 0.03,
 			{ Color = BRICK, Material = Enum.Material.Brick, Parent = road }
 		)
 	end
@@ -460,6 +471,10 @@ local function buildPlot(plot: LobbyLayout.Plot, folder: Folder, padFolder: Fold
 	end
 end
 
+-- Zone paths all start at the plaza centre and overlap each other, so each gets its own top (index * 0.008, staying
+-- between the spokes at Y_PATH and the ring road at Y_ROAD).
+local zonePathCount = 0
+
 local function buildZone(zone: LobbyLayout.Zone, folder: Folder)
 	local zoneFolder = Instance.new("Folder")
 	zoneFolder.Name = `Zone_{zone.id}`
@@ -493,7 +508,9 @@ local function buildZone(zone: LobbyLayout.Zone, folder: Folder)
 		else Color3.fromRGB(142, 240, 255)
 	billboard(floor, 18, zone.title, zone.subtitle, color, 300)
 
-	strip(`Path_{zone.id}`, 0, 0, zone.x, zone.z, LobbyLayout.ZonePathWidth, Y_PATH, brickProps()).Parent = zoneFolder
+	zonePathCount += 1
+	local pathTop = Y_ZONE_PATH + (zonePathCount - 1) * 0.008
+	strip(`Path_{zone.id}`, 0, 0, zone.x, zone.z, LobbyLayout.ZonePathWidth, pathTop, brickProps()).Parent = zoneFolder
 	table.insert(keepSpokes, { 0, 0, zone.x, zone.z })
 	table.insert(keepClear, { zone.x, zone.z, zone.radius + 11 })
 

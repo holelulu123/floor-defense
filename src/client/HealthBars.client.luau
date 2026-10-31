@@ -201,7 +201,8 @@ end
 
 -- Player characters -----------------------------------------------------------------------------
 
-local function onCharacter(character: Model)
+-- Player bars only show inside a run (InRun attribute); in the lobby nobody takes damage, so they are noise.
+local function onCharacter(player: Player, character: Model)
 	local humanoid = character:WaitForChild("Humanoid", 10) :: Humanoid?
 	local head = character:WaitForChild("Head", 10) :: BasePart?
 	if not humanoid or not head then
@@ -212,16 +213,25 @@ local function onCharacter(character: Model)
 	local bar = makeBar(head, STYLES.player)
 	local function update()
 		render(bar, humanoid.Health, humanoid.MaxHealth, nil)
+		if player:GetAttribute("InRun") ~= true then
+			bar.gui.Enabled = false
+		end
 	end
 	humanoid.HealthChanged:Connect(update)
 	humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(update)
+	local inRun = player:GetAttributeChangedSignal("InRun"):Connect(update)
+	character.Destroying:Connect(function()
+		inRun:Disconnect()
+	end)
 	update()
 end
 
 local function onPlayer(player: Player)
-	player.CharacterAdded:Connect(onCharacter)
+	player.CharacterAdded:Connect(function(character)
+		onCharacter(player, character)
+	end)
 	if player.Character then
-		task.spawn(onCharacter, player.Character)
+		task.spawn(onCharacter, player, player.Character)
 	end
 end
 

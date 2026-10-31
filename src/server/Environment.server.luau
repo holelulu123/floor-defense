@@ -40,11 +40,15 @@ if baseplate and baseplate:IsA("BasePart") and baseplate.Size.X >= 1000 and base
 end
 
 -- Ground to the horizon: beyond the lobby field (radius ~588) the void showed as a black band under the sky. Planes
--- 0.6 studs below the field's top fill it without touching any surface the game builds at y = 0. A Part is capped
+-- 4 studs below the field's top fill it (at 0.6 below they z-fought with the field at long range: a flickering black
+-- band along the horizon, seen in Studio). A Part is capped
 -- at 2048 studs a side, so tile a 7 x 7 grid (about 14,000 studs across, past where the atmosphere hides it).
 if not workspace:FindFirstChild("HorizonGround") then
-	local folder = Instance.new("Folder")
+	-- A persistent Model so streaming always sends every tile (as a plain folder only the 9 nearest streamed in and
+	-- the rest of the horizon stayed black).
+	local folder = Instance.new("Model")
 	folder.Name = "HorizonGround"
+	folder.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
 	for gx = -3, 3 do
 		for gz = -3, 3 do
 			local ground = Instance.new("Part")
@@ -53,7 +57,7 @@ if not workspace:FindFirstChild("HorizonGround") then
 			ground.CanQuery = false
 			ground.CanTouch = false
 			ground.Size = Vector3.new(2048, 1, 2048)
-			ground.Position = Vector3.new(gx * 2048, -1.1, gz * 2048)
+			ground.Position = Vector3.new(gx * 2048, -4.5, gz * 2048)
 			ground.Material = Enum.Material.Grass
 			ground.Color = Color3.fromRGB(86, 140, 70)
 			ground.TopSurface = Enum.SurfaceType.Smooth
