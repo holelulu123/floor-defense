@@ -47,12 +47,12 @@ local STYLES: { [string]: Style } = {
 		numeric = true,
 	},
 	player = {
-		size = UDim2.fromOffset(72, 8),
-		offset = 2.9, -- above the Humanoid name tag
+		size = UDim2.fromOffset(120, 20),
+		offset = 1.1, -- just above the head (only shown in runs, where no level tag sits there)
 		maxDistance = 70,
 		alwaysOnTop = false,
 		hideWhenFull = false,
-		numeric = false,
+		numeric = true, -- "120 / 120"
 	},
 }
 
@@ -114,8 +114,9 @@ local function makeBar(adornee: BasePart, style: Style, extraOffset: number?): B
 		t.ZIndex = 2
 		t.Parent = back
 		local pad = Instance.new("UIPadding")
-		pad.PaddingTop = UDim.new(0, 5)
-		pad.PaddingBottom = UDim.new(0, 5)
+		local inset = if style.size.Y.Offset < 28 then 2 else 5 -- small bars keep the text readable
+		pad.PaddingTop = UDim.new(0, inset)
+		pad.PaddingBottom = UDim.new(0, inset)
 		pad.Parent = t
 		text = t
 	end
