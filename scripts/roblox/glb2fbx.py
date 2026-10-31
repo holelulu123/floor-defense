@@ -36,6 +36,24 @@ if arms:
         o.matrix_world = mw
     for arm in arms:
         bpy.data.objects.remove(arm, do_unlink=True)
+else:
+    # Node-animated models (Kenney characters: one mesh per limb, no skeleton) import with the "static" T-pose as each
+    # object's action and every clip as an NLA track. Play only the idle track (objects without one keep their rest
+    # transform) and freeze that frame into the object transforms.
+    animated = [o for o in bpy.data.objects if o.animation_data and o.animation_data.nla_tracks]
+    names = {t.name for o in animated for t in o.animation_data.nla_tracks}
+    clip = next((n for n in sorted(names) if "idle" in n.lower()), None)
+    if clip:
+        for o in animated:
+            ad = o.animation_data
+            ad.action = None
+            for t in ad.nla_tracks:
+                t.mute = t.name != clip
+        bpy.context.scene.frame_set(1)
+        frozen = {o: o.matrix_basis.copy() for o in animated}
+        for o, m in frozen.items():
+            o.animation_data_clear()
+            o.matrix_basis = m
 # Quaternius rigs carry a stray "Icosphere" helper mesh (no material) that the glTF viewers never draw: drop it.
 for o in [o for o in bpy.data.objects if o.type == "MESH" and o.name.startswith("Icosphere") and not o.material_slots]:
     bpy.data.objects.remove(o, do_unlink=True)

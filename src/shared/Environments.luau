@@ -35,6 +35,10 @@ export type Environment = {
 local Environments = {}
 
 Environments.TweenSeconds = 1.5
+-- Lighting.EnvironmentDiffuseScale / EnvironmentSpecularScale. At 1 the sky's light tints every surface (the grey Kenney
+-- guns turned baby blue, reds turned pink); at a quarter models keep the colours they have in the showcase.
+Environments.SkyLightDiffuse = 0.25
+Environments.SkyLightSpecular = 0.3
 
 Environments.Lobby = {
 	clockTime = 14,
@@ -54,14 +58,15 @@ Environments.Lobby = {
 	grade = { brightness = 0, contrast = 0.05, saturation = 0.05, tint = { 255, 255, 255 } },
 } :: Environment
 
--- Dungeon id (Dungeons.List) -> mood.
+-- Dungeon id (Dungeons.List) -> mood. The mood lives in the sky, fog and clouds; ambient light and the grade tint stay
+-- close to neutral (half way to grey / white) so creatures, props and weapons keep their own colours.
 Environments.Dungeons = {
 	-- dusk, purple fog
 	Graveyard = {
 		clockTime = 17.3,
 		brightness = 2.2,
-		ambient = { 128, 110, 174 },
-		outdoorAmbient = { 142, 125, 192 },
+		ambient = { 126, 116, 148 },
+		outdoorAmbient = { 140, 132, 165 },
 		atmosphere = {
 			density = 0.45,
 			offset = 0.05,
@@ -72,14 +77,14 @@ Environments.Dungeons = {
 		},
 		clouds = { cover = 0.7, density = 0.6, color = { 120, 100, 150 } },
 		sunRays = 0.05,
-		grade = { brightness = 0, contrast = 0.1, saturation = -0.15, tint = { 225, 210, 255 } },
+		grade = { brightness = 0, contrast = 0.1, saturation = -0.15, tint = { 240, 232, 255 } },
 	},
 	-- golden late afternoon
 	Farm = {
 		clockTime = 17,
 		brightness = 2.5,
-		ambient = { 133, 116, 110 },
-		outdoorAmbient = { 153, 131, 125 },
+		ambient = { 126, 118, 115 },
+		outdoorAmbient = { 145, 134, 131 },
 		atmosphere = {
 			density = 0.3,
 			offset = 0.05,
@@ -90,14 +95,14 @@ Environments.Dungeons = {
 		},
 		clouds = { cover = 0.55, density = 0.6, color = { 255, 230, 210 } },
 		sunRays = 0.15,
-		grade = { brightness = 0, contrast = 0.05, saturation = 0.1, tint = { 255, 240, 225 } },
+		grade = { brightness = 0, contrast = 0.05, saturation = 0.1, tint = { 255, 248, 240 } },
 	},
 	-- overcast green murk
 	Swamp = {
 		clockTime = 15,
 		brightness = 2.2,
-		ambient = { 110, 131, 110 },
-		outdoorAmbient = { 125, 145, 125 },
+		ambient = { 116, 126, 116 },
+		outdoorAmbient = { 131, 141, 131 },
 		atmosphere = {
 			density = 0.5,
 			offset = 0.05,
@@ -108,14 +113,14 @@ Environments.Dungeons = {
 		},
 		clouds = { cover = 0.85, density = 0.7, color = { 150, 170, 140 } },
 		sunRays = 0,
-		grade = { brightness = 0, contrast = 0.05, saturation = -0.1, tint = { 225, 245, 220 } },
+		grade = { brightness = 0, contrast = 0.05, saturation = -0.1, tint = { 240, 250, 238 } },
 	},
 	-- dim, damp, close to night
 	Sewer = {
 		clockTime = 17.3,
 		brightness = 2.2,
-		ambient = { 115, 122, 110 },
-		outdoorAmbient = { 130, 140, 125 },
+		ambient = { 117, 120, 114 },
+		outdoorAmbient = { 132, 138, 130 },
 		atmosphere = {
 			density = 0.55,
 			offset = 0.05,
@@ -126,14 +131,14 @@ Environments.Dungeons = {
 		},
 		clouds = { cover = 0.9, density = 0.8, color = { 90, 95, 90 } },
 		sunRays = 0,
-		grade = { brightness = 0, contrast = 0.15, saturation = -0.25, tint = { 215, 235, 210 } },
+		grade = { brightness = 0, contrast = 0.15, saturation = -0.25, tint = { 235, 245, 232 } },
 	},
 	-- warm morning
 	Village = {
 		clockTime = 9,
 		brightness = 2.8,
-		ambient = { 127, 119, 110 },
-		outdoorAmbient = { 147, 136, 125 },
+		ambient = { 124, 120, 115 },
+		outdoorAmbient = { 142, 137, 132 },
 		atmosphere = {
 			density = 0.28,
 			offset = 0.05,
@@ -144,14 +149,14 @@ Environments.Dungeons = {
 		},
 		clouds = { cover = 0.45, density = 0.6, color = { 255, 245, 235 } },
 		sunRays = 0.12,
-		grade = { brightness = 0, contrast = 0.05, saturation = 0.05, tint = { 255, 245, 232 } },
+		grade = { brightness = 0, contrast = 0.05, saturation = 0.05, tint = { 255, 250, 244 } },
 	},
 	-- cold blue haze
 	Frozen = {
 		clockTime = 12,
 		brightness = 2.2,
-		ambient = { 120, 140, 170 },
-		outdoorAmbient = { 135, 155, 185 },
+		ambient = { 128, 138, 154 },
+		outdoorAmbient = { 144, 154, 168 },
 		atmosphere = {
 			density = 0.45,
 			offset = 0.05,
@@ -162,14 +167,14 @@ Environments.Dungeons = {
 		},
 		clouds = { cover = 0.75, density = 0.6, color = { 230, 240, 255 } },
 		sunRays = 0.05,
-		grade = { brightness = 0, contrast = 0.05, saturation = -0.1, tint = { 225, 238, 255 } },
+		grade = { brightness = 0, contrast = 0.05, saturation = -0.1, tint = { 240, 246, 255 } },
 	},
 	-- humid green midday
 	Jungle = {
 		clockTime = 13,
 		brightness = 2.4,
-		ambient = { 116, 141, 110 },
-		outdoorAmbient = { 131, 155, 125 },
+		ambient = { 123, 136, 120 },
+		outdoorAmbient = { 138, 150, 134 },
 		atmosphere = {
 			density = 0.4,
 			offset = 0.05,
@@ -180,14 +185,14 @@ Environments.Dungeons = {
 		},
 		clouds = { cover = 0.6, density = 0.7, color = { 240, 250, 235 } },
 		sunRays = 0.1,
-		grade = { brightness = 0, contrast = 0.05, saturation = 0.15, tint = { 235, 255, 230 } },
+		grade = { brightness = 0, contrast = 0.05, saturation = 0.15, tint = { 245, 255, 242 } },
 	},
 	-- sunny sea air
 	Pirate = {
 		clockTime = 16,
 		brightness = 3,
-		ambient = { 110, 115, 125 },
-		outdoorAmbient = { 130, 135, 145 },
+		ambient = { 112, 115, 120 },
+		outdoorAmbient = { 132, 135, 140 },
 		atmosphere = {
 			density = 0.25,
 			offset = 0.05,
@@ -204,8 +209,8 @@ Environments.Dungeons = {
 	Factory = {
 		clockTime = 17.3,
 		brightness = 2.2,
-		ambient = { 165, 134, 110 },
-		outdoorAmbient = { 188, 148, 125 },
+		ambient = { 153, 138, 126 },
+		outdoorAmbient = { 172, 152, 141 },
 		atmosphere = {
 			density = 0.55,
 			offset = 0.05,
@@ -216,14 +221,14 @@ Environments.Dungeons = {
 		},
 		clouds = { cover = 0.8, density = 0.8, color = { 160, 120, 90 } },
 		sunRays = 0.05,
-		grade = { brightness = 0, contrast = 0.1, saturation = -0.1, tint = { 255, 225, 190 } },
+		grade = { brightness = 0, contrast = 0.1, saturation = -0.1, tint = { 255, 240, 222 } },
 	},
 	-- dark space: midnight, thin red haze, no clouds so the default sky's stars show
 	Station = {
 		clockTime = 0,
 		brightness = 2.2,
-		ambient = { 133, 110, 124 },
-		outdoorAmbient = { 158, 125, 125 },
+		ambient = { 126, 114, 121 },
+		outdoorAmbient = { 146, 130, 130 },
 		atmosphere = {
 			density = 0.1,
 			offset = 0,
@@ -234,7 +239,7 @@ Environments.Dungeons = {
 		},
 		clouds = { cover = 0, density = 0, color = { 60, 40, 50 } },
 		sunRays = 0,
-		grade = { brightness = 0, contrast = 0.1, saturation = 0, tint = { 255, 228, 218 } },
+		grade = { brightness = 0, contrast = 0.1, saturation = 0, tint = { 255, 242, 236 } },
 	},
 } :: { [string]: Environment }
 

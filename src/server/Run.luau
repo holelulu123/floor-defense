@@ -5,6 +5,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Dungeons = require(ReplicatedStorage.Shared.Dungeons)
@@ -79,7 +80,14 @@ end
 -- Classes are picked in the prep countdown before wave 1 of the player's own run; never in the lobby and
 -- never once wave 1 has started.
 function Run.canSwitchClass(player: Player): boolean
-	return current ~= nil and current.players[player.UserId] ~= nil and current.phase == "prep" and current.wave <= 1
+	if current == nil or current.players[player.UserId] == nil then
+		return false
+	end
+	-- Studio play-tests may switch at any time to try every class in one run (same switch that opens every dungeon).
+	if Config.UnlockAllInStudio and RunService:IsStudio() then
+		return true
+	end
+	return current.phase == "prep" and current.wave <= 1
 end
 
 -- Gives the player their selected class's weapons (stats + Tools, slot 1 in hand) and passives. Called at run

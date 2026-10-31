@@ -515,7 +515,7 @@
   "src": "assets/creatures/kenney-ufo/enemy-ufo-a-weapon.glb"
  },
  "Creature_Keeper": {
-  "asset": 133516793244721,
+  "asset": 85114521614696,
   "sha": "d11d277c7e780023",
   "src": "assets/creatures/kenney-graveyard/character-keeper.glb"
  },
@@ -795,7 +795,7 @@
   "src": "assets/creatures/quaternius-space/Astronaut_RaeTheRedPanda.glb"
  },
  "Creature_S_Ghost": {
-  "asset": 81502643574684,
+  "asset": 80408599450816,
   "sha": "d4334bc0c7c0ca27",
   "src": "assets/creatures/kenney-graveyard/character-ghost.glb"
  },
@@ -855,7 +855,7 @@
   "src": "assets/creatures/quaternius-cyberpunk/Enemy_Large_Gun.glb"
  },
  "Creature_Skeleton": {
-  "asset": 120957808509332,
+  "asset": 94083971053023,
   "sha": "72f20c53c6311488",
   "src": "assets/creatures/kenney-graveyard/character-skeleton.glb"
  },
@@ -950,7 +950,7 @@
   "src": "assets/creatures/quaternius-dinosaurs/Triceratops.glb"
  },
  "Creature_Vampire": {
-  "asset": 70525264298749,
+  "asset": 91242597086870,
   "sha": "89e646e46d9a0670",
   "src": "assets/creatures/kenney-graveyard/character-vampire.glb"
  },
@@ -1010,7 +1010,7 @@
   "src": "assets/creatures/quaternius-farm-animals/Zebra.glb"
  },
  "Creature_Zombie": {
-  "asset": 138635633918521,
+  "asset": 125304640718358,
   "sha": "1a49bedce8647de5",
   "src": "assets/creatures/kenney-graveyard/character-zombie.glb"
  },

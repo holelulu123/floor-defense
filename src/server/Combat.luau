@@ -225,6 +225,29 @@ local function onFire(player: Player, origin: any, direction: any)
 		return
 	end
 
+	-- Melee: forgive a ray that just missed (lag, fast creatures) by taking the nearest creature in the swing arc.
+	if def.melee and not creature then
+		local list = Damage.creatures()
+		local hits = Skills.inCone(
+			root.Position,
+			direction,
+			Damage.positions(list),
+			def.range + Weapons.MeleeArc.slack,
+			Weapons.MeleeArc.halfAngle
+		)
+		local best, bestDist = nil, math.huge
+		for _, i in hits do
+			local d = (list[i].part.Position - root.Position).Magnitude
+			if d < bestDist and math.abs(list[i].part.Position.Y - root.Position.Y) < 12 then
+				best, bestDist = list[i], d
+			end
+		end
+		if best then
+			creature = best
+			endpoint = best.part.Position
+		end
+	end
+
 	local damage = shotDamage(player, def)
 	if def.splash then
 		local radius = Skills.splashRadius(classId or "", def.splash)

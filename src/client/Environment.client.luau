@@ -67,6 +67,8 @@ local function apply(env: Environments.Environment, instant: boolean)
 		Brightness = env.brightness,
 		Ambient = rgb(env.ambient),
 		OutdoorAmbient = rgb(env.outdoorAmbient),
+		EnvironmentDiffuseScale = Environments.SkyLightDiffuse,
+		EnvironmentSpecularScale = Environments.SkyLightSpecular,
 	}, info)
 	local a = env.atmosphere
 	set(atmosphere, {

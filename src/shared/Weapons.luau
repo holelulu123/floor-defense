@@ -29,6 +29,9 @@ local Weapons = {}
 
 -- Melee secondaries share one reach; the Engineer's turret repair reach matches it.
 Weapons.MeleeRange = 8
+-- A swing that misses with its ray still connects with the nearest creature in this arc in front of the player:
+-- creatures run 20-38 studs/s, so the server's hitbox has moved on by the time the swing arrives.
+Weapons.MeleeArc = { slack = 3, halfAngle = 60 } -- extra studs of reach (hitbox half-width), degrees each side
 
 local function melee(name: string, damage: number, fireRate: number): Weapon
 	return {

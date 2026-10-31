@@ -3,7 +3,8 @@
 assets/roblox-models.json (key -> {asset, sha, src}); an unchanged source is never re-uploaded. Then writes
 src/shared/ModelIds.luau so the game can InsertService:LoadAsset them (the place and the assets share an owner).
 
-Usage: scripts/roblox/import-models.py <list.txt>     lines: <Key> <path/to/model.glb> [ObjectNameInsideFile]
+Usage: scripts/roblox/import-models.py [--force] <list.txt>     lines: <Key> <path/to/model.glb> [ObjectNameInsideFile]
+           --force re-uploads every listed model even when its source is unchanged (after a glb2fbx.py change)
        scripts/roblox/import-models.py --animations build/animations/*.rbxm   KeyframeSequences from
            scripts/roblox/make-animations.luau, uploaded as Animation assets under keys Anim_<FileName>
        scripts/roblox/import-models.py --audio build/sounds/*.wav            sounds (scripts/roblox/make-sounds.py),
@@ -120,6 +121,9 @@ def main():
     if sys.argv[1:2] == ["--audio"]:
         upload_files(db, "Audio", "Sound_", sys.argv[2:])
         return
+    force = sys.argv[1] == "--force"
+    if force:
+        sys.argv.pop(1)
     e = env()
     glb2fbx = os.path.join(ROOT, "scripts", "roblox", "glb2fbx.py")
     tmp = tempfile.mkdtemp(prefix="fd-models-")
@@ -129,7 +133,7 @@ def main():
             continue
         name, src, node = parts[0], parts[1], (parts[2] if len(parts) > 2 else None)
         sha = hashlib.sha256(open(os.path.join(ROOT, src), "rb").read() + (node or "").encode()).hexdigest()[:16]
-        if db.get(name, {}).get("sha") == sha:
+        if not force and db.get(name, {}).get("sha") == sha:
             continue
         fbx = os.path.join(tmp, name + ".fbx")
         subprocess.run(["blender", "-b", "-noaudio", "--python", glb2fbx, "--", os.path.join(ROOT, src), fbx] + ([node] if node else []),
