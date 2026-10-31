@@ -1,3 +1,6 @@
+> Historical: QA pass of 2026-10-30 on the showcase. Every finding below has since been fixed; the class list has
+> changed (Summoner removed, ten classes). Kept for the record.
+
 # Showcase QA report
 
 Date: 2026-10-30
