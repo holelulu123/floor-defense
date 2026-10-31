@@ -50,17 +50,17 @@
   "src": "build/animations/SwingHeavy.rbxm"
  },
  "AssaultRifle": {
-  "asset": 112341547276306,
+  "asset": 72488813696814,
   "sha": "e28b2024f333e04a",
   "src": "assets/weapons/kenney-weapon-pack/machinegun.glb"
  },
  "BoltRifle": {
-  "asset": 138488719299213,
+  "asset": 90184049218238,
   "sha": "ca6875768214f068",
   "src": "assets/weapons/kenney-weapon-pack/sniper.glb"
  },
  "CombatKnife": {
-  "asset": 134755789580890,
+  "asset": 122246202517665,
   "sha": "9403ed54dcb881e6",
   "src": "assets/weapons/kenney-weapon-pack/knife_sharp.glb"
  },
@@ -950,42 +950,42 @@
   "src": "assets/creatures/kenney-graveyard/character-zombie.glb"
  },
  "Dagger": {
-  "asset": 85639541750185,
+  "asset": 110880278275101,
   "sha": "7b9a26d5c5b1f267",
   "src": "assets/weapons/quaternius-medieval/Dagger.glb"
  },
  "DualPistols": {
-  "asset": 78406861187682,
+  "asset": 110555641393887,
   "sha": "7e48e23afc8d368a",
   "src": "assets/weapons/kenney-weapon-pack/pistol.glb"
  },
  "Flamethrower": {
-  "asset": 81903757967377,
+  "asset": 118238615674484,
   "sha": "89da676f09bd0835",
   "src": "assets/weapons/kenney-weapon-pack/flamethrower_long.glb"
  },
  "GreatAxe": {
-  "asset": 135423413695193,
+  "asset": 113950922153108,
   "sha": "932421cd009c116b",
   "src": "assets/weapons/quaternius-medieval/Axe_Double.glb"
  },
  "GrenadeLauncher": {
-  "asset": 140043372638116,
+  "asset": 136117931316274,
   "sha": "e28a992406e4b478",
   "src": "assets/weapons/kenney-weapon-pack/rocketlauncherModern.glb"
  },
  "Hammer": {
-  "asset": 110137561146358,
+  "asset": 92952281133847,
   "sha": "5ebe511952f2f780",
   "src": "assets/weapons/quaternius-medieval/Hammer_Double.glb"
  },
  "Karambit": {
-  "asset": 135722924179585,
+  "asset": 75352617718401,
   "sha": "75aaec1330d0424c",
   "src": "assets/weapons/kenney-weapon-pack/knifeRound_sharp.glb"
  },
  "Machete": {
-  "asset": 134719123956483,
+  "asset": 132451939944933,
   "sha": "0832e888b3d2ff78",
   "src": "assets/weapons/kenney-weapon-pack/knifeRound_smooth.glb"
  },
@@ -1085,22 +1085,22 @@
   "src": "assets/props/kaykit-halloween/crypt.gltf"
  },
  "SMG": {
-  "asset": 85094618705881,
+  "asset": 130861674046210,
   "sha": "2c48155183a81170",
   "src": "assets/weapons/kenney-weapon-pack/uzi.glb"
  },
  "Scalpel": {
-  "asset": 89654858167466,
+  "asset": 127694542400948,
   "sha": "b4248db0f290b8ad",
   "src": "assets/weapons/kenney-weapon-pack/knife_smooth.glb"
  },
  "Shield": {
-  "asset": 116621379912418,
+  "asset": 119067167380801,
   "sha": "562d6101149ff5fe",
   "src": "assets/weapons/quaternius-medieval/Shield_Round.glb"
  },
  "Shotgun": {
-  "asset": 133881572144243,
+  "asset": 108412206542476,
   "sha": "af8336ed6713fe44",
   "src": "assets/weapons/kenney-weapon-pack/shotgun.glb"
  },
@@ -1115,12 +1115,12 @@
   "src": "build/sounds/Whoosh.wav"
  },
  "Staff": {
-  "asset": 74986987269718,
+  "asset": 72249957777712,
   "sha": "0ecfcf700a1673eb",
   "src": "assets/characters/kaykit-adventurers/Mage.glb#2H_Staff"
  },
  "Sword": {
-  "asset": 70743388417963,
+  "asset": 102978584052053,
   "sha": "c70d6eb917b8a740",
   "src": "assets/weapons/quaternius-medieval/Sword.glb"
  }

@@ -24,7 +24,7 @@ for name, mesh in WeaponMeshes.Weapons do
 	assert(mesh.length > 0.5 and mesh.length < 6, `{name}: length {mesh.length} studs is sensible`)
 	assert(mesh.grip[1] >= 0 and mesh.grip[1] <= 1 and mesh.grip[2] >= 0 and mesh.grip[2] <= 1, `{name}: grip in box`)
 	if mesh.kind == "gun" then
-		assert(mesh.forward == "+Z", `{name}: Kenney guns point +Z`)
+		assert(mesh.forward == "-Z", `{name}: Kenney guns arrive muzzle -Z (export half turn)`)
 		assert(Weapons.Definitions[name].melee ~= true, `{name}: guns are not melee`)
 	elseif mesh.kind == "melee" then
 		assert(mesh.edge and mesh.edge ~= mesh.forward, `{name}: melee has an edge axis across the blade`)

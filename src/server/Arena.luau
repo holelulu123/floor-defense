@@ -142,10 +142,13 @@ function Arena.build(dungeonId: string?): Built
 		if length < 0.01 then
 			continue
 		end
-		local mid = (a + b) / 2 + Vector3.new(0, LANE_THICKNESS / 2, 0)
+		-- Neighbouring segments overlap at the joints; equal tops there z-fight (the flickering floor seen in Studio),
+		-- so cycle the thickness over three levels 0.03 studs apart.
+		local thickness = LANE_THICKNESS + (i % 3) * 0.03
+		local mid = (a + b) / 2 + Vector3.new(0, thickness / 2, 0)
 		part({
 			Name = `Lane{i}`,
-			Size = Vector3.new(layout.width, LANE_THICKNESS, length + layout.width * 0.5),
+			Size = Vector3.new(layout.width, thickness, length + layout.width * 0.5),
 			CFrame = CFrame.lookAt(mid, mid + (b - a)),
 			Color = rgb(theme.path),
 			Material = Enum.Material.Cobblestone,

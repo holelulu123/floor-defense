@@ -6,6 +6,8 @@
 -- Kenney knives and the Quaternius / KayKit melee models stand blade (or head) up along +Y, handle at the bottom; the
 -- KayKit staff lies along +Z with its head at +Z.
 --
+-- Axes are in the uploaded model's frame: the Blender export turns glTF models half a turn about Y, so a glb's +Z
+-- and +X arrive as -Z and -X (a rifle's muzzle is at -Z; seen in Studio 2026-10-31).
 -- Fractions are of the model's bounding box: `grip` = {along, up} where `along` runs butt -> tip on the forward axis
 -- and `up` runs bottom -> top on Y (ignored when forward is Y; the other axes stay centred). `muzzle` is the business
 -- end the same way. `edge` (melee) is the model axis the striking side faces; it is turned to face forward.
@@ -40,7 +42,7 @@ local function gun(model: string, len: number, grip: { number }, muzzleUp: numbe
 		model = model,
 		kind = "gun",
 		length = len * H,
-		forward = "+Z",
+		forward = "-Z",
 		grip = grip,
 		muzzle = { 1, muzzleUp },
 		hold = hold or "Rifle",
@@ -72,14 +74,14 @@ WeaponMeshes.Weapons = {
 	Flamethrower = gun("Flamethrower", 0.6, { 0.33, 0.28 }, 0.6),
 	BoltRifle = gun("BoltRifle", 0.7, { 0.255, 0.3 }, 0.7),
 	GrenadeLauncher = gun("GrenadeLauncher", 0.5, { 0.5, 0.3 }, 0.6),
-	-- Berserker axe: melee(len 0.9, offset 0.2) -> hand 0.3 up from the butt; head along +X.
-	GreatAxe = melee("GreatAxe", 0.9, 0.3, "+X", "Heavy", "SwingHeavy"),
-	-- Mage staff: melee(len 0.8, offset 0.05) -> hand at 0.45; lies along +Z in the upload.
+	-- Berserker axe: melee(len 0.9, offset 0.2) -> hand 0.3 up from the butt; head along -X.
+	GreatAxe = melee("GreatAxe", 0.9, 0.3, "-X", "Heavy", "SwingHeavy"),
+	-- Mage staff: melee(len 0.8, offset 0.05) -> hand at 0.45; lies along -Z in the upload.
 	Staff = {
 		model = "Staff",
 		kind = "melee",
 		length = 0.8 * H,
-		forward = "+Z",
+		forward = "-Z",
 		edge = "+Y",
 		grip = { 0.45, 0.5 },
 		muzzle = { 1, 0.5 },
@@ -87,20 +89,20 @@ WeaponMeshes.Weapons = {
 		action = "Cast",
 	},
 	-- Melee secondaries: knife(len 0.2 default, at 0.2) and blade(len, grip).
-	CombatKnife = melee("CombatKnife", 0.2, 0.2, "+Z"),
-	Karambit = melee("Karambit", 0.2, 0.2, "+Z"),
-	Scalpel = melee("Scalpel", 0.2, 0.2, "+Z"),
-	Machete = melee("Machete", 0.26, 0.2, "+Z"),
-	Hammer = melee("Hammer", 0.34, 0.12, "+X"),
-	Sword = melee("Sword", 0.45, 0.1, "+X"),
-	Dagger = melee("Dagger", 0.24, 0.12, "+X"),
-	Hatchet = melee("GreatAxe", 0.3, 0.12, "+X"), -- the Demolisher's hatchet is the same axe model, smaller
-	-- Tank shield on the left forearm (len 0.36); its face (the boss) points +Z.
+	CombatKnife = melee("CombatKnife", 0.2, 0.2, "-Z"),
+	Karambit = melee("Karambit", 0.2, 0.2, "-Z"),
+	Scalpel = melee("Scalpel", 0.2, 0.2, "-Z"),
+	Machete = melee("Machete", 0.26, 0.2, "-Z"),
+	Hammer = melee("Hammer", 0.34, 0.12, "-X"),
+	Sword = melee("Sword", 0.45, 0.1, "-X"),
+	Dagger = melee("Dagger", 0.24, 0.12, "-X"),
+	Hatchet = melee("GreatAxe", 0.3, 0.12, "-X"), -- the Demolisher's hatchet is the same axe model, smaller
+	-- Tank shield on the left forearm (len 0.36); its face (the boss) points -Z.
 	Shield = {
 		model = "Shield",
 		kind = "shield",
 		length = 0.36 * H,
-		forward = "+Z",
+		forward = "-Z",
 		grip = { 0, 0.5 },
 		muzzle = { 1, 0.5 },
 	},

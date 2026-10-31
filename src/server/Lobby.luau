@@ -14,7 +14,9 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Dungeons = require(ReplicatedStorage.Shared.Dungeons)
 local LobbyLayout = require(ReplicatedStorage.Shared.LobbyLayout)
 local PadLogic = require(ReplicatedStorage.Shared.PadLogic)
+local ModelFit = require(ReplicatedStorage.Shared.ModelFit)
 local Roster = require(ReplicatedStorage.Shared.Roster)
+local Models = require(script.Parent.Models)
 local PlayerData = require(script.Parent.PlayerData)
 
 local Lobby = {}
@@ -84,7 +86,11 @@ local function disc(name: string, x: number, z: number, radius: number, thicknes
 	return p
 end
 
--- A flat strip from (x1, z1) to (x2, z2) with its top at `top`.
+-- Strips overlap at their joints; equal tops there z-fight (flickering paths seen in Studio), so each new strip
+-- sits on one of three levels 0.02 studs apart.
+local stripCount = 0
+
+-- A flat strip from (x1, z1) to (x2, z2) with its top at `top` (plus the anti-flicker level).
 local function strip(
 	name: string,
 	x1: number,
@@ -98,6 +104,8 @@ local function strip(
 	local a = Vector3.new(x1, 0, z1)
 	local b = Vector3.new(x2, 0, z2)
 	local length = (b - a).Magnitude
+	stripCount += 1
+	top += (stripCount % 3) * 0.02
 	local thickness = 0.2
 	local mid = (a + b) / 2 + Vector3.new(0, top - thickness / 2, 0)
 	local p = part({
@@ -333,6 +341,27 @@ local function buildPad(def: LobbyLayout.PadDef, unlockLevel: number, parent: In
 	}
 end
 
+-- Replaces a placeholder block with the theme's imported prop (same footprint, standing on the same floor, front
+-- toward the placeholder's -Z) once the model has loaded; the block stays if the model is missing or fails.
+local function swapForProp(placeholder: Part, propName: string, height: number, maxWidth: number)
+	task.spawn(function()
+		local key = ModelFit.propKey(propName)
+		if not Models.has(key) then
+			return
+		end
+		local model, size = Models.fitted(key, ModelFit.yaw(key, ModelFit.PropFiles[propName]), function(s: Vector3)
+			return ModelFit.fitScale(s.X, s.Y, s.Z, height, maxWidth, maxWidth)
+		end)
+		if not model or not size or not placeholder.Parent then
+			return
+		end
+		model:PivotTo(placeholder.CFrame * CFrame.new(0, (size.Y - placeholder.Size.Y) / 2, 0))
+		model.Name = placeholder.Name
+		model.Parent = placeholder.Parent
+		placeholder:Destroy()
+	end)
+end
+
 -- One dungeon's plot: brick spoke from the plaza, a themed diorama with a mini tower and gate, the
 -- name sign, and the three pads on the pad ring in front of it.
 local function buildPlot(plot: LobbyLayout.Plot, folder: Folder, padFolder: Folder)
@@ -379,6 +408,7 @@ local function buildPlot(plot: LobbyLayout.Plot, folder: Folder, padFolder: Fold
 		Parent = plotFolder,
 	})
 	tower:SetAttribute("Model", theme.tower)
+	swapForProp(tower, theme.tower, towerHeight, 14)
 
 	local gate = part({
 		Name = theme.gate,
@@ -389,6 +419,7 @@ local function buildPlot(plot: LobbyLayout.Plot, folder: Folder, padFolder: Fold
 		Parent = plotFolder,
 	})
 	gate:SetAttribute("Model", theme.gate)
+	swapForProp(gate, theme.gate, 6, 10)
 
 	-- The sign: a post beside the gate with the name and unlock level.
 	local signPost = post(
