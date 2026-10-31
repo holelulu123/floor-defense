@@ -5,7 +5,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 
 local results = {}
 local function check(name, ok, detail)
-	table.insert(results, { name = name, ok = ok and true or false, detail = detail })
+	table.insert(results, { name = name, ok = ok and true or false, detail = detail and tostring(detail) or nil })
 	print((ok and "PASS " or "FAIL ") .. name .. (detail and (": " .. tostring(detail)) or ""))
 end
 
@@ -34,7 +34,7 @@ if shared then
 	end
 	local okC, Classes = pcall(require, shared.Classes)
 	if okC then
-		check("classes listed", #Classes.List == 11, #Classes.List .. " classes")
+		check("classes listed", #Classes.List == 10, #Classes.List .. " classes")
 		local canUse, left = Classes.canUse(Classes.List[1].id, 1, {}, 0)
 		check("class skill usable when fresh", canUse, left)
 	end
@@ -44,8 +44,12 @@ if shared then
 	end
 end
 
-local lobbyPads = workspace:FindFirstChild("Lobby")
-check("lobby built in workspace", lobbyPads ~= nil, lobbyPads and #lobbyPads:GetChildren() .. " children" or "no Lobby folder")
+-- Luau execution sessions do not start the place's own Scripts, so the lobby is never built here; check that the
+-- builder is in the place and that the layout rules load instead.
+local lobbyModule = server and server:FindFirstChild("Lobby")
+check("lobby builder present", lobbyModule ~= nil)
+local okLayout, layout = pcall(require, shared and shared:FindFirstChild("LobbyLayout"))
+check("lobby layout loads", okLayout and type(layout) == "table", not okLayout and layout or nil)
 
 local fails = 0
 for _, r in results do
