@@ -22,15 +22,15 @@ const MINIC = '../assets/creatures/kenney-mini-characters/';
 
 // Archetype stats from src/shared/Enemies.luau: health, speed, Town Hall damage, coins, first wave.
 export const ARCHETYPES = {
-  Runner:   { health: 30,   speed: 28, damage: 10,  coins: 10,  firstWave: 1,  blurb: 'Fast, weak, swarms. The first thing you shoot.' },
-  Brute:    { health: 150,  speed: 20,  damage: 40,  coins: 30,  firstWave: 3,  blurb: 'Slow and tanky. Hits the Town Hall hard.' },
-  Spitter:  { health: 60,   speed: 24, damage: 20,  coins: 20,  firstWave: 5,  blurb: 'Stops at range and shoots the Town Hall.' },
-  Exploder: { health: 40,   speed: 34, damage: 80,  coins: 25,  firstWave: 7,  blurb: 'Rushes the Town Hall and detonates. Kill it early.' },
-  Shielder: { health: 200,  speed: 18,  damage: 20,  coins: 40,  firstWave: 10, blurb: 'Blocks damage for creatures behind it. Flank it.' },
-  Flyer:    { health: 35,   speed: 38, damage: 15,  coins: 20,  firstWave: 12, blurb: 'Ignores ground paths and floor spells; flies straight in.' },
-  Healer:   { health: 80,   speed: 22,  damage: 10,  coins: 45,  firstWave: 18, blurb: 'Heals nearby creatures. Priority target.' },
-  Elite:    { health: 45,   speed: 34, damage: 10,  coins: 20,  firstWave: 15, blurb: 'Wave 15+. A Runner with an extra ability (frost aura, regen or teleport).' },
-  Boss:     { health: 1200, speed: 13,  damage: 250, coins: 500, firstWave: 5,  blurb: 'Every 5th wave. Drops a guaranteed rare item.' },
+  Runner:   { health: 30,   speed: 20, damage: 10,  coins: 10,  firstWave: 1,  blurb: 'Fast, weak, swarms. The first thing you shoot.' },
+  Brute:    { health: 150,  speed: 14,  damage: 40,  coins: 30,  firstWave: 3,  blurb: 'Slow and tanky. Hits the Town Hall hard.' },
+  Spitter:  { health: 60,   speed: 17, damage: 20,  coins: 20,  firstWave: 5,  blurb: 'Stops at range and shoots the Town Hall.' },
+  Exploder: { health: 40,   speed: 24, damage: 80,  coins: 25,  firstWave: 7,  blurb: 'Rushes the Town Hall and detonates. Kill it early.' },
+  Shielder: { health: 200,  speed: 13,  damage: 20,  coins: 40,  firstWave: 10, blurb: 'Blocks damage for creatures behind it. Flank it.' },
+  Flyer:    { health: 35,   speed: 26, damage: 15,  coins: 20,  firstWave: 12, blurb: 'Ignores ground paths and floor spells; flies straight in.' },
+  Healer:   { health: 80,   speed: 16,  damage: 10,  coins: 45,  firstWave: 18, blurb: 'Heals nearby creatures. Priority target.' },
+  Elite:    { health: 45,   speed: 24, damage: 10,  coins: 20,  firstWave: 15, blurb: 'Wave 15+. A Runner with an extra ability (frost aura, regen or teleport).' },
+  Boss:     { health: 1200, speed: 9,  damage: 250, coins: 500, firstWave: 5,  blurb: 'Every 5th wave. Drops a guaranteed rare item.' },
 };
 
 // Animation names differ per pack; each entry maps the showcase's verbs to the pack's clip names.

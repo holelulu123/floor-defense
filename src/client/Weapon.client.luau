@@ -44,10 +44,13 @@ local gui = Instance.new("ScreenGui")
 gui.Name = "Crosshair"
 gui.ResetOnSpawn = false
 gui.Enabled = false
+-- Viewport coordinates (top bar included), the same space aim() casts its ray from, so the dot sits exactly on the
+-- point shots go to; with the inset the dot sat half a top bar below the real aim point.
+gui.IgnoreGuiInset = true
 
 local dot = Instance.new("Frame")
 dot.AnchorPoint = Vector2.new(0.5, 0.5)
-dot.Position = UDim2.fromScale(0.5, 0.5)
+dot.Position = UDim2.fromScale(0.5, 0.5) -- moved each frame to the aim point (see placeCrosshair)
 dot.Size = UDim2.fromOffset(6, 6)
 dot.BackgroundColor3 = Color3.new(1, 1, 1)
 dot.BorderSizePixel = 0
@@ -292,6 +295,29 @@ local function playAction(weaponName: string, interval: number)
 	t:Play(0.04, 1, speed)
 end
 
+-- Reload: the magazine change plays while the server's Reloading attribute is set, stretched to the time left
+-- (ReloadEnd is in Workspace:GetServerTimeNow() seconds); it stops early if the reload is cut short.
+local reloadTrack: AnimationTrack? = nil
+local function onReloading()
+	if reloadTrack then
+		reloadTrack:Stop(0.15)
+		reloadTrack = nil
+	end
+	if player:GetAttribute("Reloading") ~= true then
+		return
+	end
+	local t = track(WeaponMeshes.reloadFor(player:GetAttribute("Weapon")))
+	if not t then
+		return
+	end
+	local ends = player:GetAttribute("ReloadEnd")
+	local left = if type(ends) == "number" then ends - Workspace:GetServerTimeNow() else 0
+	local speed = if t.Length > 0 and left > 0.05 then t.Length / left else 1
+	t:Play(0.1, 1, speed)
+	reloadTrack = t
+end
+player:GetAttributeChangedSignal("Reloading"):Connect(onReloading)
+
 -- Aiming ----------------------------------------------------------------------------------------
 
 local function currentWeapon(): Weapons.Weapon?
@@ -452,9 +478,28 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
+-- The dot marks the screen point aim() shoots through: the viewport centre when the mouse is locked (first person,
+-- shift lock), else the cursor. With a weapon out it replaces Roblox's own cursor, so there is one crosshair.
+local cursorHidden = false
+local function placeCrosshair(armed: boolean)
+	gui.Enabled = armed
+	if armed then
+		if UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
+			dot.Position = UDim2.fromScale(0.5, 0.5)
+		else
+			local mouse = UserInputService:GetMouseLocation()
+			dot.Position = UDim2.fromOffset(mouse.X, mouse.Y)
+		end
+	end
+	if armed ~= cursorHidden then
+		cursorHidden = armed
+		UserInputService.MouseIconEnabled = not armed
+	end
+end
+
 RunService.RenderStepped:Connect(function()
 	local def = currentWeapon()
-	gui.Enabled = def ~= nil
+	placeCrosshair(def ~= nil)
 	updateHold()
 	if holding and def and def.automatic then
 		tryFire()

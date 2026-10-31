@@ -130,6 +130,9 @@ local function brickProps(): { [string]: any }
 end
 
 -- Floating title over a point: big text plus a smaller line under it.
+local TITLE_SCALE = 1.35
+local TITLE_LIFT = 1.3
+
 local function billboard(
 	parent: Instance,
 	height: number,
@@ -142,9 +145,10 @@ local function billboard(
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Sign"
 	-- Scale units on a BillboardGui are studs, so signs shrink with distance instead of piling up on screen.
-	local studs = width / 20
+	-- Every title is drawn TITLE_SCALE larger and TITLE_LIFT higher than its call site asks.
+	local studs = width / 20 * TITLE_SCALE
 	gui.Size = UDim2.fromScale(studs, studs * 0.3)
-	gui.StudsOffsetWorldSpace = Vector3.new(0, height, 0)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, height * TITLE_LIFT + 2, 0)
 	gui.MaxDistance = maxDistance or if width <= 170 then 110 else 260
 	gui.AlwaysOnTop = false
 	gui.Parent = parent

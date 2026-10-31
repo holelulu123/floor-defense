@@ -39,6 +39,16 @@
   "sha": "1ff4a7c03bac16d4",
   "src": "build/animations/RecoilRifle.rbxm"
  },
+ "Anim_ReloadPistols": {
+  "asset": 87672976528789,
+  "sha": "29158441c2e5497e",
+  "src": "build/animations/ReloadPistols.rbxm"
+ },
+ "Anim_ReloadRifle": {
+  "asset": 86157152550780,
+  "sha": "eefff6de31e3baaf",
+  "src": "build/animations/ReloadRifle.rbxm"
+ },
  "Anim_SkillAim": {
   "asset": 107947724328693,
   "sha": "05fdc12a9fc686a0",

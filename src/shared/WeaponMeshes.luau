@@ -123,7 +123,20 @@ WeaponMeshes.Animations = {
 	"Swing",
 	"SwingHeavy",
 	"Cast",
+	"ReloadRifle",
+	"ReloadPistols",
 }
+
+-- Magazine-change animation for a weapon's hold pose (only guns reload): nil when there is none.
+function WeaponMeshes.reloadFor(weaponName: string?): string?
+	local hold = WeaponMeshes.animationsFor(weaponName)
+	if hold == "HoldRifle" then
+		return "ReloadRifle"
+	elseif hold == "HoldPistols" then
+		return "ReloadPistols"
+	end
+	return nil
+end
 
 function WeaponMeshes.get(weaponName: string?): Mesh?
 	return if weaponName then WeaponMeshes.Weapons[weaponName] else nil

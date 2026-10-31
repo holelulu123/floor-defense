@@ -12,6 +12,8 @@ return {
 	["Anim_HoldStaff"] = 107397105243398,
 	["Anim_RecoilPistols"] = 83211622815023,
 	["Anim_RecoilRifle"] = 81903611461704,
+	["Anim_ReloadPistols"] = 87672976528789,
+	["Anim_ReloadRifle"] = 86157152550780,
 	["Anim_SkillAim"] = 107947724328693,
 	["Anim_SkillBurst"] = 124671689452525,
 	["Anim_SkillCast"] = 94268311273554,

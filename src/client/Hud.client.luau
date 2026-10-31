@@ -521,10 +521,51 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
+-- Countdown to the next wave, big in the middle of the screen (above the crosshair); red for the last 10 seconds.
+local COUNTDOWN_RED = 10
+local countdown = Instance.new("Frame")
+countdown.Name = "WaveCountdown"
+countdown.AnchorPoint = Vector2.new(0.5, 0.5)
+countdown.Position = UDim2.fromScale(0.5, 0.16)
+countdown.Size = UDim2.fromOffset(320, 120)
+countdown.BackgroundTransparency = 1
+countdown.Visible = false
+countdown.Parent = gui
+local countdownTitle = Instance.new("TextLabel")
+countdownTitle.Size = UDim2.new(1, 0, 0, 30)
+countdownTitle.BackgroundTransparency = 1
+countdownTitle.Font = Enum.Font.GothamBold
+countdownTitle.TextSize = 26
+countdownTitle.TextColor3 = Color3.new(1, 1, 1)
+countdownTitle.TextStrokeTransparency = 0.3
+countdownTitle.Parent = countdown
+local countdownNumber = Instance.new("TextLabel")
+countdownNumber.Position = UDim2.fromOffset(0, 30)
+countdownNumber.Size = UDim2.new(1, 0, 0, 90)
+countdownNumber.BackgroundTransparency = 1
+countdownNumber.Font = Enum.Font.GothamBlack
+countdownNumber.TextSize = 84
+countdownNumber.TextStrokeTransparency = 0.2
+countdownNumber.Parent = countdown
+
+local function showCountdown(state)
+	if state.phase ~= "prep" or type(state.secondsLeft) ~= "number" or state.secondsLeft <= 0 then
+		countdown.Visible = false
+		return
+	end
+	countdown.Visible = true
+	countdownTitle.Text = `Wave {state.wave} starts in`
+	countdownNumber.Text = tostring(math.ceil(state.secondsLeft))
+	countdownNumber.TextColor3 = if state.secondsLeft <= COUNTDOWN_RED
+		then Color3.fromRGB(255, 70, 60)
+		else Color3.new(1, 1, 1)
+end
+
 gui.Parent = player:WaitForChild("PlayerGui")
 
 runState.OnClientEvent:Connect(function(state)
 	gui.Enabled = state.phase ~= "ended"
+	showCountdown(state)
 	if state.phase == "prep" then
 		waveLabel.Text = `Wave {state.wave} in {state.secondsLeft}s`
 	elseif state.phase == "cleared" then

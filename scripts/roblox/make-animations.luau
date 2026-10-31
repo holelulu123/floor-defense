@@ -128,6 +128,89 @@ local ANIMS: { [string]: Anim } = {
 			{ time = 0.15, pose = PISTOLS },
 		},
 	},
+	-- Magazine change, 1 s (played at the weapon's reload speed): the rifle cants and dips, the support hand drops to
+	-- pull the magazine away, comes back up with a fresh one, slaps it home, and the rifle swings back level.
+	ReloadRifle = {
+		loop = false,
+		priority = "Action3",
+		keys = {
+			{ time = 0, pose = RIFLE },
+			{
+				time = 0.15,
+				pose = with(RIFLE, {
+					UpperTorso = { 4, -30, 0 },
+					Head = { -12, 25, 0 },
+					RightUpperArm = { 68, 35, -12 },
+					RightLowerArm = { 12, 0, 0 },
+					LeftUpperArm = { 48, -12, 0 },
+					LeftLowerArm = { 62, 0, 0 },
+				}),
+			},
+			{
+				time = 0.4,
+				pose = with(RIFLE, {
+					UpperTorso = { 4, -30, 0 },
+					Head = { -15, 25, 0 },
+					RightUpperArm = { 68, 35, -12 },
+					RightLowerArm = { 12, 0, 0 },
+					LeftUpperArm = { 8, -6, 14 },
+					LeftLowerArm = { 30, 0, 0 },
+				}),
+			},
+			{
+				time = 0.62,
+				pose = with(RIFLE, {
+					UpperTorso = { 4, -30, 0 },
+					Head = { -12, 25, 0 },
+					RightUpperArm = { 68, 35, -12 },
+					RightLowerArm = { 12, 0, 0 },
+					LeftUpperArm = { 44, -14, 0 },
+					LeftLowerArm = { 66, 0, 0 },
+				}),
+			},
+			{
+				time = 0.75,
+				pose = with(RIFLE, {
+					UpperTorso = { 4, -30, 0 },
+					Head = { -10, 25, 0 },
+					RightUpperArm = { 72, 35, -12 },
+					RightLowerArm = { 12, 0, 0 },
+					LeftUpperArm = { 56, -16, 0 },
+					LeftLowerArm = { 80, 0, 0 },
+				}),
+			},
+			{ time = 1, pose = RIFLE },
+		},
+	},
+	-- Pistols: both guns come down and in toward the chest, a beat for the swap, then back up on target.
+	ReloadPistols = {
+		loop = false,
+		priority = "Action3",
+		keys = {
+			{ time = 0, pose = PISTOLS },
+			{
+				time = 0.2,
+				pose = {
+					Head = { -15, 0, 0 },
+					RightUpperArm = { 40, 28, 0 },
+					RightLowerArm = { 55, 0, 0 },
+					LeftUpperArm = { 40, -28, 0 },
+					LeftLowerArm = { 55, 0, 0 },
+				},
+			},
+			{
+				time = 0.55,
+				pose = {
+					Head = { -15, 0, 0 },
+					RightUpperArm = { 45, 30, 0 },
+					RightLowerArm = { 62, 0, 0 },
+					LeftUpperArm = { 36, -24, 0 },
+					LeftLowerArm = { 48, 0, 0 },
+				},
+			},
+			{ time = 1, pose = PISTOLS },
+		},
+	},
 	-- Overhead diagonal slash: wind up high and out to the right, cut down across to the left hip.
 	Swing = {
 		loop = false,
