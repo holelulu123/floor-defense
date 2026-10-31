@@ -1183,7 +1183,7 @@ async function showClass(cls) {
   const autoSkill = Number(new URLSearchParams(location.search).get('skill'));
   if (autoSkill) { const fire = () => { if (current?.def !== cls) return; classCooldowns = {}; useSkill(autoSkill - 1); if (new URLSearchParams(location.search).has('agent')) fetch(`http://127.0.0.1:8799/__log/skillfired%20${cls.id}%20${autoSkill}`).catch(() => {}); setTimeout(fire, 6000 * timeScale); }; setTimeout(fire, 1500); }
   // ?portrait=1: render a 256 px class portrait (upper body with the weapon, class-coloured backdrop) and post it
-  // to the local dev server as class_<id>.jpg; used for the in-game class cards.
+  // to the local dev server as class_<id>.jpg (the in-game class cards now use emblems from scripts/make-icons.py).
   if (new URLSearchParams(location.search).has('portrait')) setTimeout(() => {
     const TINT = { Trooper: 0x46784a, Tank: 0x6e5a46, Scout: 0x3c6e96, Medic: 0x3c8c6e, Engineer: 0x967832, Berserker: 0x963232, Mage: 0x6446a0, Pyro: 0xaa501e, Sniper: 0x505a6e, Demolisher: 0x786428 };
     ground.visible = grid.visible = false; scene.fog.near = 1e4; scene.fog.far = 2e4;

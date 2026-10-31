@@ -5,54 +5,59 @@
   "sha": "31a57f129af1720d"
  },
  "class_Berserker": {
-  "decal": "75471405975961",
-  "image": "rbxassetid://95039017655402",
-  "sha": "9090c2584e50923d"
+  "decal": "128446145739439",
+  "image": "rbxassetid://110814143150506",
+  "sha": "9e9ce75c9c6c4c6f"
  },
  "class_Demolisher": {
-  "decal": "79583156298350",
-  "image": "rbxassetid://84069399876006",
-  "sha": "6d0c20a6740eb754"
+  "decal": "133999161306638",
+  "image": "rbxassetid://92946352174441",
+  "sha": "4d5b68b74150dcc4"
  },
  "class_Engineer": {
-  "decal": "74178312970765",
-  "image": "rbxassetid://111812228402961",
-  "sha": "d137fe04f69a0f0a"
+  "decal": "92703456619380",
+  "image": "rbxassetid://121501499879891",
+  "sha": "7c0597a4f165aee1"
  },
  "class_Mage": {
-  "decal": "94931808118242",
-  "image": "rbxassetid://137927440614076",
-  "sha": "948b71237bb7d213"
+  "decal": "79630758986867",
+  "image": "rbxassetid://96523481749450",
+  "sha": "a99dc2b8eb31eaa1"
  },
  "class_Medic": {
-  "decal": "113751860993677",
-  "image": "rbxassetid://100478320013051",
-  "sha": "21d4bef668b7351b"
+  "decal": "134699532336776",
+  "image": "rbxassetid://80065199363180",
+  "sha": "d259490d8187e242"
  },
  "class_Pyro": {
-  "decal": "86790222276803",
-  "image": "rbxassetid://94899626630309",
-  "sha": "81e2f9e328a202d7"
+  "decal": "126803829086690",
+  "image": "rbxassetid://121218896294012",
+  "sha": "74b5227edb40e778"
  },
  "class_Scout": {
-  "decal": "139454518755293",
-  "image": "rbxassetid://115595999237805",
-  "sha": "7ecd410d676327a1"
+  "decal": "126191974908247",
+  "image": "rbxassetid://119193975838168",
+  "sha": "62fe4cc05473eb73"
  },
  "class_Sniper": {
-  "decal": "126578920000687",
-  "image": "rbxassetid://78604487191719",
-  "sha": "bb9b2c05c61cbe52"
+  "decal": "72613423073449",
+  "image": "rbxassetid://132670245486532",
+  "sha": "06cb6f0a03af5ae3"
  },
  "class_Tank": {
-  "decal": "126855393158930",
-  "image": "rbxassetid://82050586769837",
-  "sha": "b186e5236dd3f6b8"
+  "decal": "108618215056554",
+  "image": "rbxassetid://138738933904356",
+  "sha": "af479a4c98690bf1"
  },
  "class_Trooper": {
-  "decal": "115357129030784",
-  "image": "rbxassetid://76869255899252",
-  "sha": "e1795f1e4aa935bc"
+  "decal": "90113887070587",
+  "image": "rbxassetid://136051811133902",
+  "sha": "9563f3dee1e983a4"
+ },
+ "coins": {
+  "decal": "104294781516238",
+  "image": "rbxassetid://124745264214527",
+  "sha": "89c6ac5bebe7413a"
  },
  "diamonds": {
   "decal": "117145750988033",
@@ -64,10 +69,20 @@
   "image": "rbxassetid://106034030060762",
   "sha": "00cf549f3396b135"
  },
+ "kills": {
+  "decal": "74853395132773",
+  "image": "rbxassetid://81073885106445",
+  "sha": "bbca769f72c6d6fd"
+ },
  "reload": {
   "decal": "73749917979717",
   "image": "rbxassetid://78345908581049",
   "sha": "4e81eceaebe74584"
+ },
+ "score": {
+  "decal": "134299870668001",
+  "image": "rbxassetid://131727180654380",
+  "sha": "781a3946e91c199d"
  },
  "skill_ammo_crate": {
   "decal": "134093159844390",
@@ -168,5 +183,10 @@
   "decal": "124789599843607",
   "image": "rbxassetid://77033438763458",
   "sha": "8a8524c6d0d4d892"
+ },
+ "wave": {
+  "decal": "78692853778627",
+  "image": "rbxassetid://138561711626108",
+  "sha": "2683e62e1f6097b4"
  }
 }

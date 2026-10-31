@@ -9,6 +9,10 @@ Icons.Ids = {
 	health = "rbxassetid://106034030060762",
 	ammo = "rbxassetid://137845073299116",
 	reload = "rbxassetid://78345908581049",
+	wave = "rbxassetid://138561711626108",
+	coins = "rbxassetid://124745264214527",
+	score = "rbxassetid://131727180654380",
+	kills = "rbxassetid://81073885106445",
 
 	-- class skills (Classes.luau, two per class)
 	skill_burst_fire = "rbxassetid://102291000254103",
@@ -32,17 +36,17 @@ Icons.Ids = {
 	skill_frag_toss = "rbxassetid://107733009848917",
 	skill_cluster_bomb = "rbxassetid://78032686647472",
 
-	-- class portraits for the class panel cards
-	class_Trooper = "rbxassetid://76869255899252",
-	class_Tank = "rbxassetid://82050586769837",
-	class_Scout = "rbxassetid://115595999237805",
-	class_Medic = "rbxassetid://100478320013051",
-	class_Engineer = "rbxassetid://111812228402961",
-	class_Berserker = "rbxassetid://95039017655402",
-	class_Mage = "rbxassetid://137927440614076",
-	class_Pyro = "rbxassetid://94899626630309",
-	class_Sniper = "rbxassetid://78604487191719",
-	class_Demolisher = "rbxassetid://84069399876006",
+	-- class emblems for the class panel cards
+	class_Trooper = "rbxassetid://136051811133902",
+	class_Tank = "rbxassetid://138738933904356",
+	class_Scout = "rbxassetid://119193975838168",
+	class_Medic = "rbxassetid://80065199363180",
+	class_Engineer = "rbxassetid://121501499879891",
+	class_Berserker = "rbxassetid://110814143150506",
+	class_Mage = "rbxassetid://96523481749450",
+	class_Pyro = "rbxassetid://121218896294012",
+	class_Sniper = "rbxassetid://132670245486532",
+	class_Demolisher = "rbxassetid://92946352174441",
 } :: { [string]: string }
 
 -- "Arcane Bolt" -> "skill_arcane_bolt".

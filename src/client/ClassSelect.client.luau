@@ -4,7 +4,7 @@
 -- Sits on the right edge below the profile widget; the HUD's HP panel is on the left so they never overlap.
 -- All state (diamonds, owned classes, selected class) comes from player attributes the server publishes;
 -- buttons only invoke BuyClass / SelectClass and show the server's answer. Icons (Icons.get) replace the
--- text look where an asset id has been filled in: class portraits on the cards, the diamond count.
+-- text look where an asset id has been filled in: class emblems on the cards, the diamond count.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -169,15 +169,15 @@ local function buildRow(c: Classes.Class, order: number)
 	corner.CornerRadius = UDim.new(0, 8)
 	corner.Parent = frame
 
-	-- Class portrait when its icon id is filled in; text starts after it.
-	local portrait = Icons.get("class_" .. c.id)
+	-- Class emblem (drawn by scripts/make-icons.py) when its icon id is filled in; text starts after it.
+	local emblem = Icons.get("class_" .. c.id)
 	local textX = 10
-	if portrait then
+	if emblem then
 		local image = Instance.new("ImageLabel")
 		image.Size = UDim2.fromOffset(56, 56)
 		image.Position = UDim2.fromOffset(8, 18)
 		image.BackgroundTransparency = 1
-		image.Image = portrait
+		image.Image = emblem
 		image.Parent = frame
 		textX = 72
 	end

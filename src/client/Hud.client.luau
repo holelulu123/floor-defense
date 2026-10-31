@@ -1,13 +1,14 @@
--- Run HUD: wave, phase, Town Hall health, coins and score (from RunState events), plus the two class
--- skill buttons with keybind, name and cooldown countdown (from SkillFx events) and, for the
+-- Run HUD: wave, phase, Town Hall health, coins, score and kills (one icon row each, from RunState events),
+-- plus the two class skill buttons with keybind, name and cooldown countdown (from SkillFx events) and, for the
 -- Engineer, the placed turret count (from the player's Turrets attribute). A left-edge panel under the
 -- wave/coins text shows the Town Hall HP (its server-written Health/MaxHealth attributes) and each party
 -- member's Humanoid HP; it stays clear of the class panel on the right edge during prep.
 -- Bottom right: the two weapon slots (1 primary, 2 melee; the active one highlighted, from WeaponSlot)
 -- and the ammo readout "28 / 30" or "RELOADING" (Ammo / MagazineSize / Reloading attributes written by
 -- server Combat), hidden for weapons without a magazine.
--- Icons (Icons.get) are shown where an asset id has been filled in: skill buttons, ammo/reload readout and
--- the HP panel heart; without one the text-only look stays. Diamonds, level and XP: Profile.client.luau.
+-- Icons (Icons.get) are shown where an asset id has been filled in: wave/coins/score/kills rows, skill
+-- buttons, ammo/reload readout and the HP panel heart; without one the text-only look stays.
+-- Diamonds, level and XP: Profile.client.luau.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -30,11 +31,25 @@ gui.Name = "Hud"
 gui.ResetOnSpawn = false
 gui.Enabled = false
 
-local function label(name: string, y: number): TextLabel
+-- One top-left text row; with `iconKey` (and its id filled in) a 24 px icon sits left of the text.
+local ROW_ICON = 24
+local function label(name: string, y: number, iconKey: string?): TextLabel
+	local iconId = if iconKey then Icons.get(iconKey) else nil
+	local x = 16
+	if iconId then
+		local icon = Instance.new("ImageLabel")
+		icon.Name = name .. "Icon"
+		icon.Size = UDim2.fromOffset(ROW_ICON, ROW_ICON)
+		icon.Position = UDim2.fromOffset(16, y + 2)
+		icon.BackgroundTransparency = 1
+		icon.Image = iconId
+		icon.Parent = gui
+		x = 16 + ROW_ICON + 6
+	end
 	local l = Instance.new("TextLabel")
 	l.Name = name
 	l.Size = UDim2.fromOffset(320, 28)
-	l.Position = UDim2.fromOffset(16, y)
+	l.Position = UDim2.fromOffset(x, y)
 	l.BackgroundTransparency = 1
 	l.TextXAlignment = Enum.TextXAlignment.Left
 	l.Font = Enum.Font.GothamBold
@@ -45,10 +60,11 @@ local function label(name: string, y: number): TextLabel
 	return l
 end
 
-local waveLabel = label("Wave", 16)
-local coinsLabel = label("Coins", 48)
-local scoreLabel = label("Score", 80)
-local classLabel = label("Class", 112)
+local waveLabel = label("Wave", 16, "wave")
+local coinsLabel = label("Coins", 46, "coins")
+local scoreLabel = label("Score", 76, "score")
+local killsLabel = label("Kills", 106, "kills")
+local classLabel = label("Class", 136)
 
 -- Health panel (left edge, under the wave/coins text) ----------------------------------------------
 
@@ -57,7 +73,7 @@ local PANEL_WIDTH = 260
 local panel = Instance.new("Frame")
 panel.Name = "HealthPanel"
 panel.AnchorPoint = Vector2.new(0, 0)
-panel.Position = UDim2.fromOffset(16, 150)
+panel.Position = UDim2.fromOffset(16, 174)
 panel.Size = UDim2.fromOffset(PANEL_WIDTH, 0)
 panel.AutomaticSize = Enum.AutomaticSize.Y
 panel.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
@@ -522,5 +538,6 @@ runState.OnClientEvent:Connect(function(state)
 		party = state.party
 	end
 	coinsLabel.Text = `Coins {state.coins}`
-	scoreLabel.Text = `Score {state.score}  Kills {state.kills}`
+	scoreLabel.Text = `Score {state.score}`
+	killsLabel.Text = `Kills {state.kills}`
 end)

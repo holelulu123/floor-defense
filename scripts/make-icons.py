@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Draws the stat icons used by the HUD and the showcase into assets/ui/icons/ (our own, CC0).
+"""Draws the stat and skill icons used by the HUD and the showcase into assets/ui/icons/ and the class emblems
+into assets/ui/classes/ (our own, CC0).
 Run after changing a shape: scripts/make-icons.py"""
 import math
 import pathlib
@@ -378,10 +379,136 @@ def sk_cluster_bomb():
     p.save("skill_cluster_bomb")
 
 
-for fn in (heart, speed, damage, coin, wave, skull, gem, ammo, reload_icon):
+def trophy():
+    p = Pen()
+    g, hi, dk = (255, 200, 50, 255), (255, 235, 140, 255), (200, 140, 30, 255)
+    for s in (-1, 1):  # handles
+        cx = 64 + s * 40
+        p.arc((cx - 18, 22, cx + 18, 62), 0, 360, 9, dk)
+    p.poly([(26, 14), (102, 14), (98, 44), (84, 66), (64, 76), (44, 66), (30, 44)], fill=g)
+    p.ellipse((30, 30, 98, 80), fill=g)
+    p.poly([(38, 20), (52, 20), (50, 54), (42, 46)], fill=hi)
+    p.rect((56, 74, 72, 94), fill=dk)
+    p.rect((38, 92, 90, 102), r=3, fill=g)
+    p.rect((30, 100, 98, 116), r=4, fill=dk)
+    p.poly(star(64, 44, 14, 6, 5), fill=hi)
+    p.save("score")
+
+
+# ---- Class emblems: one bold glyph on the class tile, saved to assets/ui/classes/class_<Id>.png for the class cards.
+CLASS_OUT = OUT.parent / "classes"
+
+
+def emblem(cls, draw):
+    """Draws `draw(p)` on its own layer, then lays it on the class tile over a soft drop shadow."""
+    from PIL import ImageFilter
+
+    glyph = Pen()
+    draw(glyph)
+    base = tile(cls)
+    shadow = Image.new("RGBA", glyph.im.size, (0, 0, 0, 0))
+    shadow.putalpha(glyph.im.getchannel("A").point(lambda a: a * 0.6))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(3 * K))
+    base.im.alpha_composite(shadow, (0, 3 * K))
+    base.im.alpha_composite(glyph.im)
+    im = base.im.resize((S, S), Image.LANCZOS)
+    im.save(CLASS_OUT / f"class_{cls}.png")
+    im.resize((64, 64), Image.LANCZOS).save(CLASS_OUT / f"class_{cls}@64.png")
+
+
+def em_trooper(p):
+    p.poly(star(64, 30, 18, 8, 5), fill=GOLD)
+    for y in (58, 84):
+        p.poly([(20, y), (64, y + 22), (108, y), (108, y + 18), (64, y + 40), (20, y + 18)], fill=GOLD)
+
+
+def em_tank(p):
+    p.poly([(64, 12), (110, 26), (106, 72), (64, 118), (22, 72), (18, 26)], fill=STEEL)
+    p.poly([(64, 24), (98, 35), (95, 70), (64, 104), (33, 70), (30, 35)], fill=(150, 110, 70, 255))
+    p.poly([(64, 24), (98, 35), (95, 70), (64, 104)], fill=(120, 88, 56, 255))
+    for x, y in ((30, 30), (98, 30), (64, 112), (26, 70), (102, 70)):
+        p.ellipse((x - 3, y - 3, x + 3, y + 3), fill=(120, 124, 134, 255))
+
+
+def em_scout(p):
+    boot, sole, c, c2 = (150, 100, 60, 255), (70, 50, 40, 255), (245, 250, 255, 255), (180, 220, 255, 255)
+    # a winged boot: shaft, foot pointing right, dark sole, and a three-feather wing on the heel
+    p.rect((48, 22, 82, 92), r=8, fill=boot)
+    p.poly([(48, 64), (96, 70), (114, 82), (114, 100), (48, 100)], fill=boot)
+    p.rect((44, 16, 86, 30), r=5, fill=(190, 140, 90, 255))
+    p.rect((42, 96, 118, 110), r=6, fill=sole)
+    for (x0, y0), (x1, y1), col in (((54, 40), (18, 14), c), ((54, 50), (12, 38), c2), ((54, 60), (18, 62), c)):
+        p.line([(x0, y0), (x1, y1)], 12, col)
+    for y in (78, 92):
+        p.line([(8, y), (30, y)], 5, (180, 220, 255, 190))
+
+
+def em_medic(p):
+    p.ellipse((14, 14, 114, 114), fill=WHITE)
+    p.rect((50, 26, 78, 102), r=5, fill=(220, 50, 60, 255))
+    p.rect((26, 50, 102, 78), r=5, fill=(220, 50, 60, 255))
+
+
+def em_engineer(p):
+    p.poly(star(64, 64, 52, 42, 9), fill=(150, 156, 166, 255))
+    p.ellipse((26, 26, 102, 102), fill=(150, 156, 166, 255))
+    p.ellipse((44, 44, 84, 84), fill=(0, 0, 0, 0))
+    # wrench across the gear: handle bottom-left to the open jaw top-right
+    p.line([(24, 104), (82, 46)], 16, GOLD)
+    p.ellipse((70, 14, 114, 58), fill=GOLD)
+    p.poly([(92, 36), (128, 0), (128, 30), (106, 50)], fill=(0, 0, 0, 0))
+    p.ellipse((86, 28, 100, 42), fill=(0, 0, 0, 0))
+
+
+def em_berserker(p):
+    wood = (140, 95, 55, 255)
+    p.line([(64, 14), (64, 116)], 10, wood)
+    for s in (-1, 1):
+        p.poly([(64, 28), (64 + s * 46, 12), (64 + s * 54, 44), (64 + s * 46, 76), (64, 60)], fill=STEEL)
+        p.poly([(64 + s * 46, 12), (64 + s * 54, 44), (64 + s * 46, 76), (64 + s * 40, 44)], fill=WHITE)
+    p.rect((56, 26, 72, 62), r=3, fill=(110, 114, 124, 255))
+    p.poly(star(64, 10, 8, 4, 4), fill=STEEL)
+
+
+def em_mage(p):
+    hat, band = (130, 90, 220, 255), (255, 205, 60, 255)
+    p.poly([(20, 98), (56, 50), (74, 14), (96, 4), (84, 26), (86, 60), (108, 98)], fill=hat)
+    p.ellipse((10, 88, 118, 114), fill=hat)
+    p.poly([(28, 92), (100, 92), (96, 80), (32, 80)], fill=band)
+    p.poly(star(64, 58, 13, 5, 5), fill=(255, 240, 160, 255))
+    p.poly(star(30, 40, 8, 3, 4), fill=(255, 240, 160, 255))
+    p.poly(star(104, 52, 6, 2, 4), fill=(255, 240, 160, 255))
+
+
+def em_pyro(p):
+    flame(p, 64, 108, 78, 100, outer=(255, 110, 30, 255), inner=(255, 215, 80, 255))
+
+
+def em_sniper(p):
+    c = (240, 240, 240, 255)
+    p.ellipse((18, 18, 110, 110), outline=c, width=8)
+    p.ellipse((44, 44, 84, 84), outline=RED, width=4)
+    for a, b in (((64, 8), (64, 46)), ((64, 82), (64, 120)), ((8, 64), (46, 64)), ((82, 64), (120, 64))):
+        p.line([a, b], 6, c)
+    p.ellipse((60, 60, 68, 68), fill=RED)
+
+
+def em_demolisher(p):
+    p.ellipse((14, 34, 100, 120), fill=(50, 52, 62, 255))
+    p.ellipse((30, 50, 52, 72), fill=(130, 132, 145, 255))
+    p.rect((56, 26, 84, 46), r=4, fill=STEEL)
+    p.arc((70, 6, 110, 46), 180, 300, 6, (200, 170, 120, 255))
+    p.poly(star(104, 18, 18, 7, 7), fill=(255, 130, 40, 255))
+    p.poly(star(104, 18, 10, 4, 6), fill=GOLD)
+
+
+for fn in (heart, speed, damage, coin, wave, skull, trophy, gem, ammo, reload_icon):
     fn()
 for name, fn in list(globals().items()):
     if name.startswith("sk_") and callable(fn):
         fn()
+for cls in CLASS_TINT:
+    emblem(cls, globals()["em_" + cls.lower()])
+(CLASS_OUT / "LICENSE.txt").write_text("Class emblems drawn by scripts/make-icons.py for this project. CC0 1.0.\n")
 (OUT / "LICENSE.txt").write_text("Stat, currency and skill icons drawn by scripts/make-icons.py for this project. CC0 1.0.\n")
 print("icons written to", OUT)

@@ -1,1 +1,1 @@
-Class portraits rendered from the showcase (showcase/index.html ?portrait=1) for this project. CC0 1.0. The avatar body is the developer's own Roblox avatar; weapons from Kenney and Quaternius (CC0).
+Class emblems drawn by scripts/make-icons.py for this project. CC0 1.0.
