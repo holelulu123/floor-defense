@@ -64,7 +64,7 @@ local function corner(parent: Instance, radius: number)
 	c.Parent = parent
 end
 
-local function makeBar(adornee: BasePart, style: Style): Bar
+local function makeBar(adornee: BasePart, style: Style, extraOffset: number?): Bar
 	local old = adornee:FindFirstChild(BAR_NAME)
 	if old then
 		old:Destroy()
@@ -74,7 +74,7 @@ local function makeBar(adornee: BasePart, style: Style): Bar
 	gui.Name = BAR_NAME
 	gui.Adornee = adornee
 	gui.Size = style.size
-	gui.StudsOffsetWorldSpace = Vector3.new(0, adornee.Size.Y / 2 + style.offset, 0)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, adornee.Size.Y / 2 + style.offset + (extraOffset or 0), 0)
 	gui.MaxDistance = style.maxDistance
 	gui.AlwaysOnTop = style.alwaysOnTop
 	gui.LightInfluence = 0
@@ -168,7 +168,9 @@ local function track(inst: Instance)
 	if not adornee then
 		return
 	end
-	local bar = makeBar(adornee, style)
+	-- HealthBarOffset (studs): extra height for creatures whose animated model rises above its hitbox (hops, bobs).
+	local extra = inst:GetAttribute("HealthBarOffset")
+	local bar = makeBar(adornee, style, if type(extra) == "number" then extra else nil)
 	local title = if kind == "townhall" then "Town Hall" else nil
 	local function update()
 		local h, m = inst:GetAttribute("Health"), inst:GetAttribute("MaxHealth")

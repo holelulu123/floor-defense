@@ -14,3 +14,6 @@ scripts/roblox/.env
 
 # Developer avatar rig exported from Studio (Roblox body meshes; regenerate via File > Export as glTF)
 showcase/avatar/
+
+# Generated animation/sound uploads (scripts/roblox/make-animations.luau, make-sounds.py)
+/build/

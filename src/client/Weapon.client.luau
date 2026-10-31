@@ -3,6 +3,10 @@
 -- skill index plus the same aim ray; SkillFx events from the server are drawn here as placeholders.
 -- Weapon keys: 1 = primary, 2 = melee secondary (Remotes.EquipSlot), R = reload (Remotes.Reload). The
 -- server owns the active slot and the magazine; the client only skips shots it knows would be refused.
+-- Shots start at the equipped Tool's "Muzzle" attachment (WeaponModels.luau; the Scout alternates with "MuzzleLeft")
+-- with a short flash; melee swings start at the head. Weapon animations (scripts/roblox/make-animations.luau, ids in
+-- ModelIds as Anim_<name>) play on the Humanoid's Animator: the hold pose loops while a class Tool is equipped, the
+-- recoil / swing / cast plays per shot. Melee swings whoosh; melee hits spark and flash the creature.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -11,7 +15,9 @@ local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
+local ModelIds = require(ReplicatedStorage.Shared.ModelIds) :: { [string]: number }
 local Skills = require(ReplicatedStorage.Shared.Skills)
+local WeaponMeshes = require(ReplicatedStorage.Shared.WeaponMeshes)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
@@ -26,6 +32,7 @@ local player = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
 
 local TRACER_SECONDS = 0.06
+local FLASH_SECONDS = 0.06
 local AIM_RANGE = 1000
 
 -- Crosshair -------------------------------------------------------------------------------------
@@ -77,6 +84,203 @@ local function drawTracer(from: Vector3, to: Vector3)
 	task.delay(TRACER_SECONDS, part.Destroy, part)
 end
 
+-- Muzzles, flashes and melee feedback ------------------------------------------------------------
+
+local function classTool(character: Model?): Tool?
+	local tool = character and character:FindFirstChildOfClass("Tool")
+	return if tool and tool:GetAttribute("ClassWeapon") then tool else nil
+end
+
+-- The muzzle attachments on a character's class Tool (right hand first; the Scout's left pistol second).
+local function muzzles(character: Model?): { Attachment }
+	local tool = classTool(character)
+	local out = {}
+	if tool then
+		for _, name in { "Muzzle", "MuzzleLeft" } do
+			local a = tool:FindFirstChild(name, true)
+			if a and a:IsA("Attachment") then
+				table.insert(out, a)
+			end
+		end
+	end
+	return out
+end
+
+local function flashColor(weaponName: string?): Color3
+	if weaponName == "Staff" then
+		return Color3.fromRGB(140, 180, 255)
+	elseif weaponName == "Flamethrower" then
+		return Color3.fromRGB(255, 140, 40)
+	end
+	return Color3.fromRGB(255, 220, 130)
+end
+
+-- A small bright flash with a light at the muzzle for FLASH_SECONDS.
+local function muzzleFlash(position: Vector3, color: Color3)
+	local flash = Instance.new("Part")
+	flash.Name = "MuzzleFlash"
+	flash.Anchored = true
+	flash.CanCollide = false
+	flash.CanQuery = false
+	flash.CanTouch = false
+	flash.CastShadow = false
+	flash.Material = Enum.Material.Neon
+	flash.Shape = Enum.PartType.Ball
+	flash.Color = color
+	flash.Transparency = 0.15
+	flash.Size = Vector3.one * 0.45
+	flash.CFrame = CFrame.new(position)
+	local light = Instance.new("PointLight")
+	light.Color = color
+	light.Brightness = 6
+	light.Range = 10
+	light.Shadows = false
+	light.Parent = flash
+	flash.Parent = Workspace
+	task.delay(FLASH_SECONDS, flash.Destroy, flash)
+end
+
+local function playSound(key: string, parent: Instance, volume: number)
+	local id = ModelIds[key]
+	if not id then
+		return
+	end
+	local sound = Instance.new("Sound")
+	sound.SoundId = `rbxassetid://{id}`
+	sound.Volume = volume
+	sound.PlaybackSpeed = 0.92 + math.random() * 0.16
+	sound.RollOffMaxDistance = 80
+	sound.Parent = parent
+	sound:Play()
+	sound.Ended:Once(function()
+		sound:Destroy()
+	end)
+	task.delay(3, function()
+		if sound.Parent then
+			sound:Destroy()
+		end
+	end)
+end
+
+-- Melee hit: a burst of sparks at the contact point and a 0.1 s white flash on the creature.
+local function meleeHit(position: Vector3, target: Instance?)
+	local holder = Instance.new("Part")
+	holder.Name = "HitSpark"
+	holder.Anchored = true
+	holder.CanCollide = false
+	holder.CanQuery = false
+	holder.CanTouch = false
+	holder.Transparency = 1
+	holder.Size = Vector3.one * 0.2
+	holder.CFrame = CFrame.new(position)
+	local sparks = Instance.new("ParticleEmitter")
+	sparks.Rate = 0
+	sparks.Color = ColorSequence.new(Color3.fromRGB(255, 240, 180), Color3.fromRGB(255, 140, 40))
+	sparks.LightEmission = 1
+	sparks.Size = NumberSequence.new(0.25, 0)
+	sparks.Lifetime = NumberRange.new(0.12, 0.25)
+	sparks.Speed = NumberRange.new(12, 22)
+	sparks.SpreadAngle = Vector2.new(180, 180)
+	sparks.Drag = 6
+	sparks.Parent = holder
+	local glow = Instance.new("PointLight")
+	glow.Color = Color3.fromRGB(255, 200, 120)
+	glow.Brightness = 3
+	glow.Range = 6
+	glow.Parent = holder
+	holder.Parent = Workspace
+	sparks:Emit(16)
+	playSound("Sound_MeleeHit", holder, 0.8)
+	task.delay(0.08, glow.Destroy, glow)
+	task.delay(1, holder.Destroy, holder)
+
+	if target and target:IsDescendantOf(Workspace) then
+		-- A creature may be one part or a model of parts: flash the whole model when it has one.
+		local parent = target.Parent
+		local adornee = if parent and parent:IsA("Model") and parent ~= Workspace then parent else target
+		local highlight = Instance.new("Highlight")
+		highlight.Adornee = adornee
+		highlight.FillColor = Color3.new(1, 1, 1)
+		highlight.FillTransparency = 0.35
+		highlight.OutlineColor = Color3.fromRGB(255, 220, 120)
+		highlight.OutlineTransparency = 0
+		highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+		highlight.Parent = adornee
+		task.delay(0.1, highlight.Destroy, highlight)
+	end
+end
+
+-- Weapon animations ---------------------------------------------------------------------------------
+
+local tracks: { [string]: AnimationTrack } = {}
+local tracksFor: Animator? = nil
+local heldTool: Tool? = nil
+local holdTrack: AnimationTrack? = nil
+
+-- The loaded track for animation `name` (Anim_<name> in ModelIds) on the current character, or nil.
+local function track(name: string?): AnimationTrack?
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+	if animator ~= tracksFor then
+		tracks = {}
+		tracksFor = animator
+	end
+	if not animator or not name then
+		return nil
+	end
+	if tracks[name] then
+		return tracks[name]
+	end
+	local id = ModelIds["Anim_" .. name]
+	if not id then
+		return nil
+	end
+	local animation = Instance.new("Animation")
+	animation.AnimationId = `rbxassetid://{id}`
+	local ok, loaded = pcall(animator.LoadAnimation, animator, animation)
+	if not ok then
+		warn(`Weapon: could not load animation {name}: {loaded}`)
+		return nil
+	end
+	tracks[name] = loaded
+	return loaded
+end
+
+-- Keeps the hold pose of the equipped class Tool looping (called every frame; cheap when nothing changed).
+local function updateHold()
+	local tool = classTool(player.Character)
+	if tool == heldTool then
+		return
+	end
+	heldTool = tool
+	if holdTrack then
+		holdTrack:Stop(0.15)
+		holdTrack = nil
+	end
+	if tool then
+		local holdName = WeaponMeshes.animationsFor(tool.Name)
+		local t = track(holdName)
+		if t then
+			t.Looped = true
+			t:Play(0.15)
+			holdTrack = t
+		end
+	end
+end
+
+-- The recoil / swing / cast for one shot, sped up when the weapon fires faster than the clip is long.
+local function playAction(weaponName: string, interval: number)
+	local _, actionName = WeaponMeshes.animationsFor(weaponName)
+	local t = track(actionName)
+	if not t then
+		return
+	end
+	local speed = if t.Length > 0 and interval > 0 then math.max(1, t.Length / interval) else 1
+	t:Stop(0)
+	t:Play(0.04, 1, speed)
+end
+
 -- Aiming ----------------------------------------------------------------------------------------
 
 local function currentWeapon(): Weapons.Weapon?
@@ -92,8 +296,12 @@ local function hasRound(def: Weapons.Weapon): boolean
 	return player:GetAttribute("Reloading") ~= true and (type(ammo) ~= "number" or ammo > 0)
 end
 
--- Returns the muzzle origin and the direction toward whatever is under the crosshair / cursor.
-local function aim(): (Vector3?, Vector3?)
+local useLeftMuzzle = false
+
+-- Returns the shot origin (the equipped Tool's muzzle; the head for melee or when there is no muzzle) and the
+-- direction from it toward whatever is under the crosshair / cursor. `melee` keeps the head origin, so the swing
+-- reach is measured from the body.
+local function aim(melee: boolean?): (Vector3?, Vector3?)
 	local character = player.Character
 	local head = character and character:FindFirstChild("Head") :: BasePart?
 	if not head then
@@ -116,6 +324,17 @@ local function aim(): (Vector3?, Vector3?)
 	local target = if hit then hit.Position else ray.Origin + ray.Direction * AIM_RANGE
 
 	local origin = head.Position
+	if not melee then
+		local list = muzzles(character)
+		if #list > 1 then
+			useLeftMuzzle = not useLeftMuzzle -- dual pistols take turns
+		end
+		local muzzle = list[if useLeftMuzzle and #list > 1 then 2 else 1]
+		-- A muzzle past the aim point (target right against the barrel) would shoot backwards: keep the head then.
+		if muzzle and (target - muzzle.WorldPosition).Magnitude > 1 then
+			origin = muzzle.WorldPosition
+		end
+	end
 	return origin, (target - origin).Unit
 end
 
@@ -142,13 +361,23 @@ local function tryFire()
 	if not hasRound(def) then
 		return -- the server reloads an empty magazine on its own
 	end
-	local origin, direction = aim()
+	local origin, direction = aim(def.melee)
 	if not origin or not direction then
 		return
 	end
 	lastShot = now
 	fireRemote:FireServer(origin, direction)
-	drawTracer(origin, origin + direction * def.range)
+	playAction(def.name, Weapons.interval(def) / rateMult)
+	local character = player.Character
+	if def.melee then
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if root then
+			playSound("Sound_Whoosh", root, 0.7)
+		end
+	else
+		drawTracer(origin, origin + direction * def.range)
+		muzzleFlash(origin, flashColor(def.name))
+	end
 end
 
 -- Skills ----------------------------------------------------------------------------------------
@@ -215,20 +444,61 @@ end)
 RunService.RenderStepped:Connect(function()
 	local def = currentWeapon()
 	gui.Enabled = def ~= nil
+	updateHold()
 	if holding and def and def.automatic then
 		tryFire()
 	end
 end)
 
-hitFx.OnClientEvent:Connect(function(shooterUserId: number, origin: Vector3, endpoint: Vector3, hit: boolean)
-	if shooterUserId == player.UserId then
-		if hit then
-			flashHit()
+hitFx.OnClientEvent:Connect(
+	function(
+		shooterUserId: number,
+		origin: Vector3,
+		endpoint: Vector3,
+		hit: boolean,
+		target: Instance?,
+		melee: boolean?
+	)
+		if typeof(origin) ~= "Vector3" or typeof(endpoint) ~= "Vector3" then
+			return
 		end
-		return
+		local hitTarget = if typeof(target) == "Instance" then target else nil
+		if shooterUserId == player.UserId then
+			if hit then
+				flashHit()
+				if melee then
+					meleeHit(endpoint, hitTarget)
+				end
+			end
+			return
+		end
+		local shooter = Players:GetPlayerByUserId(shooterUserId)
+		local character = shooter and shooter.Character
+		if melee then
+			local root = character and character:FindFirstChild("HumanoidRootPart")
+			if root then
+				playSound("Sound_Whoosh", root, 0.5)
+			end
+			if hit then
+				meleeHit(endpoint, hitTarget)
+			end
+			return
+		end
+		-- Start at the shooter's muzzle as this client sees it (the reported origin lags their replicated arm).
+		local from = origin
+		local best = 4
+		for _, muzzle in muzzles(character) do
+			local d = (muzzle.WorldPosition - origin).Magnitude
+			if d < best then
+				best = d
+				from = muzzle.WorldPosition
+			end
+		end
+		drawTracer(from, endpoint)
+		local tool = classTool(character)
+		muzzleFlash(from, flashColor(tool and tool.Name))
 	end
-	drawTracer(origin, endpoint)
-end)
+)
 
 -- Skill effects: short-lived neon placeholders so every skill reads on screen before real VFX exist.
 

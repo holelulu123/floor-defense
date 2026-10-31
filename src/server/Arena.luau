@@ -1,14 +1,19 @@
 -- Builds a dungeon arena out of Parts from the shared lane layout: floor, one winding lane, a gate at
 -- the lane start, the dungeon's tower (the Town Hall target) at the far end and player spawns beside
--- it. Everything lives in one Folder so a run can be torn down with a single Destroy. Tower and gate
--- are placeholder Parts named after the theme's prop until the meshes are imported.
+-- it. Everything lives in one Folder so a run can be torn down with a single Destroy. Tower and gate are the
+-- theme's imported props (ModelIds "Prop_<name>", sized by ModelFit to the showcase proportions); a missing id
+-- or a failed load falls back to placeholder slabs. The tower always carries an invisible "TownHall" Part
+-- sized to it: that Part is what TownHall.luau tags and what raycasts (Medic repair) hit, since the meshes
+-- themselves are CanQuery = false. Building yields while the props load (in parallel, once per server).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Dungeons = require(ReplicatedStorage.Shared.Dungeons)
 local Lane = require(ReplicatedStorage.Shared.Lane)
+local ModelFit = require(ReplicatedStorage.Shared.ModelFit)
 local Roster = require(ReplicatedStorage.Shared.Roster)
+local Models = require(script.Parent.Models)
 
 local Arena = {}
 
@@ -18,7 +23,7 @@ Arena.Origin = Vector3.new(0, 0, 1500)
 local LANE_THICKNESS = 0.2
 local TOWER_SIZE = 16
 local GATE_HEIGHT = 12
-local STUDS_PER_METRE = 2.5 -- for prop heights the theme lists in showcase metres
+local TOWER_FRONT = 8 -- the tower's front face sits this far before its lane point (the lane stops 10 short)
 
 local function part(props: { [string]: any }): Part
 	local p = Instance.new("Part")
@@ -39,7 +44,7 @@ export type Built = {
 	dungeonId: string,
 	folder: Folder,
 	townHall: Part,
-	gates: { Part }, -- one gate: the lane start
+	gates: { Instance }, -- one gate (Model or placeholder Part): the lane start
 	spawns: { Vector3 },
 	lane: { Vector3 }, -- world-space route, gate first, ending just short of the tower
 	laneWidth: number,
@@ -48,6 +53,57 @@ export type Built = {
 -- Arena-local lane point to world space, on the floor top.
 local function toWorld(p: Lane.Point): Vector3
 	return Arena.Origin + Vector3.new(p.x, 0, p.z)
+end
+
+-- The theme prop as a fitted Model (pivot at the centre of its bounds, front along -Z) and its extents, or nil.
+local function loadProp(name: string, height: number, maxWidth: number, maxDepth: number): (Model?, Vector3?)
+	local key = ModelFit.propKey(name)
+	if not Models.has(key) then
+		return nil, nil
+	end
+	local model, size = Models.fitted(key, ModelFit.yaw(key, ModelFit.PropFiles[name]), function(s: Vector3)
+		return ModelFit.fitScale(s.X, s.Y, s.Z, height, maxWidth, maxDepth)
+	end)
+	if model then
+		for _, d in model:GetDescendants() do
+			if d:IsA("BasePart") then
+				d.CanCollide = true -- players bump into the tower; rays pass through to the hit Part
+			end
+		end
+	end
+	return model, size
+end
+
+-- Loads the tower and gate props side by side so the run start waits for one round trip, not two.
+local function loadProps(theme: Roster.Theme)
+	local tower: { model: Model?, size: Vector3? } = {}
+	local gate: { model: Model?, size: Vector3? } = {}
+	local pending = 2
+	local caller = coroutine.running()
+	local function done()
+		pending -= 1
+		if pending == 0 and coroutine.status(caller) == "suspended" then
+			task.spawn(caller)
+		end
+	end
+	task.spawn(function()
+		tower.model, tower.size = loadProp(
+			theme.tower,
+			ModelFit.towerHeight(theme.towerHeight),
+			ModelFit.TowerMaxWidth,
+			ModelFit.TowerMaxDepth
+		)
+		done()
+	end)
+	task.spawn(function()
+		gate.model, gate.size =
+			loadProp(theme.gate, ModelFit.gateHeight(theme.gateHeight), ModelFit.GateMaxWidth, ModelFit.GateMaxDepth)
+		done()
+	end)
+	if pending > 0 then
+		coroutine.yield()
+	end
+	return tower, gate
 end
 
 function Arena.build(dungeonId: string?): Built
@@ -97,29 +153,57 @@ function Arena.build(dungeonId: string?): Built
 		})
 	end
 
+	local towerProp, gateProp = loadProps(theme)
+
 	-- Gate at the lane start, facing along the first segment.
 	local gateDir = (lane[2] - lane[1]).Unit
-	local gate = part({
-		Name = "Gate",
-		Size = Vector3.new(layout.width + 6, GATE_HEIGHT, 2),
-		CFrame = CFrame.lookAt(lane[1] + Vector3.new(0, GATE_HEIGHT / 2, 0), lane[1] + gateDir * 10),
-		Color = Color3.fromRGB(40, 40, 50),
-		Material = Enum.Material.Slate,
-		Parent = folder,
-	})
+	local gate: Instance
+	if gateProp.model and gateProp.size then
+		local centre = lane[1] + Vector3.new(0, gateProp.size.Y / 2, 0)
+		gateProp.model.Name = "Gate"
+		gateProp.model:PivotTo(CFrame.lookAt(centre, centre + gateDir))
+		gateProp.model.Parent = folder
+		gate = gateProp.model
+	else
+		gate = part({
+			Name = "Gate",
+			Size = Vector3.new(layout.width + 6, GATE_HEIGHT, 2),
+			CFrame = CFrame.lookAt(lane[1] + Vector3.new(0, GATE_HEIGHT / 2, 0), lane[1] + gateDir * 10),
+			Color = Color3.fromRGB(40, 40, 50),
+			Material = Enum.Material.Slate,
+			Parent = folder,
+		})
+	end
 	gate:SetAttribute("Model", theme.gate)
 
-	-- The tower is the Town Hall: a Model named after the theme prop, holding the hit part.
+	-- The tower is the Town Hall: a Model named after the theme prop, holding the hit part. The prop faces the
+	-- gate side (-Z) with its front face just behind the end of the lane.
 	local towerPos = toWorld(layout.tower)
-	local towerHeight = math.max(14, theme.towerHeight * STUDS_PER_METRE)
 	local tower = Instance.new("Model")
 	tower.Name = theme.tower
+	local towerSize: Vector3
+	local towerCentre: Vector3
+	if towerProp.model and towerProp.size then
+		towerSize = towerProp.size
+		towerCentre = towerPos + Vector3.new(0, towerSize.Y / 2, -TOWER_FRONT + towerSize.Z / 2)
+		towerProp.model.Name = "Prop"
+		towerProp.model:PivotTo(CFrame.new(towerCentre))
+		towerProp.model.Parent = tower
+	else
+		local height = ModelFit.towerHeight(theme.towerHeight)
+		towerSize = Vector3.new(TOWER_SIZE, height, TOWER_SIZE)
+		towerCentre = towerPos + Vector3.new(0, height / 2, 0)
+	end
+	local hasProp = towerProp.model ~= nil
 	local townHall = part({
 		Name = "TownHall",
-		Size = Vector3.new(TOWER_SIZE, towerHeight, TOWER_SIZE),
-		Position = towerPos + Vector3.new(0, towerHeight / 2, 0),
+		Size = Vector3.new(math.max(4, towerSize.X), math.max(4, towerSize.Y), math.max(4, towerSize.Z)),
+		Position = towerCentre,
 		Color = Color3.fromRGB(190, 170, 120),
 		Material = Enum.Material.Brick,
+		Transparency = if hasProp then 1 else 0,
+		CastShadow = not hasProp,
+		CanCollide = not hasProp, -- with a prop the meshes collide and this box only takes raycasts
 		Parent = tower,
 	})
 	townHall:SetAttribute("Model", theme.tower)
@@ -128,7 +212,8 @@ function Arena.build(dungeonId: string?): Built
 
 	-- Players stand beside the tower, on the gate side, clear of the lane's final approach.
 	local spawns = {}
-	for _, x in { -22, -14, 14, 22 } do
+	local halfWidth = math.max(TOWER_SIZE, towerSize.X) / 2
+	for _, x in { -(halfWidth + 14), -(halfWidth + 6), halfWidth + 6, halfWidth + 14 } do
 		table.insert(spawns, towerPos + Vector3.new(x, 3, -4))
 	end
 

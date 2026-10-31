@@ -10,6 +10,9 @@
 -- player attributes for the HUD: Weapon (active weapon name), WeaponSlot, Ammo, MagazineSize,
 -- Reloading, ReloadEnd (Workspace:GetServerTimeNow() seconds). Ammo/MagazineSize are nil without a
 -- magazine. An empty magazine reloads on its own.
+--
+-- Remotes.HitFx(shooterUserId, origin, endpoint, hit, target?, melee?) goes to every client after each accepted
+-- shot: tracers and muzzle flashes for guns, sparks and a hit flash on `target` (the creature's part) for melee.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -31,8 +34,9 @@ local hitFx = ReplicatedStorage.Remotes.HitFx :: RemoteEvent
 
 local Combat = {}
 
--- How far the reported origin may be from the character's head before the shot is rejected.
-local ORIGIN_SLACK = 6
+-- How far the reported origin (the weapon's Muzzle attachment, or the head for melee) may be from the
+-- HumanoidRootPart before the shot is rejected. A muzzle past a wall is pulled back to the body (see muzzleOrigin).
+local ORIGIN_SLACK = 8
 -- Medic passive: a shot into the Town Hall from this close repairs it instead.
 local TOWN_HALL_REPAIR_REACH = 12
 local TOWN_HALL_REPAIR_PER_HIT = 5
@@ -132,6 +136,26 @@ local function shotDamage(player: Player, def: Weapons.Weapon): number
 	return damage
 end
 
+-- The ray origin the server uses for a reported muzzle position: nil when it is too far from the character, and the
+-- HumanoidRootPart when anything stands between the body and the muzzle (no shooting through a wall by pressing the
+-- gun against it; a creature at point-blank range is still in the ray's path from the body).
+local function muzzleOrigin(character: Model, root: BasePart, origin: Vector3): Vector3?
+	local offset = origin - root.Position
+	if offset.Magnitude > ORIGIN_SLACK then
+		return nil
+	end
+	if offset.Magnitude < 0.05 then
+		return origin
+	end
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { character }
+	if Workspace:Raycast(root.Position, offset, params) then
+		return root.Position
+	end
+	return origin
+end
+
 local function onFire(player: Player, origin: any, direction: any)
 	local def = activeWeapon(player)
 	if not def or not isVector(origin) or not isVector(direction) then
@@ -140,13 +164,15 @@ local function onFire(player: Player, origin: any, direction: any)
 
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	local head = character and character:FindFirstChild("Head")
-	if not humanoid or humanoid.Health <= 0 or not head then
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not character or not humanoid or humanoid.Health <= 0 or not root or not root:IsA("BasePart") then
 		return
 	end
-	if (origin - (head :: BasePart).Position).Magnitude > ORIGIN_SLACK then
+	local checked = muzzleOrigin(character, root, origin)
+	if not checked then
 		return
 	end
+	origin = checked
 	if direction.Magnitude < 0.5 then
 		return
 	end
@@ -185,7 +211,7 @@ local function onFire(player: Player, origin: any, direction: any)
 	if turret and turret.owner == player and classId == "Engineer" then
 		if def.melee and (endpoint - origin).Magnitude <= Skills.Turret.RepairReach then
 			Turrets.repair(turret)
-			hitFx:FireAllClients(player.UserId, origin, endpoint, true)
+			hitFx:FireAllClients(player.UserId, origin, endpoint, true, nil, def.melee == true)
 		end
 		return
 	end
@@ -194,7 +220,7 @@ local function onFire(player: Player, origin: any, direction: any)
 	if townHall and hitInstance == townHall.part and classId == "Medic" then
 		if (endpoint - origin).Magnitude <= TOWN_HALL_REPAIR_REACH then
 			townHall:repair(TOWN_HALL_REPAIR_PER_HIT * Skills.Passives.Medic.repairMult)
-			hitFx:FireAllClients(player.UserId, origin, endpoint, true)
+			hitFx:FireAllClients(player.UserId, origin, endpoint, true, nil, def.melee == true)
 		end
 		return
 	end
@@ -203,7 +229,7 @@ local function onFire(player: Player, origin: any, direction: any)
 	if def.splash then
 		local radius = Skills.splashRadius(classId or "", def.splash)
 		local count = Damage.area(endpoint, radius, damage, player.UserId)
-		hitFx:FireAllClients(player.UserId, origin, endpoint, count > 0)
+		hitFx:FireAllClients(player.UserId, origin, endpoint, count > 0, nil, def.melee == true)
 		return
 	end
 
@@ -213,7 +239,14 @@ local function onFire(player: Player, origin: any, direction: any)
 			Damage.burn(creature, def.burn, player.UserId)
 		end
 	end
-	hitFx:FireAllClients(player.UserId, origin, endpoint, creature ~= nil)
+	hitFx:FireAllClients(
+		player.UserId,
+		origin,
+		endpoint,
+		creature ~= nil,
+		creature and creature.part,
+		def.melee == true
+	)
 end
 
 -- Arms the player with their class loadout (slot 1 active, full magazine), or disarms them with nil.

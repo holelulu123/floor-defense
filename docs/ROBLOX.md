@@ -66,6 +66,12 @@ scripts/roblox/cloud.py run scripts/roblox/smoke.luau   # server smoke test in t
 The smoke test requires every shared module, checks the dungeon and class tables, and checks the lobby builder
 is in the place (execution sessions do not start the place's own Scripts). It prints `PASS`/`FAIL` lines and `SMOKE n checks, m failed`.
 
+## Studio notes
+
+- The Studio place template ships a broken `Sky` in Lighting (SkyboxBk `rbxassetid://6444884337`, SkyboxUp
+  `6412503613`, Sun `6196665106`) that renders black; `Environment.server.luau` removes any Sky/DepthOfField not
+  marked as ours, Lighting is defined in `default.project.json`, and `Environment.client.luau` tweens per-zone moods.
+
 ## Still to do in Studio
 
 - Importing the glb creatures, towers, weapons and props as MeshParts, then recording the asset ids in

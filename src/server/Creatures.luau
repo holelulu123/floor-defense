@@ -1,13 +1,22 @@
--- Server-owned creatures: a blocky anchored Part moved along the dungeon lane each Heartbeat.
+-- Server-owned creatures: one anchored hitbox Part per creature, moved along the dungeon lane each Heartbeat.
 -- No Humanoid and no pathfinding, so a hundred of them cost almost nothing and nothing about them is
 -- client-driven. Health lives in an attribute; Creatures.damage is the only way to lower it.
+--
+-- Looks: when the creature's model (ModelIds "Creature_<id>") is loaded, the hitbox is invisible and sized to the
+-- model, and carries ModelKey/Gait attributes; CreatureVisuals.client clones the template from
+-- ReplicatedStorage.CreatureModels and animates it on top of the replicated hitbox (walk/hop/fly/stomp, hit
+-- pulse, death tip-over). Until the template is ready, or if the id is missing or LoadAsset fails, the hitbox
+-- is the old coloured block. Raycasts, skills and turrets only ever see the hitbox (`creature.part`).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local CreatureMotion = require(ReplicatedStorage.Shared.CreatureMotion)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
+local ModelFit = require(ReplicatedStorage.Shared.ModelFit)
 local Roster = require(ReplicatedStorage.Shared.Roster)
 local Waves = require(ReplicatedStorage.Shared.Waves)
+local Models = require(script.Parent.Models)
 
 local Creatures = {}
 
@@ -31,6 +40,57 @@ export type Creature = {
 
 local active: { [Part]: Creature } = {}
 local heartbeat: RBXScriptConnection? = nil
+
+-- Templates -----------------------------------------------------------------------------------------------
+
+-- One prepared Model per creature key in ReplicatedStorage.CreatureModels (clients clone it), with its extents.
+type Template = { model: Model, size: Vector3 }
+local templates: { [string]: Template } = {}
+local preparing: { [string]: boolean } = {}
+
+local function templateFolder(): Folder
+	local folder = ReplicatedStorage:FindFirstChild("CreatureModels")
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = "CreatureModels"
+		folder.Parent = ReplicatedStorage
+	end
+	return folder :: Folder
+end
+
+local function bodySize(creature: Roster.Creature): Vector3
+	local def = Enemies.get(creature.archetype)
+	return Vector3.new(def.size[1], def.size[2], def.size[3]) * ModelFit.bodyScale(creature.scale, creature.model)
+end
+
+-- Loads and prepares the creature's template in the background; spawn uses it once it is there.
+local function prepare(creature: Roster.Creature)
+	local key = ModelFit.creatureKey(creature.id)
+	if templates[key] or preparing[key] or not Models.has(key) then
+		return
+	end
+	preparing[key] = true
+	task.spawn(function()
+		local height = bodySize(creature).Y
+		local model, size = Models.fitted(key, ModelFit.yaw(key, creature.model), function(s: Vector3)
+			return ModelFit.fitScale(s.X, s.Y, s.Z, height)
+		end)
+		preparing[key] = nil
+		if model and size then
+			model.Name = key
+			model:SetAttribute("BoxSize", size)
+			model.Parent = templateFolder()
+			templates[key] = { model = model, size = size }
+		end
+	end)
+end
+
+-- Starts loading every model of a family (call at run start; the prep countdown gives them time).
+function Creatures.preload(familyId: string)
+	for _, creature in Roster.family(familyId) do
+		prepare(creature)
+	end
+end
 
 local function step(dt: number)
 	for part, c in active do
@@ -94,7 +154,12 @@ function Creatures.spawn(
 ): Creature
 	assert(#lane >= 2, "a lane needs at least two points")
 	local def = Enemies.get(creature.archetype)
-	local size = Vector3.new(def.size[1], def.size[2], def.size[3]) * creature.scale
+	local key = ModelFit.creatureKey(creature.id)
+	local template = templates[key]
+	if not template then
+		prepare(creature) -- not loaded yet: this one is a block, later spawns get the model
+	end
+	local size = if template then template.size else bodySize(creature)
 	local route = routeFor(lane, creature.flying, size.Y / 2)
 
 	local part = Instance.new("Part")
@@ -102,6 +167,8 @@ function Creatures.spawn(
 	part.Size = size
 	part.Anchored = true
 	part.CanCollide = false
+	part.CanTouch = false
+	part.CanQuery = true -- weapon raycasts find the creature through this part
 	part.Color = Color3.fromRGB(def.color[1], def.color[2], def.color[3])
 	part.CFrame = CFrame.lookAt(route[1], route[2])
 	part:SetAttribute("Health", stats.health)
@@ -109,7 +176,16 @@ function Creatures.spawn(
 	part:SetAttribute("CreatureId", creature.id)
 	part:SetAttribute("Archetype", creature.archetype)
 	part:SetAttribute("HealthBar", "creature") -- HealthBars.client draws a billboard from Health/MaxHealth
+	if template then
+		local gait = CreatureMotion.gait(creature.archetype, creature.flying, creature.model)
+		part.Transparency = 1
+		part.CastShadow = false
+		part:SetAttribute("ModelKey", key)
+		part:SetAttribute("Gait", gait)
+		part:SetAttribute("HealthBarOffset", CreatureMotion.barLift(gait, size.Y))
+	end
 	part:AddTag("HealthBar")
+	part:AddTag("Creature") -- CreatureVisuals.client follows tagged hitboxes
 	part.Parent = parent
 
 	local c: Creature = {
@@ -151,8 +227,11 @@ function Creatures.damage(creature: Creature, amount: number, byUserId: number?)
 		return
 	end
 
-	-- Hit flash so damage reads at a glance before proper effects exist.
+	-- Hit flash for the placeholder block; modelled creatures flash on the client (CreatureVisuals).
 	local part = creature.part
+	if part.Transparency >= 1 then
+		return
+	end
 	local baseColor = Color3.fromRGB(table.unpack(Enemies.get(creature.archetype).color))
 	part.Color = Color3.new(1, 1, 1)
 	task.delay(0.08, function()

@@ -29,20 +29,22 @@ local function progressOf(p: Player): Progress
 	return {
 		level = if type(level) == "number" then level else 1,
 		xp = if type(xp) == "number" then xp else 0,
-		need = if type(need) == "number" then need else 0,
+		need = if type(need) == "number" then need else -1, -- -1: not loaded yet
 		diamonds = if type(diamonds) == "number" then diamonds else 0,
 	}
 end
 
 local function xpText(p: Progress): string
-	if p.need <= 0 then
+	if p.need < 0 then
+		return "Loading..." -- the save is still loading (Studio retries the DataStore first)
+	elseif p.need == 0 then
 		return "Max level"
 	end
 	return `{Progression.formatNumber(p.xp)} / {Progression.formatNumber(p.need)} XP`
 end
 
 local function xpFraction(p: Progress): number
-	return if p.need > 0 then math.clamp(p.xp / p.need, 0, 1) else 1
+	return if p.need > 0 then math.clamp(p.xp / p.need, 0, 1) elseif p.need == 0 then 1 else 0
 end
 
 local function bar(parent: Instance, position: UDim2, size: UDim2): Frame

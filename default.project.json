@@ -2,6 +2,39 @@
   "name": "roblox-mod",
   "tree": {
     "$className": "DataModel",
+    "Lighting": {
+      "$ignoreUnknownInstances": false,
+      "$properties": {
+        "ClockTime": 14,
+        "Brightness": 3,
+        "Ambient": [0.4314, 0.4314, 0.4706],
+        "OutdoorAmbient": [0.502, 0.502, 0.5412],
+        "EnvironmentDiffuseScale": 1,
+        "EnvironmentSpecularScale": 1,
+        "GlobalShadows": true,
+        "ShadowSoftness": 0.2,
+        "ExposureCompensation": 0
+      },
+      "Atmosphere": {
+        "$className": "Atmosphere",
+        "$properties": {
+          "Density": 0.3,
+          "Offset": 0.25,
+          "Color": [0.7804, 0.8235, 0.8824],
+          "Decay": [0.4157, 0.4902, 0.5882],
+          "Glare": 0,
+          "Haze": 0
+        }
+      },
+      "Bloom": {
+        "$className": "BloomEffect",
+        "$properties": { "Intensity": 0.4, "Size": 24, "Threshold": 2 }
+      },
+      "SunRays": {
+        "$className": "SunRaysEffect",
+        "$properties": { "Intensity": 0.1, "Spread": 0.8 }
+      }
+    },
     "ReplicatedStorage": {
       "Shared": { "$path": "src/shared" },
       "Packages": { "$path": { "optional": "Packages" } },

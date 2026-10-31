@@ -81,6 +81,7 @@ function WaveManager.start(
 	townHall.destroyed.Event:Once(function()
 		session.running = false
 	end)
+	Creatures.preload(session.familyId) -- creature models load during the first prep countdown
 
 	task.spawn(function()
 		while session.running do

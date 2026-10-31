@@ -1,0 +1,17 @@
+AssaultRifle assets/weapons/kenney-weapon-pack/machinegun.glb
+Shotgun assets/weapons/kenney-weapon-pack/shotgun.glb
+DualPistols assets/weapons/kenney-weapon-pack/pistol.glb
+SMG assets/weapons/kenney-weapon-pack/uzi.glb
+Flamethrower assets/weapons/kenney-weapon-pack/flamethrower_long.glb
+BoltRifle assets/weapons/kenney-weapon-pack/sniper.glb
+GrenadeLauncher assets/weapons/kenney-weapon-pack/rocketlauncherModern.glb
+GreatAxe assets/weapons/quaternius-medieval/Axe_Double.glb
+Shield assets/weapons/quaternius-medieval/Shield_Round.glb
+CombatKnife assets/weapons/kenney-weapon-pack/knife_sharp.glb
+Karambit assets/weapons/kenney-weapon-pack/knifeRound_sharp.glb
+Scalpel assets/weapons/kenney-weapon-pack/knife_smooth.glb
+Machete assets/weapons/kenney-weapon-pack/knifeRound_smooth.glb
+Hammer assets/weapons/quaternius-medieval/Hammer_Double.glb
+Sword assets/weapons/quaternius-medieval/Sword.glb
+Dagger assets/weapons/quaternius-medieval/Dagger.glb
+Staff assets/characters/kaykit-adventurers/Mage.glb 2H_Staff

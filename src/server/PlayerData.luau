@@ -18,6 +18,9 @@ if not storeOk then
 end
 
 local sessions: { [Player]: { [string]: any } } = {}
+-- Studio sessions whose load failed (no API access): never save them, so stopping a play-test does not sit through
+-- three failing SetAsync retries per save, and default data never overwrites a real save.
+local unsaved: { [Player]: boolean } = {}
 
 local PlayerData = {}
 
@@ -47,6 +50,7 @@ function PlayerData.load(player: Player)
 			if RunService:IsStudio() then
 				-- Studio has no DataStore access unless enabled in Game Settings; play with defaults instead of kicking.
 				warn("PlayerData: DataStore unavailable in Studio, using default data for", player.Name)
+				unsaved[player] = true
 			else
 				player:Kick("Could not load your data. Please rejoin.")
 				return
@@ -90,7 +94,7 @@ function PlayerData.save(player: Player): boolean
 	if not data then
 		return false
 	end
-	if not store then
+	if not store or unsaved[player] then
 		return true -- nothing to persist to; treat as saved so Studio sessions keep working
 	end
 	local ok = retry(function()
@@ -102,6 +106,7 @@ end
 function PlayerData.release(player: Player)
 	PlayerData.save(player)
 	sessions[player] = nil
+	unsaved[player] = nil
 end
 
 function PlayerData.addDiamonds(player: Player, amount: number)

@@ -101,6 +101,7 @@ function Run.start(mode: string, players: { Player }, onEnd: (mode: string, wave
 	local runPlayers: { [number]: PlayerRun } = {}
 	for i, player in players do
 		runPlayers[player.UserId] = { coins = 0, score = 0, kills = 0 }
+		player:SetAttribute("DungeonId", arena.dungeonId) -- Environment.client picks the sky; set before InRun
 		player:SetAttribute("InRun", true) -- clients hide the lobby level tag
 		moveIn(player, arena.spawns[(i - 1) % #arena.spawns + 1])
 	end
@@ -160,6 +161,14 @@ function Run.start(mode: string, players: { Player }, onEnd: (mode: string, wave
 				task.delay(0.2, Run.equipClass, player) -- let the Humanoid and limbs finish loading
 			end)
 		)
+		-- The Class attribute arrives with the save; a run can start before it loads (seen in Studio, where the
+		-- DataStore retries first), so apply the class again once it is known.
+		table.insert(
+			connections,
+			player:GetAttributeChangedSignal("Class"):Connect(function()
+				Run.equipClass(player)
+			end)
+		)
 	end
 	broadcast("prep", 1, Config.PrepSeconds)
 end
@@ -185,6 +194,7 @@ function Run.finish(wave: number)
 		local pr = finished.players[player.UserId]
 		if pr then
 			player:SetAttribute("InRun", nil)
+			player:SetAttribute("DungeonId", nil)
 			PlayerData.recordScore(player, finished.mode, pr.score)
 			local award = PlayerData.awardRun(player, xp, diamonds)
 			if award then
