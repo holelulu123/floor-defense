@@ -17,3 +17,4 @@ showcase/avatar/
 
 # Generated animation/sound uploads (scripts/roblox/make-animations.luau, make-sounds.py)
 /build/
+__pycache__/

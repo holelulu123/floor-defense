@@ -32,7 +32,7 @@ with a real client). Everything else runs from this machine through Roblox Open 
 | Build the place file | `rojo build -o build.rbxl` (part of `scripts/check.sh`) | Rojo |
 | Publish the place | upload `build.rbxl` as a new version | `scripts/roblox/cloud.py publish` |
 | Run server-side tests in the live place | Luau Execution API runs a script inside the published place and returns its output | `scripts/roblox/cloud.py run scripts/roblox/smoke.luau` |
-| Make the experience public | Universe PATCH (visibility); if refused, toggle once in Creator Dashboard | `scripts/roblox/cloud.py public` |
+| Make the experience public | Universe PATCH (visibility). Roblox answers 200 but keeps it Private until the owner has filled the Maturity & Compliance questionnaire (age rating set) and verified the account; then it applies, or toggle it in Creator Dashboard | `scripts/roblox/cloud.py public` |
 | Inspect universe/place metadata | | `scripts/roblox/cloud.py info` |
 | Upload UI images (icons, class emblems) | uploads each PNG as a decal, then reads its Image id inside the place (InsertService); ids land in `assets/ui/roblox-ids.json`, unchanged files are skipped | `scripts/roblox/cloud.py upload assets/ui/icons/*.png` |
 
@@ -66,6 +66,28 @@ scripts/roblox/cloud.py run scripts/roblox/smoke.luau   # server smoke test in t
 The smoke test requires every shared module, checks the dungeon and class tables, and checks the lobby builder
 is in the place (execution sessions do not start the place's own Scripts). It prints `PASS`/`FAIL` lines and `SMOKE n checks, m failed`.
 
+How a publish reaches players: every server started after it runs the new version; servers already running keep the
+old one until they empty. Creator Dashboard > the experience > ... > Restart servers (or Migrate to latest update)
+moves everyone over. Player saves live in DataStores, so restarts never touch progress. The experience description is
+edited in the Dashboard (the Open Cloud universe PATCH answers 200 but leaves it unchanged).
+
+## 3D models
+
+`scripts/roblox/import-models.py <list>` converts each glb with Blender (`scripts/roblox/glb2fbx.py`: bake the idle
+pose, bake the base colour into one 512 px texture, export FBX facing -Z) and uploads it as a Model; ids land in
+`assets/roblox-models.json` and `src/shared/ModelIds.luau`. Unchanged sources are skipped; `--force` re-uploads every
+listed model after a converter change. A third column keeps one named node of the file (the turret's
+`Turret_Gun_Base` / `Turret_Gun_Top`). Rigged models bake a frame of their idle clip; node-animated models (Kenney
+graveyard characters: one mesh per limb) play only their `idle` NLA track before the bake, so nobody stands in a
+T-pose. Fresh uploads can fail to load for a few minutes ("Asset content representation is being generated").
+
+## Playing the live game on this machine
+
+Roblox has no Linux player; Sober (`flatpak install --user flathub org.vinegarhq.Sober`, run with
+`flatpak run org.vinegarhq.Sober`) runs the Roblox app and handles `roblox://` links, so the game page's Play button
+or `xdg-open "roblox://placeId=115649076686868"` opens the game. Private experiences never show in search, even to the
+owner: after one play the game sits in the app's Continue row, and the star on its page adds it to Favorites.
+
 ## Studio notes
 
 - The Studio place template ships a broken `Sky` in Lighting (SkyboxBk `rbxassetid://6444884337`, SkyboxUp
@@ -74,15 +96,13 @@ is in the place (execution sessions do not start the place's own Scripts). It pr
 
 ## Still to do in Studio
 
-- Importing the glb creatures, towers, weapons and props as MeshParts, then recording the asset ids in
-  `src/shared/Assets.luau` (Studio MCP `insert_asset` can place them once uploaded).
 - Client play-tests (pads, shooting, HUD) run through Studio MCP; Open Cloud only runs server-side code.
 - DataStores in Studio: Game Settings > Security > Enable Studio Access to API Services, or saves fall back to
   default data in Studio.
 
 ## Password gate
 
-The live game can be kept private behind a password. `src/server/AccessGate.server.luau` holds every player who joins a
+The live game can be kept private behind a password (currently none is set: the gate is open). `src/server/AccessGate.server.luau` holds every player who joins a
 lobby server (anchored, `AccessLocked` attribute) behind the password screen (`src/client/AccessGate.client.luau`) until
 they send the right password through `Remotes.SubmitPassword`; three wrong tries or two minutes without the right one
 kick them (rules in `src/shared/AccessGate.luau`). The password lives in the `Access` DataStore (key `password`), so it
