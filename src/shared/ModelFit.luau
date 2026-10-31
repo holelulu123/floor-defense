@@ -114,6 +114,19 @@ function ModelFit.yaw(key: string, path: string?): number
 end
 
 -- Body-size multiplier on the archetype size for a roster creature (catalog scale minus the pack's unit fix).
+-- Creature heights against a Roblox character (about 5 studs): every creature grows by CreatureGrow over its
+-- archetype size x roster scale (a Runner, 3 studs before, stands about as tall as a player), then is clamped so
+-- nothing is tiny and nothing passes four characters tall (the biggest bosses).
+ModelFit.CharacterHeight = 5
+ModelFit.CreatureGrow = 5 / 3
+ModelFit.MinCreatureHeight = 4.5
+ModelFit.MaxCreatureHeight = 4 * ModelFit.CharacterHeight
+
+-- Final height in studs for a creature whose archetype size x scale is `rawHeight` studs tall.
+function ModelFit.creatureHeight(rawHeight: number): number
+	return math.clamp(rawHeight * ModelFit.CreatureGrow, ModelFit.MinCreatureHeight, ModelFit.MaxCreatureHeight)
+end
+
 function ModelFit.bodyScale(scale: number, path: string?): number
 	local pack = ModelFit.pack(path)
 	local unit = if pack then ModelFit.PackUnit[pack] else nil

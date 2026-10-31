@@ -84,4 +84,9 @@ eq(ModelFit.towerHeight(1), ModelFit.TowerMinHeight, "tower minimum")
 assert(ModelFit.gateHeight(4) > ModelFit.GateMinHeight, "gate scales")
 eq(ModelFit.gateHeight(0.5), ModelFit.GateMinHeight, "gate minimum")
 
+-- creature heights: a Runner (3 studs raw) stands as tall as a player; nothing smaller than 4.5 or above 4 players
+near(ModelFit.creatureHeight(3), 5, "runner is player height")
+eq(ModelFit.creatureHeight(1), ModelFit.MinCreatureHeight, "small creatures grow to the minimum")
+eq(ModelFit.creatureHeight(22), 20, "bosses stop at 4x a player")
+
 print("ModelFit: ok")

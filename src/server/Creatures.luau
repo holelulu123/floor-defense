@@ -60,7 +60,8 @@ end
 
 local function bodySize(creature: Roster.Creature): Vector3
 	local def = Enemies.get(creature.archetype)
-	return Vector3.new(def.size[1], def.size[2], def.size[3]) * ModelFit.bodyScale(creature.scale, creature.model)
+	local raw = Vector3.new(def.size[1], def.size[2], def.size[3]) * ModelFit.bodyScale(creature.scale, creature.model)
+	return raw * (ModelFit.creatureHeight(raw.Y) / raw.Y) -- player-sized up to 4x a player, see ModelFit
 end
 
 -- Loads and prepares the creature's template in the background; spawn uses it once it is there.
