@@ -9,6 +9,7 @@ local Workspace = game:GetService("Workspace")
 
 local Skills = require(ReplicatedStorage.Shared.Skills)
 local Damage = require(script.Parent.Damage)
+local Models = require(script.Parent.Models)
 
 local skillFx = ReplicatedStorage.Remotes.SkillFx :: RemoteEvent
 
@@ -38,6 +39,45 @@ end
 local function setHealth(t: Turret, health: number)
 	t.health = math.clamp(health, 0, t.maxHealth)
 	t.model:SetAttribute("Health", t.health)
+end
+
+-- The showcase turret (Quaternius Cyberpunk Turret_Gun, uploaded as a base and a swivelling top) over the placeholder
+-- Parts, which turn invisible and stay as the hitbox, health-bar anchor and aim pivot. Sizes follow the showcase:
+-- 0.42 x a character tall; the glb is 0.58 m tall, its base 0.18 m, the top's box centre 0.365 m up and 0.21 m ahead
+-- of the swivel axis.
+local TURRET_HEIGHT = 0.42 * 5.5
+local PER_METRE = TURRET_HEIGHT / 0.58
+local function dress(model: Model, base: Part, head: Part, barrel: Part, position: Vector3)
+	if not (Models.has("Prop_TurretGun_Base") and Models.has("Prop_TurretGun_Top")) then
+		return
+	end
+	local baseModel = Models.fitted("Prop_TurretGun_Base", 0, function(size: Vector3)
+		return 0.18 * PER_METRE / math.max(size.Y, 1e-3)
+	end)
+	local topModel = Models.fitted("Prop_TurretGun_Top", 0, function(size: Vector3)
+		return 0.43 * PER_METRE / math.max(size.Y, 1e-3)
+	end)
+	if not baseModel or not topModel or not model.Parent then
+		return
+	end
+	baseModel.Name = "BaseMesh"
+	baseModel:PivotTo(CFrame.new(position + Vector3.new(0, 0.09 * PER_METRE, 0)) * head.CFrame.Rotation)
+	baseModel.Parent = model
+	topModel.Name = "TopMesh"
+	topModel:PivotTo(head.CFrame * CFrame.new(0, 0.365 * PER_METRE - (head.Position.Y - position.Y), -0.21 * PER_METRE))
+	for _, d in topModel:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = false
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0 = head
+			weld.Part1 = d
+			weld.Parent = d
+		end
+	end
+	topModel.Parent = model
+	for _, p in { base, head, barrel } do
+		p.Transparency = 1
+	end
 end
 
 local function build(owner: Player, position: Vector3, lookAt: Vector3): Turret
@@ -82,6 +122,8 @@ local function build(owner: Player, position: Vector3, lookAt: Vector3): Turret
 	model:SetAttribute("HealthBar", "turret") -- HealthBars.client draws a billboard from Health/MaxHealth
 	model:AddTag("HealthBar")
 	model.Parent = Workspace
+	-- After parenting: dress() gives up on a turret that is no longer in the world (destroyed while its mesh loaded).
+	task.spawn(dress, model, base, head, barrel, position)
 
 	local t: Turret = {
 		model = model,

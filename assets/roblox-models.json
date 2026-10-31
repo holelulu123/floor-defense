@@ -1129,6 +1129,16 @@
   "sha": "9b37d1b3eac036e7",
   "src": "assets/props/quaternius-rts/TownCenter_SecondAge_Level3.glb"
  },
+ "Prop_TurretGun_Base": {
+  "asset": 126689147739346,
+  "sha": "8d1fd8166aa2ab44",
+  "src": "assets/props/quaternius-cyberpunk-props/Turret_Gun.glb#Turret_Gun_Base"
+ },
+ "Prop_TurretGun_Top": {
+  "asset": 98419682947242,
+  "sha": "aa622bab141572ea",
+  "src": "assets/props/quaternius-cyberpunk-props/Turret_Gun.glb#Turret_Gun_Top"
+ },
  "Prop_Turret_Cannon": {
   "asset": 91376611042128,
   "sha": "1c731f445be1f701",

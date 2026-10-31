@@ -497,9 +497,48 @@ local function placeCrosshair(armed: boolean)
 	end
 end
 
+-- First person: Roblox hides the whole character once the camera is inside the head. Keep the arms, hands and held
+-- weapons drawn so the player sees what they hold (re-applied each frame because the camera scripts reset it).
+local ARM_PARTS = {
+	"RightUpperArm",
+	"RightLowerArm",
+	"RightHand",
+	"LeftUpperArm",
+	"LeftLowerArm",
+	"LeftHand",
+	"Right Arm",
+	"Left Arm",
+}
+local function showFirstPersonArms()
+	local character = player.Character
+	local head = character and character:FindFirstChild("Head") :: BasePart?
+	if not character or not head then
+		return
+	end
+	if (camera.CFrame.Position - head.Position).Magnitude > 1.5 then
+		return -- third person: the camera scripts show everything already
+	end
+	for _, name in ARM_PARTS do
+		local limb = character:FindFirstChild(name)
+		if limb and limb:IsA("BasePart") then
+			limb.LocalTransparencyModifier = 0
+		end
+	end
+	for _, tool in character:GetChildren() do
+		if tool:IsA("Tool") then
+			for _, d in tool:GetDescendants() do
+				if d:IsA("BasePart") then
+					d.LocalTransparencyModifier = 0
+				end
+			end
+		end
+	end
+end
+
 RunService.RenderStepped:Connect(function()
 	local def = currentWeapon()
 	placeCrosshair(def ~= nil)
+	showFirstPersonArms()
 	updateHold()
 	if holding and def and def.automatic then
 		tryFire()

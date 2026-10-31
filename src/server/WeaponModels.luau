@@ -135,12 +135,47 @@ local builders: { [string]: (handle: Part) -> CFrame } = {
 		)
 		return CFrame.new(0, 0, 0.8)
 	end,
+	-- The showcase flail (makeFlail in showcase/index.html): a wooden haft, seven iron links held stiff above it and a
+	-- spiked iron ball on top.
 	Flail = function(h)
-		h.Size = Vector3.new(0.18, 0.18, 1.4)
+		-- Sizes are before SCALE (x1.7): about 3.3 studs from pommel to spikes, like the showcase's 0.6 x character.
+		h.Size = Vector3.new(0.12, 0.12, 0.8)
 		h.Color = WOOD
-		part(h, "Chain", Vector3.new(0.08, 0.08, 1.2), CFrame.new(0, 0, -1.3), STEEL)
-		part(h, "Ball", Vector3.new(0.7, 0.7, 0.7), CFrame.new(0, 0, -2.2), GUN_METAL, Enum.PartType.Ball)
-		return CFrame.new(0, 0, 0.4)
+		h.Material = Enum.Material.Wood
+		local iron = Color3.fromRGB(112, 117, 128)
+		for i = 0, 6 do
+			local link = part(
+				h,
+				"Link" .. i,
+				Vector3.new(0.03, 0.11, 0.11),
+				CFrame.new(0, 0, -0.45 - i * 0.085) * CFrame.Angles(0, if i % 2 == 0 then 0 else math.pi / 2, 0),
+				iron,
+				Enum.PartType.Cylinder
+			)
+			link.Material = Enum.Material.Metal
+		end
+		local ballAt = CFrame.new(0, 0, -1.15)
+		local ball = part(h, "Ball", Vector3.new(0.36, 0.36, 0.36), ballAt, iron, Enum.PartType.Ball)
+		ball.Material = Enum.Material.Metal
+		-- 14 spikes spread evenly over the ball (golden-angle spiral), each half sunk in and pointing outward.
+		local count = 14
+		for i = 0, count - 1 do
+			local y = 1 - (i + 0.5) / count * 2
+			local r = math.sqrt(1 - y * y)
+			local a = i * math.pi * (3 - math.sqrt(5))
+			local dir = Vector3.new(math.cos(a) * r, y, math.sin(a) * r)
+			local base = ballAt.Position + dir * 0.2
+			local spike = part(
+				h,
+				"Spike" .. i,
+				Vector3.new(0.045, 0.045, 0.15),
+				CFrame.lookAt(base, base + dir),
+				Color3.fromRGB(150, 155, 165)
+			)
+			spike.Material = Enum.Material.Metal
+		end
+		-- Held near the pommel and tilted up so the chain and ball stand above the fist (the showcase pose).
+		return CFrame.new(0, 0, 0.25) * CFrame.Angles(math.rad(-100), 0, 0)
 	end,
 	-- Melee secondaries (slot 2).
 	CombatKnife = function(h)

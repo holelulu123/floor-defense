@@ -251,6 +251,13 @@ local function onFire(player: Player, origin: any, direction: any)
 	local damage = shotDamage(player, def)
 	if def.splash then
 		local radius = Skills.splashRadius(classId or "", def.splash)
+		-- A melee splash (the Tank's flail) lands on the creature it hit, else on the ground ahead at swing reach,
+		-- so aiming up or down does not move the blast off the lane.
+		if def.melee and not creature then
+			local flat = Vector3.new(direction.X, 0, direction.Z)
+			local ahead = if flat.Magnitude > 0.01 then flat.Unit else root.CFrame.LookVector
+			endpoint = root.Position + ahead * def.range * 0.6
+		end
 		local count = Damage.area(endpoint, radius, damage, player.UserId)
 		hitFx:FireAllClients(player.UserId, origin, endpoint, count > 0, nil, def.melee == true)
 		return

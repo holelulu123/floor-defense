@@ -17,3 +17,5 @@ Prop_Willow_Dead_1 assets/props/quaternius-nature/Willow_Dead_1.glb
 Prop_Wonder_SecondAge_Level3 assets/props/quaternius-rts/Wonder_SecondAge_Level3.glb
 Prop_arch_gate assets/props/kaykit-halloween/arch_gate.gltf
 Prop_crypt assets/props/kaykit-halloween/crypt.gltf
+Prop_TurretGun_Base assets/props/quaternius-cyberpunk-props/Turret_Gun.glb Turret_Gun_Base
+Prop_TurretGun_Top assets/props/quaternius-cyberpunk-props/Turret_Gun.glb Turret_Gun_Top

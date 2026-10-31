@@ -106,7 +106,8 @@ Weapons.Definitions = {
 		reload = 3.2,
 	},
 	-- Melee and magic primaries never reload.
-	Flail = { name = "Flail", damage = 25, fireRate = 1.5, range = 10, automatic = true, melee = true },
+	-- The Tank's flail hits everything within `splash` studs of the swing's impact (area damage).
+	Flail = { name = "Flail", damage = 25, fireRate = 1.5, range = 10, automatic = true, melee = true, splash = 6 },
 	GreatAxe = { name = "GreatAxe", damage = 45, fireRate = 1.2, range = 10, automatic = true, melee = true },
 	Staff = { name = "Staff", damage = 20, fireRate = 2, range = 150, automatic = false },
 

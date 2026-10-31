@@ -70,12 +70,13 @@ WeaponMeshes.Weapons = {
 	AssaultRifle = gun("AssaultRifle", 0.5, { 0.31, 0.3 }, 0.72),
 	Shotgun = gun("Shotgun", 0.52, { 0.31, 0.5 }, 0.75),
 	DualPistols = gun("DualPistols", 0.24, { 0.2, 0.42 }, 0.85, "Pistols"),
-	SMG = gun("SMG", 0.34, { 0.34, 0.5 }, 0.8),
+	SMG = gun("SMG", 0.34, { 0.34, 0.5 }, 0.8, "Pistols"), -- both hands together on the short SMG
 	Flamethrower = gun("Flamethrower", 0.6, { 0.33, 0.28 }, 0.6),
 	BoltRifle = gun("BoltRifle", 0.7, { 0.255, 0.3 }, 0.7),
 	GrenadeLauncher = gun("GrenadeLauncher", 0.5, { 0.5, 0.3 }, 0.6),
-	-- Berserker axe: melee(len 0.9, offset 0.2) -> hand 0.3 up from the butt; head along -X.
-	GreatAxe = melee("GreatAxe", 0.9, 0.3, "-X", "Heavy", "SwingHeavy"),
+	-- Berserker axe: melee(len 0.9, offset 0.2) -> hand 0.3 up from the butt; head along -X. Held upright in one hand
+	-- with the broad face of the double head to the front, as in the showcase (edge -Z turns that face forward).
+	GreatAxe = melee("GreatAxe", 0.9, 0.3, "-Z", "Melee", "SwingHeavy"),
 	-- Mage staff: melee(len 0.8, offset 0.05) -> hand at 0.45; lies along -Z in the upload.
 	Staff = {
 		model = "Staff",
@@ -96,7 +97,7 @@ WeaponMeshes.Weapons = {
 	Hammer = melee("Hammer", 0.34, 0.12, "-X"),
 	Sword = melee("Sword", 0.45, 0.1, "-X"),
 	Dagger = melee("Dagger", 0.24, 0.12, "-X"),
-	Hatchet = melee("GreatAxe", 0.3, 0.12, "-X"), -- the Demolisher's hatchet is the same axe model, smaller
+	Hatchet = melee("GreatAxe", 0.3, 0.12, "-Z"), -- the Demolisher's hatchet is the same axe model, smaller
 	-- Tank shield on the left forearm (len 0.36); its face (the boss) points -Z.
 	Shield = {
 		model = "Shield",

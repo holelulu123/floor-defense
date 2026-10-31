@@ -372,7 +372,7 @@ export const CLASSES = [
     hp: 120, magazine: 30, reload: 2.0, melee: knife('knife_sharp.glb', 'Combat knife', 22, 2.2),
     passive: '+10% reload speed',
     skills: [sk('Burst Fire', 6, 'skill-burst', '3-round burst, double damage', { duration: 1 }), sk('Ammo Crate', 45, 'skill-toss', 'Drops a crate: team reloads instantly and gets +20% fire rate for 10 s', { duration: 10 })] },
-  { id: 'Tank', tier: 'Free', cost: 0, role: 'Blocker', weapon: 'Flail and shield', hold: [{ flail: true, side: 'right', len: 0.6, grip: 'melee', offset: 0.3 }, { file: QMED + 'Shield_Round.glb', side: 'left', fwd: '+y', len: 0.36, grip: 'shield' }],
+  { id: 'Tank', tier: 'Free', cost: 0, role: 'Blocker', weapon: 'Flail (area hits) and shield', hold: [{ flail: true, side: 'right', len: 0.6, grip: 'melee', offset: 0.3 }, { file: QMED + 'Shield_Round.glb', side: 'left', fwd: '+y', len: 0.36, grip: 'shield' }],
     hp: 220, melee: null,
     passive: 'Creatures cannot push past you',
     skills: [sk('Flail Sweep', 5, 'skill-spin', 'Spin: knocks back everything within 6 studs', { duration: 1 }), sk('Iron Wall', 30, 'skill-shield', 'Raise the shield: taunts creatures and blocks 80% damage for 8 s', { duration: 8, loop: true })] },

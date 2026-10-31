@@ -14,6 +14,7 @@ local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 local Classes = require(ReplicatedStorage.Shared.Classes)
 local HealthBar = require(ReplicatedStorage.Shared.HealthBar)
@@ -227,9 +228,17 @@ type SkillButton = {
 	icon: ImageLabel,
 	name: TextLabel,
 	cooldown: TextLabel,
+	shade: Frame, -- dark cover that drains downward as the cooldown runs out
+	seconds: TextLabel, -- big seconds left, over the icon
+	stroke: UIStroke,
+	scale: UIScale,
 	readyAt: number,
 	total: number,
+	cooling: boolean,
 }
+
+local SKILL_W, SKILL_H, SKILL_ICON = 204, 92, 60
+local READY_GREEN = Color3.fromRGB(120, 255, 140)
 
 local skillButtons: { SkillButton } = {}
 
@@ -237,65 +246,111 @@ local function skillButton(index: number): SkillButton
 	local frame = Instance.new("TextButton")
 	frame.Name = "Skill" .. index
 	frame.AnchorPoint = Vector2.new(0.5, 1)
-	frame.Position = UDim2.new(0.5, (index - 1.5) * 150, 1, -24)
-	frame.Size = UDim2.fromOffset(136, 72)
+	frame.Position = UDim2.new(0.5, (index - 1.5) * (SKILL_W + 14), 1, -20)
+	frame.Size = UDim2.fromOffset(SKILL_W, SKILL_H)
 	frame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-	frame.BackgroundTransparency = 0.25
+	frame.BackgroundTransparency = 0.2
 	frame.BorderSizePixel = 0
 	frame.Text = ""
 	frame.AutoButtonColor = true
+	frame.ClipsDescendants = true
 	frame.Parent = gui
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 10)
+	corner.CornerRadius = UDim.new(0, 12)
 	corner.Parent = frame
+	local stroke = Instance.new("UIStroke")
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Thickness = 3
+	stroke.Color = READY_GREEN
+	stroke.Transparency = 1
+	stroke.Parent = frame
+	local scale = Instance.new("UIScale")
+	scale.Parent = frame
+
+	-- Skill icon (left) once its asset id is filled in; set per class in refreshClass.
+	local icon = Instance.new("ImageLabel")
+	icon.Name = "Icon"
+	icon.Position = UDim2.fromOffset(12, (SKILL_H - SKILL_ICON) / 2)
+	icon.Size = UDim2.fromOffset(SKILL_ICON, SKILL_ICON)
+	icon.BackgroundTransparency = 1
+	icon.Visible = false
+	icon.Parent = frame
 
 	local key = Instance.new("TextLabel")
-	key.Size = UDim2.fromOffset(28, 22)
-	key.Position = UDim2.fromOffset(6, 4)
+	key.Size = UDim2.fromOffset(26, 22)
+	key.Position = UDim2.fromOffset(6, 6)
 	key.BackgroundColor3 = Color3.fromRGB(230, 230, 240)
 	key.TextColor3 = Color3.fromRGB(20, 20, 30)
 	key.Font = Enum.Font.GothamBold
-	key.TextSize = 14
+	key.TextSize = 15
 	key.Text = Classes.SkillKeys[index]
+	key.ZIndex = 5
 	key.Parent = frame
 	local keyCorner = Instance.new("UICorner")
 	keyCorner.CornerRadius = UDim.new(0, 4)
 	keyCorner.Parent = key
 
-	-- Skill icon (top right) once its asset id is filled in; set per class in refreshClass.
-	local icon = Instance.new("ImageLabel")
-	icon.Name = "Icon"
-	icon.AnchorPoint = Vector2.new(1, 0)
-	icon.Position = UDim2.new(1, -6, 0, 4)
-	icon.Size = UDim2.fromOffset(32, 32)
-	icon.BackgroundTransparency = 1
-	icon.Visible = false
-	icon.Parent = frame
-
+	local textX = 12 + SKILL_ICON + 10
 	local name = Instance.new("TextLabel")
-	name.Size = UDim2.new(1, -12, 0, 22)
-	name.Position = UDim2.fromOffset(6, 28)
+	name.Size = UDim2.new(1, -(textX + 8), 0, 40)
+	name.Position = UDim2.fromOffset(textX, 12)
 	name.BackgroundTransparency = 1
 	name.Font = Enum.Font.GothamBold
-	name.TextSize = 15
+	name.TextSize = 18
+	name.TextWrapped = true
 	name.TextColor3 = Color3.new(1, 1, 1)
 	name.TextXAlignment = Enum.TextXAlignment.Left
-	name.TextTruncate = Enum.TextTruncate.AtEnd
+	name.TextYAlignment = Enum.TextYAlignment.Center
 	name.Text = ""
 	name.Parent = frame
 
 	local cooldown = Instance.new("TextLabel")
-	cooldown.Size = UDim2.new(1, -12, 0, 18)
-	cooldown.Position = UDim2.fromOffset(6, 50)
+	cooldown.Size = UDim2.new(1, -(textX + 8), 0, 22)
+	cooldown.Position = UDim2.fromOffset(textX, 56)
 	cooldown.BackgroundTransparency = 1
-	cooldown.Font = Enum.Font.Gotham
-	cooldown.TextSize = 14
+	cooldown.Font = Enum.Font.GothamBold
+	cooldown.TextSize = 16
 	cooldown.TextColor3 = Color3.fromRGB(180, 255, 180)
 	cooldown.TextXAlignment = Enum.TextXAlignment.Left
 	cooldown.Text = "Ready"
 	cooldown.Parent = frame
 
-	local button: SkillButton = { frame = frame, icon = icon, name = name, cooldown = cooldown, readyAt = 0, total = 1 }
+	local shade = Instance.new("Frame")
+	shade.Name = "Cooldown"
+	shade.AnchorPoint = Vector2.new(0, 1)
+	shade.Position = UDim2.fromScale(0, 1)
+	shade.Size = UDim2.fromScale(1, 0)
+	shade.BackgroundColor3 = Color3.new(0, 0, 0)
+	shade.BackgroundTransparency = 0.4
+	shade.BorderSizePixel = 0
+	shade.ZIndex = 3
+	shade.Parent = frame
+
+	local seconds = Instance.new("TextLabel")
+	seconds.Position = icon.Position
+	seconds.Size = icon.Size
+	seconds.BackgroundTransparency = 1
+	seconds.Font = Enum.Font.GothamBlack
+	seconds.TextSize = 30
+	seconds.TextColor3 = Color3.fromRGB(255, 225, 130)
+	seconds.TextStrokeTransparency = 0.2
+	seconds.ZIndex = 4
+	seconds.Visible = false
+	seconds.Parent = frame
+
+	local button: SkillButton = {
+		frame = frame,
+		icon = icon,
+		name = name,
+		cooldown = cooldown,
+		shade = shade,
+		seconds = seconds,
+		stroke = stroke,
+		scale = scale,
+		readyAt = 0,
+		total = 1,
+		cooling = false,
+	}
 	frame.Activated:Connect(function()
 		local bindable = player:WaitForChild("PlayerScripts"):FindFirstChild("SkillButtonPressed")
 		if bindable then
@@ -305,21 +360,73 @@ local function skillButton(index: number): SkillButton
 	return button
 end
 
+-- Cooldown over: a green ring flashes and the button pops.
+local function flashReady(button: SkillButton)
+	button.stroke.Transparency = 0
+	TweenService:Create(button.stroke, TweenInfo.new(0.6), { Transparency = 1 }):Play()
+	button.scale.Scale = 1.1
+	TweenService:Create(button.scale, TweenInfo.new(0.35, Enum.EasingStyle.Back), { Scale = 1 }):Play()
+end
+
 skillButtons[1] = skillButton(1)
 skillButtons[2] = skillButton(2)
 
+-- Engineer: placed turrets, in a panel on the right over the two weapon slots (icon, count and one pip per turret).
+local TURRET_PANEL_W = 2 * 176 + 8 -- spans both weapon slots below it
+local turretPanel = Instance.new("Frame")
+turretPanel.Name = "Turrets"
+turretPanel.AnchorPoint = Vector2.new(1, 1)
+turretPanel.Position = UDim2.new(1, -24, 1, -70 - 50 - 8)
+turretPanel.Size = UDim2.fromOffset(TURRET_PANEL_W, 46)
+turretPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+turretPanel.BackgroundTransparency = 0.25
+turretPanel.BorderSizePixel = 0
+turretPanel.Visible = false
+turretPanel.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = turretPanel
+end
+local turretIcon = Instance.new("ImageLabel")
+turretIcon.Size = UDim2.fromOffset(38, 38)
+turretIcon.Position = UDim2.fromOffset(6, 4)
+turretIcon.BackgroundTransparency = 1
+turretIcon.Image = Icons.get("skill_place_turret") or ""
+turretIcon.Parent = turretPanel
+local turretTitle = Instance.new("TextLabel")
+turretTitle.Position = UDim2.fromOffset(52, 0)
+turretTitle.Size = UDim2.fromOffset(90, 46)
+turretTitle.BackgroundTransparency = 1
+turretTitle.Font = Enum.Font.GothamBold
+turretTitle.TextSize = 18
+turretTitle.TextColor3 = Color3.new(1, 1, 1)
+turretTitle.TextXAlignment = Enum.TextXAlignment.Left
+turretTitle.Text = "Turrets"
+turretTitle.Parent = turretPanel
+local turretPips: { Frame } = {}
+for i = 1, Classes.Turrets.MaxPlaced do
+	local pip = Instance.new("Frame")
+	pip.AnchorPoint = Vector2.new(0, 0.5)
+	pip.Position = UDim2.new(0, 140 + (i - 1) * 30, 0.5, 0)
+	pip.Size = UDim2.fromOffset(22, 22)
+	pip.BorderSizePixel = 0
+	pip.Parent = turretPanel
+	local pc = Instance.new("UICorner")
+	pc.CornerRadius = UDim.new(0, 5)
+	pc.Parent = pip
+	turretPips[i] = pip
+end
 local turretLabel = Instance.new("TextLabel")
-turretLabel.Name = "Turrets"
-turretLabel.AnchorPoint = Vector2.new(0.5, 1)
-turretLabel.Position = UDim2.new(0.5, 0, 1, -100)
-turretLabel.Size = UDim2.fromOffset(200, 22)
+turretLabel.AnchorPoint = Vector2.new(1, 0)
+turretLabel.Position = UDim2.new(1, -12, 0, 0)
+turretLabel.Size = UDim2.fromOffset(90, 46)
 turretLabel.BackgroundTransparency = 1
-turretLabel.Font = Enum.Font.GothamBold
-turretLabel.TextSize = 16
+turretLabel.Font = Enum.Font.GothamBlack
+turretLabel.TextSize = 26
 turretLabel.TextColor3 = Color3.fromRGB(255, 200, 120)
-turretLabel.TextStrokeTransparency = 0.5
-turretLabel.Visible = false
-turretLabel.Parent = gui
+turretLabel.TextXAlignment = Enum.TextXAlignment.Right
+turretLabel.Parent = turretPanel
 
 -- Weapon slots and ammo (bottom right) --------------------------------------------------------------
 
@@ -471,13 +578,17 @@ local function refreshClass()
 		button.total = class.skills[i].cooldown
 		button.readyAt = 0
 	end
-	turretLabel.Visible = class.id == "Engineer"
+	turretPanel.Visible = class.id == "Engineer"
 	refreshWeapon()
 end
 
 local function refreshTurrets()
 	local n = player:GetAttribute("Turrets")
-	turretLabel.Text = `Turrets {if type(n) == "number" then n else 0}/{Classes.Turrets.MaxPlaced}`
+	local placed = if type(n) == "number" then n else 0
+	turretLabel.Text = `{placed} / {Classes.Turrets.MaxPlaced}`
+	for i, pip in turretPips do
+		pip.BackgroundColor3 = if i <= placed then Color3.fromRGB(255, 190, 90) else Color3.fromRGB(70, 70, 82)
+	end
 end
 
 player:GetAttributeChangedSignal("Class"):Connect(refreshClass)
@@ -491,7 +602,9 @@ skillFx.OnClientEvent:Connect(function(fx)
 		return
 	end
 	if fx.kind == "cooldown" and skillButtons[fx.index] then
-		skillButtons[fx.index].readyAt = os.clock() + fx.cooldown
+		local button = skillButtons[fx.index]
+		button.readyAt = os.clock() + fx.cooldown
+		button.total = math.max(fx.cooldown, 0.01)
 	elseif fx.kind == "failed" and skillButtons[fx.index] then
 		local button = skillButtons[fx.index]
 		button.cooldown.Text = "No target"
@@ -523,15 +636,23 @@ RunService.RenderStepped:Connect(function()
 	for _, button in skillButtons do
 		local left = button.readyAt - now
 		if left > 0 then
-			button.cooldown.Text = string.format("%.1f s", left)
+			button.cooling = true
+			button.shade.Size = UDim2.fromScale(1, math.clamp(left / button.total, 0, 1))
+			button.seconds.Visible = true
+			button.seconds.Text = if left < 10 then string.format("%.1f", left) else tostring(math.ceil(left))
+			button.cooldown.Text = "Cooling down"
 			button.cooldown.TextColor3 = Color3.fromRGB(255, 220, 120)
-			button.frame.BackgroundColor3 = Color3.fromRGB(50, 40, 40)
 		else
+			if button.cooling then
+				button.cooling = false
+				button.shade.Size = UDim2.fromScale(1, 0)
+				button.seconds.Visible = false
+				flashReady(button)
+			end
 			if button.cooldown.Text ~= "No target" then
 				button.cooldown.Text = "Ready"
 				button.cooldown.TextColor3 = Color3.fromRGB(180, 255, 180)
 			end
-			button.frame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 		end
 	end
 end)

@@ -230,6 +230,8 @@ return {
 	["Prop_Temple_FirstAge_Level3"] = 125784542442045,
 	["Prop_Temple_SecondAge_Level3"] = 73451158836114,
 	["Prop_TownCenter_SecondAge_Level3"] = 76043318042546,
+	["Prop_TurretGun_Base"] = 126689147739346,
+	["Prop_TurretGun_Top"] = 98419682947242,
 	["Prop_Turret_Cannon"] = 91376611042128,
 	["Prop_WatchTower_FirstAge_Level3"] = 104346704408668,
 	["Prop_Willow_Dead_1"] = 125587161052832,
