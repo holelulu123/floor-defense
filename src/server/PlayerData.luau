@@ -168,7 +168,9 @@ function PlayerData.selectClass(player: Player, classId: string): (boolean, stri
 	if not data then
 		return false, "data not loaded"
 	end
-	if not Classes.isOwned(classId, data.OwnedClasses) then
+	-- Studio play-tests may pick any class (same switch that opens every dungeon there); live servers never do.
+	local studioUnlock = Config.UnlockAllInStudio and RunService:IsStudio()
+	if not studioUnlock and not Classes.isOwned(classId, data.OwnedClasses) then
 		return false, "locked"
 	end
 	data.Class = classId

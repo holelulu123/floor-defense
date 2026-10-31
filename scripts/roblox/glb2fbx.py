@@ -1,6 +1,6 @@
 # Blender (headless) helper for scripts/roblox/import-models.py: glb -> fbx, optionally keeping one named object.
 # blender -b --python scripts/roblox/glb2fbx.py -- in.glb out.fbx [ObjectName]
-import bpy, sys
+import bpy, sys, os
 args = sys.argv[sys.argv.index("--") + 1:]
 src, dst = args[0], args[1]
 node = args[2] if len(args) > 2 else None
@@ -41,83 +41,92 @@ for o in [o for o in bpy.data.objects if o.type == "MESH" and o.name.startswith(
     bpy.data.objects.remove(o, do_unlink=True)
 
 
-# Untextured models (colour per material, or vertex colours; most Quaternius packs): Roblox keeps one texture and no
-# vertex colours per MeshPart, so paint every face's colour into a palette texture (8 px swatches so filtering does
-# not blend neighbours), UV-map each face onto its swatch and join everything into one mesh with one material.
-def textured(mat):
-    if mat and mat.use_nodes:
-        return any(n.type == "TEX_IMAGE" and n.image for n in mat.node_tree.nodes)
-    return False
-
-
-def base_color(mat):
-    if mat and mat.use_nodes:
-        for n in mat.node_tree.nodes:
-            if n.type == "BSDF_PRINCIPLED" and not n.inputs["Base Color"].is_linked:
-                return tuple(n.inputs["Base Color"].default_value)[:3]
-    return tuple(mat.diffuse_color)[:3] if mat else (0.8, 0.8, 0.8)
+# Colour: Roblox keeps one texture per MeshPart and drops vertex colours and multi-material colours, so bake each
+# model's final base colour (whatever its shader does: flat materials, vertex-colour mixes, textures) into one image
+# on fresh UVs with Cycles, and give the joined mesh a single material using it. Models that already use a single
+# image texture are left alone.
+def single_texture(mats):
+    imgs = set()
+    for m in mats:
+        if not (m and m.use_nodes):
+            return False
+        found = [n.image for n in m.node_tree.nodes if n.type == "TEX_IMAGE" and n.image]
+        if not found:
+            return False
+        imgs.update(found)
+    return len(imgs) == 1
 
 
 meshes = [o for o in bpy.data.objects if o.type == "MESH"]
-all_mats = {s.material for o in meshes for s in o.material_slots if s.material}
-if meshes and not any(textured(m) for m in all_mats):
-    face_cols = {}  # (object, polygon index) -> rgb
-    for o in meshes:
-        me = o.data
-        attr = me.color_attributes.active_color if me.color_attributes else None
-        for poly in me.polygons:
-            if attr:
-                cs = [attr.data[li if attr.domain == "CORNER" else me.loops[li].vertex_index].color for li in poly.loop_indices]
-                rgb = tuple(sum(c[k] for c in cs) / len(cs) for k in range(3))
-            else:
-                m = o.material_slots[poly.material_index].material if o.material_slots else None
-                rgb = base_color(m)
-            face_cols[(o.name, poly.index)] = rgb
-    step = 1 / 24
-    while True:
-        q = {k: tuple(round(v / step) * step for v in c) for k, c in face_cols.items()}
-        palette = sorted(set(q.values()))
-        if len(palette) <= 120:
-            break
-        step *= 1.5
-    SW = 8
-    W = max(64, 1 << (len(palette) * SW - 1).bit_length())
-    img = bpy.data.images.new("palette", W, SW)
-    px = [1.0] * (W * SW * 4)
-    for y in range(SW):
-        for i, c in enumerate(palette):
-            for x in range(i * SW, i * SW + SW):
-                j = (y * W + x) * 4
-                px[j:j + 3] = [min(1.0, max(0.0, v)) for v in c]
-    img.pixels = px
-    img.filepath_raw = "//palette.png"
-    img.file_format = "PNG"
-    img.pack()
-    pal = bpy.data.materials.new("Palette")
-    pal.use_nodes = True
-    nt = pal.node_tree
-    bsdf = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
-    tex = nt.nodes.new("ShaderNodeTexImage")
-    tex.image = img
-    tex.interpolation = "Closest"
-    nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
-    index = {c: i for i, c in enumerate(palette)}
-    for o in meshes:
-        me = o.data
-        uv = me.uv_layers.new(name="pal")
-        me.uv_layers.active = uv
-        for poly in me.polygons:
-            i = index[q[(o.name, poly.index)]]
-            for li in poly.loop_indices:
-                uv.data[li].uv = ((i * SW + SW / 2) / W, 0.5)
-        for k in [u.name for u in me.uv_layers if u.name != "pal"]:
-            me.uv_layers.remove(me.uv_layers[k])
-        me.materials.clear()
-        me.materials.append(pal)
+all_mats = [s.material for o in meshes for s in o.material_slots if s.material]
+if meshes and all_mats:  # always bake: glb-packed textures did not survive the FBX upload either (grey models)
     bpy.ops.object.select_all(action="DESELECT")
     for o in meshes:
         o.select_set(True)
     bpy.context.view_layer.objects.active = meshes[0]
     if len(meshes) > 1:
         bpy.ops.object.join()
+    obj = bpy.context.view_layer.objects.active
+    me = obj.data
+    bake_uv = me.uv_layers.new(name="bake")
+    me.uv_layers.active = bake_uv
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=0.02)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    img = bpy.data.images.new("baked", 512, 512)
+    for m in all_mats:  # every material bakes into the same image through an unconnected, active image node
+        if not m.use_nodes:
+            m.use_nodes = True
+        nt = m.node_tree
+        # Route the material's colour (Principled base colour, or the emission colour of unlit packs) straight into an
+        # Emission shader on the output, then bake EMIT: lighting-free and the same for lit, unlit and vertex-colour.
+        src_socket, flat = None, tuple(m.diffuse_color)
+        for n in nt.nodes:
+            if n.type == "BSDF_PRINCIPLED":
+                bc = n.inputs["Base Color"]
+                src_socket, flat = (bc.links[0].from_socket if bc.is_linked else None), tuple(bc.default_value)
+                break
+            if n.type == "EMISSION":
+                ec = n.inputs["Color"]
+                src_socket, flat = (ec.links[0].from_socket if ec.is_linked else None), tuple(ec.default_value)
+        out = next((n for n in nt.nodes if n.type == "OUTPUT_MATERIAL"), None) or nt.nodes.new("ShaderNodeOutputMaterial")
+        emit = nt.nodes.new("ShaderNodeEmission")
+        if src_socket:
+            nt.links.new(src_socket, emit.inputs["Color"])
+        else:
+            emit.inputs["Color"].default_value = flat
+        nt.links.new(emit.outputs["Emission"], out.inputs["Surface"])
+        n = nt.nodes.new("ShaderNodeTexImage")
+        n.image = img
+        nt.nodes.active = n
+        # keep the shader reading its own UV map (the active layer is now "bake")
+        for t in [t for t in nt.nodes if t.type == "TEX_IMAGE" and t.image and t.image is not img]:
+            if not t.inputs["Vector"].is_linked:
+                uvn = nt.nodes.new("ShaderNodeUVMap")
+                uvn.uv_map = next((u.name for u in me.uv_layers if u.name != "bake"), "")
+                nt.links.new(uvn.outputs["UV"], t.inputs["Vector"])
+    scn = bpy.context.scene
+    scn.render.engine = "CYCLES"
+    scn.cycles.device = "CPU"
+    scn.cycles.samples = 1
+    scn.render.bake.margin = 4
+    bpy.ops.object.bake(type="EMIT")
+    # A real file next to the output, so the FBX exporter embeds it (a packed generated image was dropped).
+    img.filepath_raw = os.path.splitext(dst)[0] + "_baked.png"
+    img.file_format = "PNG"
+    img.save()
+    for k in [u.name for u in me.uv_layers if u.name != "bake"]:
+        me.uv_layers.remove(me.uv_layers[k])
+    mat = bpy.data.materials.new("Baked")
+    mat.use_nodes = True
+    bsdf = next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+    tex = mat.node_tree.nodes.new("ShaderNodeTexImage")
+    tex.image = img
+    mat.node_tree.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    me.materials.clear()
+    me.materials.append(mat)
+    px = list(img.pixels[: 4 * 512 * 64])
+    avg = [sum(px[i::4]) / (len(px) / 4) for i in range(3)]
+    print("BAKED avg colour (first rows)", [round(v, 2) for v in avg])
 bpy.ops.export_scene.fbx(filepath=dst, path_mode="COPY", embed_textures=True, apply_unit_scale=True, axis_forward="-Z", axis_up="Y")
