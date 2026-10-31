@@ -21,6 +21,7 @@ export type Effect = {
 	count: number?, -- bomblets
 	spacing: number?,
 	delay: number?, -- seconds before a thrown thing goes off
+	refill: boolean?, -- teamBuff: also refill every run player's magazine
 	fx: string, -- client effect name sent through SkillFx
 }
 
@@ -29,7 +30,15 @@ local Skills = {}
 Skills.Effects = {
 	-- Trooper
 	BurstFire = { kind = "buff", stat = "DamageMult", multiplier = 2, duration = 1, fx = "buff" },
-	AmmoCrate = { kind = "teamBuff", stat = "FireRateMult", multiplier = 1.2, duration = 10, fx = "crate" },
+	-- Every run player's magazine refills instantly, then +20% fire rate for 10 s.
+	AmmoCrate = {
+		kind = "teamBuff",
+		stat = "FireRateMult",
+		multiplier = 1.2,
+		duration = 10,
+		refill = true,
+		fx = "crate",
+	},
 	-- Tank
 	FlailSweep = { kind = "radius", damage = 30, radius = 6, knockback = 6, fx = "sweep" },
 	IronWall = { kind = "hold", radius = 8, duration = 8, slowFactor = 0.2, fx = "wall" },
@@ -66,14 +75,12 @@ Skills.Effects = {
 		delay = 1,
 		fx = "blast",
 	},
-	-- Summoner
-	PetPounce = { kind = "pounce", damage = 60, range = 40, fx = "pounce" },
-	Enrage = { kind = "enrage", duration = 8, multiplier = 2, fx = "buff" },
 }
 
--- Passive tuning applied by the server. Kept here so tests can pin the numbers.
+-- Passive tuning applied by the server. Kept here so tests can pin the numbers. Class max health lives in
+-- Classes.luau `maxHealth`.
 Skills.Passives = {
-	Tank = { maxHealth = 1.5 },
+	Trooper = { reloadSpeed = 1.1 }, -- reload time is divided by this (Weapons.reloadTime)
 	Scout = { walkSpeed = 1.2 },
 	Berserker = { killHeal = 5, meleeMult = 1.25 },
 	Mage = { freezeMult = 1.25 },
@@ -86,9 +93,6 @@ Skills.Passives = {
 -- Damage over time applied by the server tick (BurnUntil attribute).
 Skills.BurnDamagePerSecond = 5
 Skills.TickSeconds = 0.5
-
--- Summoner pet.
-Skills.Pet = { damage = 10, interval = 1.5, range = 25, size = 1.5 }
 
 function Skills.effectFor(classId: string, skillIndex: number): Effect
 	local skill = Classes.get(classId).skills[skillIndex]

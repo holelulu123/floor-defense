@@ -1,4 +1,5 @@
--- Class list: weapon, passive and two skills each. Pure data so Lune can test the unlock rules.
+-- Class list: health, primary weapon, optional melee secondary, passive and two skills each. Pure data so
+-- Lune can test the unlock rules.
 -- Mirrors showcase/catalog.js CLASSES (which also carries the preview rig and animation names).
 
 export type Skill = {
@@ -13,7 +14,9 @@ export type Class = {
 	free: boolean,
 	cost: number, -- gems; 0 when free
 	role: string,
-	weapon: string,
+	maxHealth: number, -- Humanoid MaxHealth while playing this class
+	weapon: string, -- slot 1 (key 1), key into Weapons.Definitions
+	secondary: string?, -- slot 2 (key 2), a melee weapon; nil when the class has none (Tank)
 	passive: string,
 	skills: { Skill },
 }
@@ -30,7 +33,9 @@ local list: { Class } = {
 		free = true,
 		cost = 0,
 		role = "All-rounder",
+		maxHealth = 120,
 		weapon = "AssaultRifle",
+		secondary = "CombatKnife",
 		passive = "+10% reload speed",
 		skills = { skill("BurstFire", "Burst Fire", 6, 1), skill("AmmoCrate", "Ammo Crate", 45, 10) },
 	},
@@ -39,8 +44,9 @@ local list: { Class } = {
 		free = true,
 		cost = 0,
 		role = "Blocker",
+		maxHealth = 220,
 		weapon = "Flail",
-		passive = "Creatures cannot push past you; +50% max health",
+		passive = "Creatures cannot push past you",
 		skills = { skill("FlailSweep", "Flail Sweep", 5, 1), skill("IronWall", "Iron Wall", 30, 8) },
 	},
 	{
@@ -48,7 +54,9 @@ local list: { Class } = {
 		free = true,
 		cost = 0,
 		role = "Mobility",
+		maxHealth = 90,
 		weapon = "DualPistols",
+		secondary = "Karambit",
 		passive = "+20% move speed",
 		skills = { skill("Dash", "Dash", 4), skill("MarkTarget", "Mark Target", 25, 8) },
 	},
@@ -57,7 +65,9 @@ local list: { Class } = {
 		free = true,
 		cost = 0,
 		role = "Support",
+		maxHealth = 110,
 		weapon = "SMG",
+		secondary = "Scalpel",
 		passive = "Repairs the Town Hall 2x faster",
 		skills = { skill("RepairPulse", "Repair Pulse", 8), skill("Overcharge", "Overcharge", 40, 6) },
 	},
@@ -66,8 +76,10 @@ local list: { Class } = {
 		free = true,
 		cost = 0,
 		role = "Area control",
-		weapon = "Carbine",
-		passive = "Melee on a turret repairs it",
+		maxHealth = 120,
+		weapon = "Shotgun",
+		secondary = "Hammer",
+		passive = "Melee hits on a turret repair it",
 		skills = { skill("PlaceTurret", "Place Turret", 10), skill("Overclock", "Overclock", 30, 10) },
 	},
 	{
@@ -75,7 +87,9 @@ local list: { Class } = {
 		free = false,
 		cost = 1200,
 		role = "Melee damage",
+		maxHealth = 170,
 		weapon = "GreatAxe",
+		secondary = "Sword",
 		passive = "Kills heal 5 HP; melee +25%",
 		skills = { skill("Cleave", "Cleave", 4, 1), skill("Rage", "Rage", 30, 10) },
 	},
@@ -84,7 +98,9 @@ local list: { Class } = {
 		free = false,
 		cost = 1200,
 		role = "Crowd control",
+		maxHealth = 90,
 		weapon = "Staff",
+		secondary = "Dagger",
 		passive = "Spells cost 25% less; freeze lasts 25% longer",
 		skills = { skill("ArcaneBolt", "Arcane Bolt", 2), skill("FrostNova", "Frost Nova", 25, 3) },
 	},
@@ -93,7 +109,9 @@ local list: { Class } = {
 		free = false,
 		cost = 1500,
 		role = "Area damage",
+		maxHealth = 130,
 		weapon = "Flamethrower",
+		secondary = "Machete",
 		passive = "Burning creatures take +15% damage",
 		skills = { skill("FlameSweep", "Flame Sweep", 7, 2), skill("FireWall", "Fire Wall", 40, 8) },
 	},
@@ -102,7 +120,9 @@ local list: { Class } = {
 		free = false,
 		cost = 1500,
 		role = "Boss killer",
+		maxHealth = 85,
 		weapon = "BoltRifle",
+		secondary = "CombatKnife",
 		passive = "+50% headshot damage",
 		skills = { skill("PiercingShot", "Piercing Shot", 8), skill("Overwatch", "Overwatch", 35, 10) },
 	},
@@ -111,18 +131,11 @@ local list: { Class } = {
 		free = false,
 		cost = 2000,
 		role = "Burst",
+		maxHealth = 120,
 		weapon = "GrenadeLauncher",
+		secondary = "Hatchet",
 		passive = "+2 grenades; explosions 20% wider",
 		skills = { skill("FragToss", "Frag Toss", 6), skill("ClusterBomb", "Cluster Bomb", 45, 1) },
-	},
-	{
-		id = "Summoner",
-		free = false,
-		cost = 2500,
-		role = "Pet",
-		weapon = "Wand",
-		passive = "Starts with a pet that attacks the nearest creature",
-		skills = { skill("PetPounce", "Pet Pounce", 5, 1), skill("Enrage", "Enrage", 45, 8) },
 	},
 }
 Classes.List = list
@@ -132,6 +145,9 @@ Classes.Turrets = { MaxPlaced = 3, RepairPerHit = 0.25, OverclockRate = 2 }
 
 -- Keybinds shown in the HUD; the client sends the skill index, never the key.
 Classes.SkillKeys = { "Q", "E" }
+-- Weapon slots: 1 = primary, 2 = melee secondary. The client sends the slot number; R reloads.
+Classes.WeaponKeys = { "1", "2" }
+Classes.ReloadKey = "R"
 
 -- Gems paid at the end of a run: one per wave, with a party bonus so Duo/Squad runs keep up with
 -- the faster Solo clears. Persistent currency; classes are bought with it (see tryBuy).
@@ -182,6 +198,18 @@ end
 -- Weapon definition name for a class (key into Weapons.Definitions).
 function Classes.weaponFor(id: string): string
 	return Classes.get(id).weapon
+end
+
+-- Weapon name in a slot (1 primary, 2 secondary), or nil when the class has nothing there or the
+-- slot is not 1 or 2 (use for values that came from a client).
+function Classes.weaponInSlot(id: string, slot: any): string?
+	local class = Classes.get(id)
+	if slot == 1 then
+		return class.weapon
+	elseif slot == 2 then
+		return class.secondary
+	end
+	return nil
 end
 
 -- Ids of every class the player may pick (free ones plus purchases).

@@ -22,15 +22,15 @@ const MINIC = '../assets/creatures/kenney-mini-characters/';
 
 // Archetype stats from src/shared/Enemies.luau: health, speed, Town Hall damage, coins, first wave.
 export const ARCHETYPES = {
-  Runner:   { health: 30,   speed: 14, damage: 10,  coins: 10,  firstWave: 1,  blurb: 'Fast, weak, swarms. The first thing you shoot.' },
-  Brute:    { health: 150,  speed: 8,  damage: 40,  coins: 30,  firstWave: 3,  blurb: 'Slow and tanky. Hits the Town Hall hard.' },
-  Spitter:  { health: 60,   speed: 10, damage: 20,  coins: 20,  firstWave: 5,  blurb: 'Stops at range and shoots the Town Hall.' },
-  Exploder: { health: 40,   speed: 16, damage: 80,  coins: 25,  firstWave: 7,  blurb: 'Rushes the Town Hall and detonates. Kill it early.' },
-  Shielder: { health: 200,  speed: 7,  damage: 20,  coins: 40,  firstWave: 10, blurb: 'Blocks damage for creatures behind it. Flank it.' },
-  Flyer:    { health: 35,   speed: 18, damage: 15,  coins: 20,  firstWave: 12, blurb: 'Ignores ground paths and floor spells; flies straight in.' },
-  Healer:   { health: 80,   speed: 9,  damage: 10,  coins: 45,  firstWave: 18, blurb: 'Heals nearby creatures. Priority target.' },
-  Elite:    { health: 45,   speed: 16, damage: 10,  coins: 20,  firstWave: 15, blurb: 'Wave 15+. A Runner with an extra ability (frost aura, regen or teleport).' },
-  Boss:     { health: 1200, speed: 6,  damage: 250, coins: 500, firstWave: 5,  blurb: 'Every 5th wave. Drops a guaranteed rare item.' },
+  Runner:   { health: 30,   speed: 28, damage: 10,  coins: 10,  firstWave: 1,  blurb: 'Fast, weak, swarms. The first thing you shoot.' },
+  Brute:    { health: 150,  speed: 20,  damage: 40,  coins: 30,  firstWave: 3,  blurb: 'Slow and tanky. Hits the Town Hall hard.' },
+  Spitter:  { health: 60,   speed: 24, damage: 20,  coins: 20,  firstWave: 5,  blurb: 'Stops at range and shoots the Town Hall.' },
+  Exploder: { health: 40,   speed: 34, damage: 80,  coins: 25,  firstWave: 7,  blurb: 'Rushes the Town Hall and detonates. Kill it early.' },
+  Shielder: { health: 200,  speed: 18,  damage: 20,  coins: 40,  firstWave: 10, blurb: 'Blocks damage for creatures behind it. Flank it.' },
+  Flyer:    { health: 35,   speed: 38, damage: 15,  coins: 20,  firstWave: 12, blurb: 'Ignores ground paths and floor spells; flies straight in.' },
+  Healer:   { health: 80,   speed: 22,  damage: 10,  coins: 45,  firstWave: 18, blurb: 'Heals nearby creatures. Priority target.' },
+  Elite:    { health: 45,   speed: 34, damage: 10,  coins: 20,  firstWave: 15, blurb: 'Wave 15+. A Runner with an extra ability (frost aura, regen or teleport).' },
+  Boss:     { health: 1200, speed: 13,  damage: 250, coins: 500, firstWave: 5,  blurb: 'Every 5th wave. Drops a guaranteed rare item.' },
 };
 
 // Animation names differ per pack; each entry maps the showcase's verbs to the pack's clip names.
@@ -354,45 +354,60 @@ export const BLOCKY_RIGS = 'abcdefghijklmnopqr'.split('').map(l => BLOCKY + `cha
 const ADV = '../assets/characters/kaykit-adventurers/';
 const QMED = '../assets/weapons/quaternius-medieval/';
 const PCY = '../assets/props/quaternius-cyberpunk-props/';
-const sk = (name, cooldown, anim, desc, extra = {}) => ({ name, cooldown, anim, desc, duration: 0, loop: false, ...extra });
+// fx: the preview effect for the skill (skillFx in index.html), keyed by skill name.
+const SKILL_FX = { 'Burst Fire': 'burst', 'Ammo Crate': 'crate', 'Flail Sweep': 'sweep', 'Iron Wall': 'shield', 'Dash': 'dash', 'Mark Target': 'mark', 'Repair Pulse': 'repair', 'Overcharge': 'overcharge', 'Place Turret': 'turret', 'Overclock': 'overclock', 'Cleave': 'cleave', 'Rage': 'rage', 'Arcane Bolt': 'arcane', 'Frost Nova': 'nova', 'Flame Sweep': 'flames', 'Fire Wall': 'firewall', 'Piercing Shot': 'pierce', 'Overwatch': 'laser', 'Frag Toss': 'grenade', 'Cluster Bomb': 'cluster' };
+const sk = (name, cooldown, anim, desc, extra = {}) => ({ name, cooldown, anim, desc, duration: 0, loop: false, fx: SKILL_FX[name], ...extra });
 // Weapon in hand: file (+ optional node inside it), side, forward axis of the model, length as a fraction of the
 // player's height, grip ('gun' along the arm, 'melee' pointing forward, 'shield' on the forearm), offset toward the butt.
-const gun = (file, len = 0.42, extra = {}) => ({ file: GUNS + file, side: 'right', fwd: '-z', len, grip: 'gun', offset: 0.1, ...extra });
+// Kenney guns point the muzzle along +z; `at` is the pistol-grip point [along butt->muzzle, up] read off a side view.
+const GRIP = { 'machinegun.glb': [0.31, 0.3], 'machinegunLauncher.glb': [0.31, 0.3], 'pistol.glb': [0.2, 0.42], 'uzi.glb': [0.34, 0.5], 'flamethrower_long.glb': [0.33, 0.28], 'sniper.glb': [0.255, 0.3], 'rocketlauncherModern.glb': [0.5, 0.3], 'shotgun.glb': [0.31, 0.5] };
+const gun = (file, len = 0.42, extra = {}) => ({ file: GUNS + file, side: 'right', fwd: '+z', len, grip: 'gun', offset: 0.1, at: GRIP[file], ...extra });
 const melee = (file, len = 0.5, extra = {}) => ({ file, side: 'right', fwd: '+y', len, grip: 'melee', offset: 0.2, ...extra });
+// Melee secondary (key 2 in game; every class but the Tank): model, name, damage, swings per second. Kenney knives stand
+// blade-up on +y with the handle in the bottom 40%; `at` is the handle point the fist closes on.
+const knife = (file, name, damage, rate, len = 0.2) => ({ file: GUNS + file, name, damage, rate, side: 'right', fwd: '+y', len, grip: 'melee', at: [0.2, 0.5] });
+const blade = (file, name, damage, rate, len, grip, extra = {}) => ({ file, name, damage, rate, side: 'right', fwd: '+y', len, grip: 'melee', at: [grip, 0.5], ...extra });
 export const CLASSES = [
   { id: 'Trooper', tier: 'Free', cost: 0, role: 'All-rounder', weapon: 'Assault rifle', idle: 'holding-right', hold: [gun('machinegun.glb', 0.5)],
+    hp: 120, magazine: 30, reload: 2.0, melee: knife('knife_sharp.glb', 'Combat knife', 22, 2.2),
     passive: '+10% reload speed',
-    skills: [sk('Burst Fire', 6, 'holding-right-shoot', '3-round burst, double damage', { duration: 1, loop: true }), sk('Ammo Crate', 45, 'interact-right', 'Drops a crate: team reloads instantly and gets +20% fire rate for 10 s', { duration: 10 })] },
+    skills: [sk('Burst Fire', 6, 'skill-burst', '3-round burst, double damage', { duration: 1 }), sk('Ammo Crate', 45, 'skill-toss', 'Drops a crate: team reloads instantly and gets +20% fire rate for 10 s', { duration: 10 })] },
   { id: 'Tank', tier: 'Free', cost: 0, role: 'Blocker', weapon: 'Flail and shield', hold: [{ flail: true, side: 'right', len: 0.6, grip: 'melee', offset: 0.3 }, { file: QMED + 'Shield_Round.glb', side: 'left', fwd: '+y', len: 0.36, grip: 'shield' }],
-    passive: 'Creatures cannot push past you; +50% max health',
-    skills: [sk('Flail Sweep', 5, 'attack-melee-right', 'Spin: knocks back everything within 6 studs', { duration: 1 }), sk('Iron Wall', 30, 'holding-left', 'Raise the shield: taunts creatures and blocks 80% damage for 8 s', { duration: 8, loop: true })] },
+    hp: 220, melee: null,
+    passive: 'Creatures cannot push past you',
+    skills: [sk('Flail Sweep', 5, 'skill-spin', 'Spin: knocks back everything within 6 studs', { duration: 1 }), sk('Iron Wall', 30, 'skill-shield', 'Raise the shield: taunts creatures and blocks 80% damage for 8 s', { duration: 8, loop: true })] },
   { id: 'Scout', tier: 'Free', cost: 0, role: 'Mobility', weapon: 'Dual pistols', idle: 'holding-both', hold: [gun('pistol.glb', 0.24), gun('pistol.glb', 0.24, { side: 'left' })],
+    hp: 90, magazine: 24, reload: 1.4, melee: knife('knifeRound_sharp.glb', 'Karambit', 18, 2.8),
     passive: '+20% move speed',
-    skills: [sk('Dash', 4, 'sprint', 'Dash 20 studs through creatures', { duration: 0.4, loop: true }), sk('Mark Target', 25, 'holding-both-shoot', 'Marked creature takes +30% damage from everyone for 8 s', { duration: 8, loop: true })] },
+    skills: [sk('Dash', 4, 'skill-dash', 'Dash 20 studs through creatures', { duration: 0.4 }), sk('Mark Target', 25, 'skill-aim', 'Marked creature takes +30% damage from everyone for 8 s', { duration: 8, loop: true })] },
   { id: 'Medic', tier: 'Free', cost: 0, role: 'Support', weapon: 'SMG', idle: 'holding-right', hold: [gun('uzi.glb', 0.34)],
+    hp: 110, magazine: 40, reload: 1.8, melee: knife('knife_smooth.glb', 'Scalpel', 16, 2.5),
     passive: 'Repairs the Town Hall 2x faster with melee',
-    skills: [sk('Repair Pulse', 8, 'interact-right', '+150 Town Hall HP'), sk('Overcharge', 40, 'emote-yes', 'Town Hall takes no damage for 6 s', { duration: 6 })] },
-  { id: 'Engineer', tier: 'Free', cost: 0, role: 'Area control', weapon: 'Carbine and wrench', idle: 'holding-right', hold: [gun('machinegunLauncher.glb', 0.52)], turret: PCY + 'Turret_Gun.glb',
+    skills: [sk('Repair Pulse', 8, 'skill-cast', '+150 Town Hall HP'), sk('Overcharge', 40, 'skill-roar', 'Town Hall takes no damage for 6 s', { duration: 6 })] },
+  { id: 'Engineer', tier: 'Free', cost: 0, role: 'Area control', weapon: 'Shotgun', idle: 'holding-right', hold: [gun('shotgun.glb', 0.52)], turret: PCY + 'Turret_Gun.glb',
+    hp: 120, magazine: 6, reload: 2.6, melee: blade(QMED + 'Hammer_Double.glb', 'Hammer', 28, 1.6, 0.34, 0.12),
     passive: 'Melee hits on a turret repair it (+25% HP per hit); turrets bought between runs with gems, upgraded in-run with coins',
-    skills: [sk('Place Turret', 10, 'pick-up', 'Builds the selected turret where you aim (max 3 up; placing a 4th removes the oldest)', { repair: 'attack-melee-right' }), sk('Overclock', 30, 'emote-yes', 'All your turrets fire 2x faster for 10 s', { duration: 10 })] },
+    skills: [sk('Place Turret', 10, 'skill-place', 'Builds the selected turret where you aim (max 3 up; placing a 4th removes the oldest)', { repair: 'attack-melee-right' }), sk('Overclock', 30, 'skill-cast', 'All your turrets fire 2x faster for 10 s', { duration: 10 })] },
   { id: 'Berserker', tier: 'Locked', cost: 1200, role: 'Melee damage', weapon: 'Two-handed axe', hold: [melee(QMED + 'Axe_Double.glb', 0.9, { fwd: 'auto' })],
+    hp: 170, melee: blade(QMED + 'Sword.glb', 'Sword', 30, 1.8, 0.45, 0.1),
     passive: 'Kills heal you 5 HP; melee damage +25%',
-    skills: [sk('Cleave', 4, 'attack-melee-right', 'Wide swing: hits every creature in front of you', { duration: 0.8 }), sk('Rage', 30, 'emote-yes', '+40% attack speed and move speed for 10 s', { duration: 10 })] },
+    skills: [sk('Cleave', 4, 'skill-cleave', 'Wide swing: hits every creature in front of you', { duration: 0.8 }), sk('Rage', 30, 'skill-roar', '+40% attack speed and move speed for 10 s', { duration: 10 })] },
   { id: 'Mage', tier: 'Locked', cost: 1200, role: 'Crowd control', weapon: 'Staff', hold: [melee(ADV + 'Mage.glb', 0.8, { node: '2H_Staff', offset: 0.05 })],
+    hp: 90, melee: blade(QMED + 'Dagger.glb', 'Dagger', 18, 2.4, 0.24, 0.12),
     passive: 'Spells cost 25% less coins; freeze lasts 25% longer',
-    skills: [sk('Arcane Bolt', 2, 'interact-right', 'Homing bolt, 35 damage'), sk('Frost Nova', 25, 'holding-both', 'Freezes every creature within 15 studs for 3 s', { duration: 3, loop: true })] },
+    skills: [sk('Arcane Bolt', 2, 'skill-cast', 'Homing bolt, 35 damage'), sk('Frost Nova', 25, 'skill-nova', 'Freezes every creature within 15 studs for 3 s', { duration: 3 })] },
   { id: 'Pyro', tier: 'Locked', cost: 1500, role: 'Area damage', weapon: 'Flamethrower', idle: 'holding-both', hold: [gun('flamethrower_long.glb', 0.6, { offset: 0.2 })],
+    hp: 130, magazine: 100, reload: 3.0, melee: knife('knifeRound_smooth.glb', 'Machete', 26, 1.9, 0.26),
     passive: 'Burning creatures take +15% damage',
-    skills: [sk('Flame Sweep', 7, 'holding-both-shoot', 'Cone of fire, ignites for 4 s', { duration: 1.5, loop: true }), sk('Fire Wall', 40, 'interact-right', 'Wall of fire across the lane for 8 s', { duration: 8 })] },
+    skills: [sk('Flame Sweep', 7, 'skill-sweep', 'Cone of fire, ignites for 4 s', { duration: 1.5 }), sk('Fire Wall', 40, 'skill-toss', 'Wall of fire across the lane for 8 s', { duration: 8 })] },
   { id: 'Sniper', tier: 'Locked', cost: 1500, role: 'Boss killer', weapon: 'Bolt rifle', idle: 'holding-both', hold: [gun('sniper.glb', 0.7, { offset: 0.15 })],
+    hp: 85, magazine: 5, reload: 3.0, melee: knife('knife_sharp.glb', 'Combat knife', 22, 2.2),
     passive: '+50% headshot damage',
-    skills: [sk('Piercing Shot', 8, 'holding-both-shoot', 'Shot goes through up to 5 creatures', { loop: true, duration: 0.6 }), sk('Overwatch', 35, 'holding-both', 'Next 5 shots in 10 s are guaranteed crits', { duration: 10, loop: true })] },
-  { id: 'Demolisher', tier: 'Locked', cost: 2000, role: 'Burst', weapon: 'Grenade launcher', idle: 'holding-both', hold: [gun('rocketlauncherModern.glb', 0.5, { fwd: '+z', offset: 0.1 })],
+    skills: [sk('Piercing Shot', 8, 'skill-recoil', 'Shot goes through up to 5 creatures', { duration: 0.6 }), sk('Overwatch', 35, 'skill-aim', 'Next 5 shots in 10 s are guaranteed crits', { duration: 10, loop: true })] },
+  { id: 'Demolisher', tier: 'Locked', cost: 2000, role: 'Burst', weapon: 'Grenade launcher', idle: 'holding-both', hold: [gun('rocketlauncherModern.glb', 0.5)],
+    hp: 120, magazine: 6, reload: 3.2, melee: blade(QMED + 'Axe_Double.glb', 'Hatchet', 27, 1.7, 0.3, 0.12, { fwd: 'auto' }),
     passive: 'Carries +2 grenades; explosions 20% wider',
-    skills: [sk('Frag Toss', 6, 'interact-right', 'Grenade: 120 damage in 8 studs'), sk('Cluster Bomb', 45, 'holding-both-shoot', 'Shell splits into 6 bomblets along the lane', { duration: 1, loop: true })] },
-  { id: 'Summoner', tier: 'Locked', cost: 2500, role: 'Pet', weapon: 'Wand', hold: [melee(ADV + 'Mage.glb', 0.3, { node: '1H_Wand', offset: 0.15 })], pet: QCU + 'Bat.glb', petAnims: Q_CUTE_FLY,
-    passive: 'Starts with a pet that attacks the nearest creature',
-    skills: [sk('Pet Pounce', 5, 'interact-right', 'Pet leaps on your target for 60 damage', { duration: 0.5 }), sk('Enrage', 45, 'holding-both', 'Pet grows: 2x size and damage for 8 s', { duration: 8, loop: true })] },
+    skills: [sk('Frag Toss', 6, 'skill-toss', 'Grenade: 120 damage in 8 studs'), sk('Cluster Bomb', 45, 'skill-recoil', 'Shell splits into 6 bomblets along the lane', { duration: 1 })] },
 ];
 for (const c of CLASSES) { c.model = BLOCKY_RIGS[0]; c.anims = { idle: c.idle ?? 'idle', walk: 'walk', run: 'sprint' }; c.scale = 1; c.tint = null; c.stats = { tier: c.tier, role: c.role }; }
 

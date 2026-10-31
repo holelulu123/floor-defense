@@ -108,6 +108,8 @@ function Creatures.spawn(
 	part:SetAttribute("MaxHealth", stats.health)
 	part:SetAttribute("CreatureId", creature.id)
 	part:SetAttribute("Archetype", creature.archetype)
+	part:SetAttribute("HealthBar", "creature") -- HealthBars.client draws a billboard from Health/MaxHealth
+	part:AddTag("HealthBar")
 	part.Parent = parent
 
 	local c: Creature = {

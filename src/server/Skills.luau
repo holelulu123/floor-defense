@@ -12,8 +12,8 @@ local Workspace = game:GetService("Workspace")
 
 local Classes = require(ReplicatedStorage.Shared.Classes)
 local SharedSkills = require(ReplicatedStorage.Shared.Skills)
+local Combat = require(script.Parent.Combat)
 local Damage = require(script.Parent.Damage)
-local Pets = require(script.Parent.Pets)
 local TownHall = require(script.Parent.TownHall)
 local Turrets = require(script.Parent.Turrets)
 
@@ -125,28 +125,22 @@ local function refreshSpeed(player: Player)
 	end
 end
 
--- Applies the class to the player's current character: max health, speed, pet. Safe to call again
--- after a respawn or a class switch during prep.
+-- Applies the class to the player's current character: max health (Classes `maxHealth`) and speed.
+-- Safe to call again after a respawn or a class switch during prep.
 function Skills.applyClass(player: Player)
 	local _, humanoid = character(player)
 	local classId = classOf(player)
 	if not humanoid or not classId then
 		return
 	end
-	local passive = SharedSkills.Passives[classId]
-	local maxHealth = BASE_MAX_HEALTH * ((passive and passive.maxHealth) or 1)
+	local maxHealth = Classes.get(classId).maxHealth
 	if humanoid.MaxHealth ~= maxHealth then
+		-- Keep the same fraction of health, so a fresh character starts full and a prep switch is fair.
 		local ratio = humanoid.Health / math.max(1, humanoid.MaxHealth)
 		humanoid.MaxHealth = maxHealth
 		humanoid.Health = math.max(humanoid.Health, maxHealth * ratio)
 	end
 	refreshSpeed(player)
-
-	if classId == "Summoner" then
-		Pets.spawn(player)
-	else
-		Pets.remove(player)
-	end
 	if classId ~= "Engineer" then
 		Turrets.removeFor(player)
 	end
@@ -262,6 +256,9 @@ end
 handlers.teamBuff = function(ctx)
 	for player in inRun do
 		setBuff(player, ctx.effect.stat, ctx.effect.multiplier, ctx.effect.duration)
+		if ctx.effect.refill then
+			Combat.refill(player) -- Ammo Crate: the whole team reloads instantly
+		end
 	end
 	broadcastFx({ kind = ctx.effect.fx, position = groundAt(ctx.root.Position, ctx.player.Character), radius = 3 })
 	return true
@@ -528,28 +525,6 @@ handlers.cluster = function(ctx)
 	return true
 end
 
-handlers.pounce = function(ctx)
-	if not Pets.has(ctx.player) then
-		Pets.spawn(ctx.player)
-	end
-	local point = aimPoint(ctx.player, ctx.origin, ctx.direction, ctx.effect.range)
-	local target = Pets.pounce(ctx.player, point, ctx.effect.range, ctx.effect.damage)
-	if not target then
-		return false
-	end
-	broadcastFx({ kind = ctx.effect.fx, position = target.part.Position, radius = 3 })
-	return true
-end
-
-handlers.enrage = function(ctx)
-	if not Pets.has(ctx.player) then
-		Pets.spawn(ctx.player)
-	end
-	Pets.enrage(ctx.player, ctx.effect.duration)
-	broadcastFx({ kind = ctx.effect.fx, position = ctx.root.Position, radius = 3 })
-	return true
-end
-
 -- Remote -------------------------------------------------------------------------------------------
 
 local function onUseSkill(player: Player, index: any, origin: any, direction: any)
@@ -636,7 +611,6 @@ function Skills.endRun()
 	table.clear(inRun)
 	table.clear(used)
 	table.clear(appliedClass)
-	Pets.clear()
 	Turrets.clear()
 end
 
@@ -646,7 +620,6 @@ function Skills.init()
 		inRun[player] = nil
 		used[player] = nil
 		appliedClass[player] = nil
-		Pets.remove(player)
 	end)
 end
 

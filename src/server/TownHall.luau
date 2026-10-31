@@ -1,5 +1,5 @@
 -- The objective. Creatures damage it; players repair it; at 0 the run ends.
--- Health is mirrored to a "Health" attribute on the part so the client can read it directly.
+-- Health is mirrored to Health/MaxHealth attributes on the part so the client can read it directly.
 
 local TownHall = {}
 TownHall.__index = TownHall
@@ -18,6 +18,10 @@ function TownHall.new(part: Part, maxHealth: number): TownHall
 	}, TownHall)
 	part:SetAttribute("Health", maxHealth)
 	part:SetAttribute("MaxHealth", maxHealth)
+	-- HealthBars.client draws the big overhead bar; the HUD finds the part by the TownHall tag.
+	part:SetAttribute("HealthBar", "townhall")
+	part:AddTag("HealthBar")
+	part:AddTag("TownHall")
 	return self
 end
 

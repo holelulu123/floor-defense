@@ -11,7 +11,6 @@ local Arena = require(script.Parent.Arena)
 local Combat = require(script.Parent.Combat)
 local PlayerData = require(script.Parent.PlayerData)
 local Skills = require(script.Parent.Skills)
-local WeaponModels = require(script.Parent.WeaponModels)
 local TownHall = require(script.Parent.TownHall)
 local WaveManager = require(script.Parent.WaveManager)
 
@@ -36,10 +35,16 @@ local function broadcast(phase: string, wave: number, secondsLeft: number)
 	if not current then
 		return
 	end
+	local party = {}
+	for userId in current.players do
+		table.insert(party, userId)
+	end
+	table.sort(party)
 	for _, player in Players:GetPlayers() do
 		local pr = current.players[player.UserId]
 		if pr then
 			runState:FireClient(player, {
+				party = party, -- UserIds in this run, for the HUD's party health panel
 				phase = phase,
 				wave = wave,
 				secondsLeft = secondsLeft,
@@ -71,15 +76,13 @@ function Run.canSwitchClass(player: Player): boolean
 	return current == nil or current.players[player.UserId] == nil or current.phase == "prep"
 end
 
--- Gives the player their selected class's weapon (stats + Tool in hand) and passives. Called at run
+-- Gives the player their selected class's weapons (stats + Tools, slot 1 in hand) and passives. Called at run
 -- start, after a respawn during the run, and when the class is switched during prep.
 function Run.equipClass(player: Player)
 	if not current or not current.players[player.UserId] then
 		return
 	end
-	local weapon = Classes.weaponFor(PlayerData.classOf(player))
-	Combat.setWeapon(player, weapon)
-	WeaponModels.give(player, weapon)
+	Combat.setLoadout(player, PlayerData.classOf(player)) -- primary + melee Tools, full magazine
 	Skills.applyClass(player)
 end
 
@@ -169,8 +172,7 @@ function Run.finish(wave: number)
 		if pr then
 			PlayerData.recordScore(player, finished.mode, pr.score)
 			PlayerData.addGems(player, Classes.gemsForRun(wave, finished.mode))
-			Combat.setWeapon(player, nil)
-			WeaponModels.remove(player)
+			Combat.setLoadout(player, nil)
 		end
 	end
 	finished.townHall:destroy()

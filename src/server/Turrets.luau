@@ -79,6 +79,8 @@ local function build(owner: Player, position: Vector3, lookAt: Vector3): Turret
 	model.PrimaryPart = head
 	model:SetAttribute("Owner", owner.UserId)
 	model:SetAttribute("MaxHealth", Skills.Turret.Health)
+	model:SetAttribute("HealthBar", "turret") -- HealthBars.client draws a billboard from Health/MaxHealth
+	model:AddTag("HealthBar")
 	model.Parent = Workspace
 
 	local t: Turret = {

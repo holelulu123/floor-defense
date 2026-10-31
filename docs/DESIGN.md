@@ -61,36 +61,51 @@ Both first-person and third-person, as a player setting with a hotkey to toggle 
 
 ## Classes
 
-Players keep their own Roblox avatar. A class is a weapon, a passive and **two skills with cooldowns**: skill 1 is quick (1 to 10 s), skill 2 is a long cooldown (25 to 50 s) and usually a timed buff. Every class is playable; five are free and six are **locked** and bought once with gems, which players earn at the end of each run (see Progression). Skills are server-validated: the server owns the cooldown clock (`Classes.canUse`) and rejects early casts.
+Players keep their own Roblox avatar. A class is a health pool, a primary weapon, a melee secondary, a passive and **two skills with cooldowns**: skill 1 is quick (1 to 10 s), skill 2 is a long cooldown (25 to 50 s) and usually a timed buff. Every class is playable; five are free and five are **locked** and bought once with gems, which players earn at the end of each run (see Progression). Skills are server-validated: the server owns the cooldown clock (`Classes.canUse`) and rejects early casts.
 
 | Class | Unlock | Weapon | Passive | Skill 1 (quick) | Skill 2 (long) |
 | --- | --- | --- | --- | --- | --- |
 | Trooper | Free | Assault rifle | +10% reload | Burst Fire, 6 s: 3-round burst, 2x damage | Ammo Crate, 45 s: team reload + 20% fire rate for 10 s |
-| Tank | Free | Flail and shield | Blocks creatures; +50% HP | Flail Sweep, 5 s: knockback in 6 studs | Iron Wall, 30 s: taunt + 80% block for 8 s |
+| Tank | Free | Flail and shield | Blocks creatures | Flail Sweep, 5 s: knockback in 6 studs | Iron Wall, 30 s: taunt + 80% block for 8 s |
 | Scout | Free | Dual pistols | +20% speed | Dash, 4 s: 20 studs through creatures | Mark Target, 25 s: +30% damage taken for 8 s |
 | Medic | Free | SMG | Melee repairs the Town Hall 2x | Repair Pulse, 8 s: +150 Town Hall HP | Overcharge, 40 s: Town Hall immune 6 s |
-| Engineer | Free | Carbine and wrench | Melee on a turret repairs it (+25% HP/hit) | Place Turret, 10 s: builds the selected turret (max 3; a 4th replaces the oldest) | Overclock, 30 s: all your turrets fire 2x for 10 s |
+| Engineer | Free | Shotgun and wrench | Melee on a turret repairs it (+25% HP/hit) | Place Turret, 10 s: builds the selected turret (max 3; a 4th replaces the oldest) | Overclock, 30 s: all your turrets fire 2x for 10 s |
 | Berserker | 1200 gems | Two-handed axe | Kills heal 5 HP; melee +25% | Cleave, 4 s: hits everything in front | Rage, 30 s: +40% attack and move speed for 10 s |
 | Mage | 1200 gems | Staff | Spells cost 25% less; freeze +25% | Arcane Bolt, 2 s: homing bolt, 35 dmg | Frost Nova, 25 s: freeze 15 studs for 3 s |
 | Pyro | 1500 gems | Flamethrower | Burning creatures take +15% | Flame Sweep, 7 s: cone, ignites 4 s | Fire Wall, 40 s: wall across the lane for 8 s |
 | Sniper | 1500 gems | Bolt rifle | +50% headshot | Piercing Shot, 8 s: through 5 creatures | Overwatch, 35 s: next 5 shots crit (10 s) |
 | Demolisher | 2000 gems | Grenade launcher | +2 grenades, 20% wider blasts | Frag Toss, 6 s: 120 dmg in 8 studs | Cluster Bomb, 45 s: 6 bomblets along the lane |
-| Summoner | 2500 gems | Wand and spellbook | Starts with an attacking pet | Pet Pounce, 5 s: pet leaps for 60 dmg | Enrage, 45 s: pet 2x size and damage for 8 s |
 
-Turrets (Engineer): turret **types and rarities** are bought between runs with gems and never change in a run; turret **levels** are bought in-run with coins. Placed turrets have HP; creatures that bump into them damage them, the Engineer's melee repairs them. Overclock doubles fire rate for 10 s. More classes are easy to add later (the data lives in `src/shared/Classes.luau` and `showcase/catalog.js`).
+Loadout and health (numbers in `src/shared/Classes.luau` `maxHealth` / `secondary` and `src/shared/Weapons.luau`). Key **1** holds the primary, key **2** the melee secondary, **R** reloads; an empty magazine reloads on its own. Melee and magic weapons have no magazine. The Trooper's "+10% reload speed" divides reload time by 1.1 (`Weapons.reloadTime`).
 
-Players keep their own avatar: a class never changes the player's skin, it only puts the class weapon (and for the Tank a shield) in their hands. The showcase previews every class on the Roblox default character (a procedural R15-style figure in the classic yellow/blue/green) with a toggle to a random Kenney blocky player skin (CC0), so the weapon size and grip can be judged on a default body. Weapon models: Kenney Weapon Pack guns, Quaternius Medieval axe and round shield, the KayKit staff and wand meshes (CC0); the flail is a procedural placeholder until a CC0 flail is found. The skill clips in the preview are Kenney's generic poses (holding-right, holding-both-shoot, attack-melee-right, interact-right, pick-up, emote-yes) re-created as keyframes on the dummy; in Roblox the moves need Roblox animation assets authored in the Animation Editor using these previews as reference.
+| Class | HP | Primary | Magazine | Reload | Secondary (melee, 8 studs) |
+| --- | --- | --- | --- | --- | --- |
+| Trooper | 120 | Assault rifle | 30 | 2.0 s (1.82 s with the passive) | Combat knife, 22 dmg, 2.2/s |
+| Tank | 220 | Flail (melee) | none | none | none |
+| Scout | 90 | Dual pistols | 24 (2 x 12) | 1.4 s | Karambit, 18 dmg, 2.8/s |
+| Medic | 110 | SMG | 40 | 1.8 s | Scalpel, 16 dmg, 2.5/s |
+| Engineer | 120 | Shotgun | 6 | 2.6 s | Hammer, 28 dmg, 1.6/s (repairs turrets) |
+| Berserker | 170 | Great axe (melee) | none | none | Sword, 30 dmg, 1.8/s |
+| Mage | 90 | Staff (magic) | none | none | Dagger, 18 dmg, 2.4/s |
+| Pyro | 130 | Flamethrower | 100 fuel | 3.0 s | Machete, 26 dmg, 1.9/s |
+| Sniper | 85 | Bolt rifle | 5 | 3.0 s | Combat knife, 22 dmg, 2.2/s |
+| Demolisher | 120 | Grenade launcher | 6 | 3.2 s | Hatchet, 27 dmg, 1.7/s |
+
+Turrets (Engineer): turret **types and rarities** are bought between runs with gems and never change in a run; turret **levels** are bought in-run with coins. Placed turrets have HP; creatures that bump into them damage them, the Engineer's melee (the Hammer, slot 2) repairs them. Overclock doubles fire rate for 10 s. More classes are easy to add later (the data lives in `src/shared/Classes.luau` and `showcase/catalog.js`).
+
+Players keep their own avatar: a class never changes the player's skin, it only puts the class weapon (and for the Tank a shield) in their hands. The showcase previews every class on the Roblox default character (a procedural R15-style figure in the classic yellow/blue/green) with a toggle to a random Kenney blocky player skin (CC0), so the weapon size and grip can be judged on a default body. Weapon models: Kenney Weapon Pack guns, Quaternius Medieval axe and round shield, the KayKit staff mesh (CC0); the flail is a procedural placeholder until a CC0 flail is found. The skill clips in the preview are Kenney's generic poses (holding-right, holding-both-shoot, attack-melee-right, interact-right, pick-up, emote-yes) re-created as keyframes on the dummy; in Roblox the moves need Roblox animation assets authored in the Animation Editor using these previews as reference.
 
 Class select: on entering the lobby a panel shows the classes with their two skills and unlock cost; locked ones show a Buy button (gems). The choice is kept per player and can be changed in the lobby at any time.
 
 Implementation contract (code-first, see `src/shared/Skills.luau` for the numbers and `src/server/Skills.luau` for the handlers):
 
 - Remotes: `BuyClass(classId)` and `SelectClass(classId)` are RemoteFunctions validated with `Classes.tryBuy` / `Classes.isOwned`; selecting is only allowed in the lobby or during prep. `UseSkill(index, aimOrigin, aimDirection)` is a RemoteEvent; the server owns the cooldown clock (`Classes.canUse` with `os.clock()`), applies the effect and answers with `SkillFx` (`{kind="cooldown", index, cooldown}` to the caster, `{kind=<fx>, position, radius, ...}` to everyone for the placeholder visuals). Gems for a run come from `Classes.gemsForRun(wave, mode)` at run end.
-- Player attributes published by the server for the UI: `Class`, `Gems`, `OwnedClasses` (comma list), `Weapon`, `Turrets`; timed buffs are `<Stat>` + `<Stat>Until` pairs (`DamageMult`, `FireRateMult`, `SpeedMult`, `CritShots`) with `Until` in `Workspace:GetServerTimeNow()` seconds so the client can read them too; read through `Skills.buffValue`.
-- Creature attributes written by skills, honoured by the creature mover: `Frozen` (boolean, no movement), `SlowUntil` + `SlowFactor` (speed multiplier while `os.clock() < SlowUntil`). `BurnUntil` + `BurnBy` and `MarkedUntil` are read by `Damage.hit`, the single entry point every weapon, skill, turret and pet uses before `Creatures.damage`.
+- Weapons: `EquipSlot(slot)` (1 or 2, ignored when the class has no such slot) and `Reload()` are RemoteEvents; `server/Combat.luau` owns the active slot and the primary's magazine, refuses shots while reloading or empty, and uses the active slot's own weapon definition for damage, range and rate. Trooper's Ammo Crate refills every run player's magazine instantly. The Humanoid's MaxHealth comes from the class `maxHealth` when the class is applied.
+- Player attributes published by the server for the UI: `Class`, `Gems`, `OwnedClasses` (comma list), `Weapon` (active weapon), `WeaponSlot`, `Ammo`, `MagazineSize`, `Reloading`, `ReloadEnd` (server time; magazine attributes are nil for weapons without one), `Turrets`; timed buffs are `<Stat>` + `<Stat>Until` pairs (`DamageMult`, `FireRateMult`, `SpeedMult`, `CritShots`) with `Until` in `Workspace:GetServerTimeNow()` seconds so the client can read them too; read through `Skills.buffValue`.
+- Creature attributes written by skills, honoured by the creature mover: `Frozen` (boolean, no movement), `SlowUntil` + `SlowFactor` (speed multiplier while `os.clock() < SlowUntil`). `BurnUntil` + `BurnBy` and `MarkedUntil` are read by `Damage.hit`, the single entry point every weapon, skill and turret uses before `Creatures.damage`.
 - Town Hall part attribute `ShieldUntil` (Medic Overcharge): `TownHall.takeDamage` ignores damage while `os.clock() < ShieldUntil`.
-- Weapon in hand: `WeaponModels.give` builds a placeholder Tool from Parts per weapon (rifle, carbine, SMG, bolt rifle, flamethrower, launcher, two pistols, axe, staff, wand, flail with a left-arm shield) and equips it; the Tool is visual only, firing still goes through `Remotes.Fire`.
-- Engineer turrets (`src/server/Turrets.luau`): max 3, a 4th replaces the oldest (`Skills.Turret.placeIndex`), 300 HP, creatures within 4 studs chew 15 HP/s, an Engineer shot at an own turret within 8 studs repairs 25% of max, Overclock halves the fire interval for 10 s.
+- Weapon in hand: `WeaponModels.give` builds a placeholder Tool from Parts per weapon (rifle, shotgun, SMG, bolt rifle, flamethrower, launcher, two pistols, axe, staff, flail with a left-arm shield, and the melee secondaries: knife, karambit, scalpel, hammer, sword, dagger, machete, hatchet). The primary is equipped, the secondary waits in the Backpack and `WeaponModels.equip` swaps them (the Roblox hotbar is hidden; slots are ours); the Tool is visual only, firing still goes through `Remotes.Fire`.
+- Engineer turrets (`src/server/Turrets.luau`): max 3, a 4th replaces the oldest (`Skills.Turret.placeIndex`), 300 HP, creatures within 4 studs chew 15 HP/s, an Engineer melee hit (Hammer) on an own turret within 8 studs repairs 25% of max, Overclock halves the fire interval for 10 s.
 
 ## Turrets and class gear (to discuss)
 
@@ -99,7 +114,7 @@ Agreed direction, numbers still open:
 - Each class has its own **special weapon**, abilities and stats. The Engineer's ability is **building turrets**.
 - Turrets have **levels**: each level is stronger and looks different (bigger barrel, extra armor, glow). Levels are bought **during a run** with in-run coins, like the shop.
 - Turrets also have **types** (10 or more) and **rarity tiers** (common, rare, epic, legendary, ...). Type and rarity are bought **between runs** with Gems. In a run you can level the turret you brought, but you can never change its rarity.
-- The same pattern applies to other classes' signature items (Medic's drone, Summoner's pet, Pyro's fire wall) and to **weapon spells**: enchantments bought with Gems that sit on the weapon between runs (slow on hit, chain lightning, bonus coins).
+- The same pattern applies to other classes' signature items (Medic's drone, Pyro's fire wall) and to **weapon spells**: enchantments bought with Gems that sit on the weapon between runs (slow on hit, chain lightning, bonus coins).
 - Open: turret prices, how many turrets an Engineer can place at once, whether rarity changes stats or only looks plus one perk, and the exact monetization (Gems only, Robux shortcuts, or passes). Fairness rules in Monetization still apply: nothing that moves the Hall of Fame can be Robux-only.
 
 ## Weapons, grenades and spells
@@ -229,7 +244,7 @@ Sell classes, cosmetics and convenience. Never sell in-run power or score.
 
 | Product | Type | Price (Robux) | What you get |
 | --- | --- | --- | --- |
-| Premium class | Game pass, one each | 199 | Permanent access to Pyro, Frost Mage, Sniper, Demolisher or Summoner |
+| Premium class | Game pass, one each | 199 | Permanent access to Pyro, Frost Mage, Sniper or Demolisher |
 | Class bundle | Game pass | 699 | All five premium classes (30% off) |
 | VIP | Game pass | 399 | +25% Gems, VIP lobby tag, one extra daily challenge, named color on the Hall of Fame |
 | Gems 500 / 1,200 / 3,000 | Developer product | 99 / 199 / 449 | Gems to spend on skins or classes |

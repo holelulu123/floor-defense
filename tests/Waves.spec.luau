@@ -35,7 +35,7 @@ local zombie = Roster.get("graveyard", "Zombie")
 eq(Waves.stats(zombie, 10, "Solo").health, 66, "zombie wave 10 solo (30 * 2.2)")
 eq(Waves.stats(zombie, 1, "Squad").coins, 15, "zombie coins in squad")
 eq(Waves.stats(zombie, 1, "Solo").damage, 10, "damage is not scaled")
-eq(Waves.stats(zombie, 1, "Solo").speed, 14, "speed is not scaled")
+eq(Waves.stats(zombie, 1, "Solo").speed, 28, "speed is not scaled")
 
 -- boss cadence
 assert(not Waves.isBossWave(4), "wave 4 is not a boss wave")

@@ -34,6 +34,10 @@ for id, e in Skills.Effects do
 	assert(not e.duration or e.duration > 0, `{id} duration positive`)
 end
 assert(kinds.turret == 1 and kinds.overclock == 1, "engineer kinds present")
+assert(kinds.pounce == nil and kinds.enrage == nil and Skills.Pet == nil, "Summoner pet skills removed")
+assert(Skills.Effects.AmmoCrate.refill == true, "Ammo Crate refills team magazines")
+eq(Skills.Passives.Trooper.reloadSpeed, 1.1, "Trooper +10% reload speed")
+eq(Skills.Passives.Tank, nil, "Tank health comes from Classes.maxHealth, not a passive")
 
 -- gems for a run
 eq(Classes.gemsForRun(10, "Solo"), 10, "solo: one gem per wave")

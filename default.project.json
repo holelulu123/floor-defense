@@ -9,6 +9,8 @@
         "$className": "Folder",
         "RunState": { "$className": "RemoteEvent" },
         "Fire": { "$className": "RemoteEvent" },
+        "EquipSlot": { "$className": "RemoteEvent" },
+        "Reload": { "$className": "RemoteEvent" },
         "HitFx": { "$className": "RemoteEvent" },
         "UseSkill": { "$className": "RemoteEvent" },
         "SkillFx": { "$className": "RemoteEvent" },

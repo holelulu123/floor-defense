@@ -1,10 +1,13 @@
 -- Client side of shooting: input, aiming, a local cooldown for feel, tracers and a crosshair.
 -- The server decides hits; this script only tells it where we aimed. Skill keys (Q/E) send the
 -- skill index plus the same aim ray; SkillFx events from the server are drawn here as placeholders.
+-- Weapon keys: 1 = primary, 2 = melee secondary (Remotes.EquipSlot), R = reload (Remotes.Reload). The
+-- server owns the active slot and the magazine; the client only skips shots it knows would be refused.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
@@ -13,6 +16,8 @@ local Weapons = require(ReplicatedStorage.Shared.Weapons)
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local fireRemote = remotes:WaitForChild("Fire") :: RemoteEvent
+local equipSlot = remotes:WaitForChild("EquipSlot") :: RemoteEvent
+local reloadRemote = remotes:WaitForChild("Reload") :: RemoteEvent
 local hitFx = remotes:WaitForChild("HitFx") :: RemoteEvent
 local useSkill = remotes:WaitForChild("UseSkill") :: RemoteEvent
 local skillFx = remotes:WaitForChild("SkillFx") :: RemoteEvent
@@ -75,8 +80,16 @@ end
 -- Aiming ----------------------------------------------------------------------------------------
 
 local function currentWeapon(): Weapons.Weapon?
-	local name = player:GetAttribute("Weapon")
-	return if type(name) == "string" then Weapons.get(name) else nil
+	return Weapons.find(player:GetAttribute("Weapon"))
+end
+
+-- The server-published magazine of the active weapon: false when the shot would be refused.
+local function hasRound(def: Weapons.Weapon): boolean
+	if not def.magazine or player:GetAttribute("WeaponSlot") ~= 1 then
+		return true
+	end
+	local ammo = player:GetAttribute("Ammo")
+	return player:GetAttribute("Reloading") ~= true and (type(ammo) ~= "number" or ammo > 0)
 end
 
 -- Returns the muzzle origin and the direction toward whatever is under the crosshair / cursor.
@@ -126,6 +139,9 @@ local function tryFire()
 	if now - lastShot < Weapons.interval(def) / rateMult then
 		return
 	end
+	if not hasRound(def) then
+		return -- the server reloads an empty magazine on its own
+	end
 	local origin, direction = aim()
 	if not origin or not direction then
 		return
@@ -138,6 +154,23 @@ end
 -- Skills ----------------------------------------------------------------------------------------
 
 local SKILL_KEYS = { [Enum.KeyCode.Q] = 1, [Enum.KeyCode.E] = 2 }
+local SLOT_KEYS = {
+	[Enum.KeyCode.One] = 1,
+	[Enum.KeyCode.KeypadOne] = 1,
+	[Enum.KeyCode.Two] = 2,
+	[Enum.KeyCode.KeypadTwo] = 2,
+}
+
+-- Roblox's default hotbar would also grab 1/2 and let the player unequip everything; weapon slots
+-- are ours, so hide it. SetCoreGuiEnabled can fail while the CoreGui is still loading, so retry.
+task.spawn(function()
+	for _ = 1, 20 do
+		if pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, false) then
+			return
+		end
+		task.wait(0.5)
+	end
+end)
 
 local function useSkillIndex(index: number)
 	if not currentWeapon() then
@@ -162,8 +195,13 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		tryFire()
 	elseif input.UserInputType == Enum.UserInputType.Keyboard then
 		local index = SKILL_KEYS[input.KeyCode]
+		local slot = SLOT_KEYS[input.KeyCode]
 		if index then
 			useSkillIndex(index)
+		elseif slot and currentWeapon() then
+			equipSlot:FireServer(slot)
+		elseif input.KeyCode == Enum.KeyCode.R and currentWeapon() then
+			reloadRemote:FireServer()
 		end
 	end
 end)
@@ -224,7 +262,6 @@ local FX_COLORS = {
 	shield = Color3.fromRGB(90, 200, 255),
 	build = Color3.fromRGB(240, 160, 60),
 	mark = Color3.fromRGB(255, 60, 60),
-	pounce = Color3.fromRGB(190, 90, 255),
 	dash = Color3.fromRGB(200, 240, 255),
 }
 

@@ -128,6 +128,7 @@
       <button id="btn-skill1" class="primary">Skill 1</button>
       <button id="btn-skill2" class="primary">Skill 2</button>
       <button id="btn-cls-repair" class="hidden">Repair turret</button>
+      <button id="btn-cls-slot">Switch to melee (2)</button>
     </div>
     <div class="note" id="cooldowns"></div>
     <div><button id="btn-cls-walk">Walk</button><button id="btn-cls-run">Run</button><button id="btn-cls-idle">Idle</button></div>
@@ -155,6 +156,13 @@
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
 } }
+</script>
+<script>
+// ?agent=1: this tab is the one Claude drives (kept outside the module so a syntax error there cannot strand it). It polls the local dev log server for the next showcase path and
+// opens it in place, so checks reuse one tab instead of opening new windows. Only same-origin paths are followed.
+if (new URLSearchParams(location.search).has('agent')) setInterval(async () => {
+  try { const next = (await (await fetch('http://127.0.0.1:8799/__nav', { cache: 'no-store' })).text()).trim(); if (next.startsWith('/showcase/')) location.replace(next); } catch { /* server not running */ }
+}, 400);
 </script>
 <script type="module">
 import * as THREE from 'three';
@@ -377,9 +385,12 @@ function stripRootMotion(clip) {
 let current = null; // { def, root, mixer?, actions?, hp, state, stepTimer, animated }
 let active = null;
 const clock = new THREE.Clock();
+// ?slow=k plays the class preview k times slower (frame-by-frame checks); effect timers follow the same clock.
+const timeScale = Number(new URLSearchParams(location.search).get('slow')) || 1;
 
 const DEFAULT_SKY = scene.background.clone(), DEFAULT_FOG = scene.fog.color.clone(), DEFAULT_FOG_RANGE = [scene.fog.near, scene.fog.far];
 function clear() {
+  clearFx();
   if (current) { scene.remove(current.root); for (const e of current.extras ?? []) scene.remove(e); current = null; active = null; }
   ground.visible = true; grid.visible = true; camera.near = 0.05; controls.maxPolarAngle = Math.PI; hemi.intensity = 0.9; sun.intensity = 1.8; scene.background = DEFAULT_SKY.clone(); scene.fog.color.copy(DEFAULT_FOG); [scene.fog.near, scene.fog.far] = DEFAULT_FOG_RANGE;
 }
@@ -598,6 +609,39 @@ function laneRibbon(curve, width, color) {
   const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color, roughness: 1, side: THREE.DoubleSide })); m.receiveShadow = true; return m;
 }
 
+// HP bar sprite (canvas texture, always faces the camera). Colours mirror src/shared/HealthBar.luau:
+// red at 0, yellow at half, green when full. `label` adds the numeric "HP / Max" (used by the tower).
+const HP_STOPS = [[220, 50, 40], [240, 200, 40], [70, 200, 80]];
+function hpColor(f) {
+  f = Math.min(1, Math.max(0, f));
+  const [a, b, t] = f >= 0.5 ? [HP_STOPS[1], HP_STOPS[2], (f - 0.5) * 2] : [HP_STOPS[0], HP_STOPS[1], f * 2];
+  return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
+}
+function hpBarSprite(width, { big = false, title = '' } = {}) {
+  const c = document.createElement('canvas'); c.width = big ? 512 : 128; c.height = big ? 80 : 16; const g = c.getContext('2d');
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: !big, depthWrite: false }));
+  sp.scale.set(width, width * c.height / c.width, 1); sp.renderOrder = big ? 3 : 2;
+  let shown = -1;
+  sp.userData.set = (hp, max) => {
+    const f = max > 0 ? Math.min(1, Math.max(0, hp / max)) : 0, key = Math.round(f * 200) + (big ? Math.ceil(hp) * 1000 : 0);
+    if (key === shown) return; shown = key;
+    const w = c.width, h = c.height, pad = big ? 6 : 2, r = big ? 16 : 4;
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = 'rgba(15,15,20,0.85)'; g.beginPath(); g.roundRect(0, 0, w, h, r); g.fill();
+    if (f > 0) { g.fillStyle = hpColor(f); g.beginPath(); g.roundRect(pad, pad, Math.max(r, (w - pad * 2) * f), h - pad * 2, r - pad / 2); g.fill(); }
+    if (big) {
+      const num = `${Math.max(0, Math.ceil(hp)).toLocaleString('en-US')} / ${Math.ceil(max).toLocaleString('en-US')}`;
+      g.font = 'bold 40px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 6; g.strokeStyle = 'rgba(0,0,0,0.8)'; g.fillStyle = '#fff';
+      const text = title ? `${title}  ${num}` : num; g.strokeText(text, w / 2, h / 2 + 2); g.fillText(text, w / 2, h / 2 + 2);
+    }
+    tex.needsUpdate = true;
+  };
+  sp.userData.set(1, 1);
+  return sp;
+}
+const TOWN_HALL_HP = 1000; // Config.TownHallHealth
+
 // Builds a themed arena into `parent`: ground, one winding lane, the dungeon's tower at the far end,
 // a gate at the near end, scattered props off the lane, and creatures walking the lane. Used at full
 // size for a dungeon map and at diorama size in the lobby. Returns { jobs, placed, curve, ... }.
@@ -635,7 +679,15 @@ function buildArena(theme, d, parent, { W = 260, D = 200, propMult = 3, withWalk
   const k = W / 64; // size factor relative to the first map version the prop heights were tuned on
   const tower = theme.tower ?? theme.hall;
   const towerPos = curve.getPoint(1); const gatePos = curve.getPoint(0), gateDir = curve.getTangent(0);
-  jobs.push(placeProp({ ...tower, h: tower.h * Math.max(1, k * 0.9) }, parent, 0, towerZ, Math.PI));
+  const towerH = tower.h * Math.max(1, k * 0.9);
+  jobs.push(placeProp({ ...tower, h: towerH }, parent, 0, towerZ, Math.PI));
+  // Tower HP: walkers that reach the end of the lane hit it for their stat damage; it refills at 0.
+  // HP bars only on full maps: on the lobby dioramas they would cover the dungeon name signs.
+  const hpBars = propMult >= 1;
+  const towerBar = hpBarSprite(Math.max(3.5, W * 0.12), { big: true, title: 'Town Hall' });
+  towerBar.position.set(0, towerH + Math.max(1.2, towerH * 0.15) + towerBar.scale.y / 2, towerZ); if (hpBars) parent.add(towerBar);
+  let towerHp = TOWN_HALL_HP; towerBar.userData.set(towerHp, TOWN_HALL_HP);
+  const hitTower = dmg => { towerHp -= dmg; if (towerHp <= 0) towerHp = TOWN_HALL_HP; towerBar.userData.set(towerHp, TOWN_HALL_HP); };
   jobs.push(placeProp({ ...theme.gate, h: theme.gate.h * Math.max(1, k * 0.7) }, parent, gatePos.x, gatePos.z, Math.atan2(gateDir.x, gateDir.z)));
   const blocked = (x, z) => laneDist(x, z) < laneW * 0.9 || (Math.abs(z - towerZ) < 9 * k && Math.abs(x) < 11 * k) || (Math.hypot(x - gatePos.x, z - gatePos.z) < 6 * k);
   let placed = 0;
@@ -657,7 +709,8 @@ function buildArena(theme, d, parent, { W = 260, D = 200, propMult = 3, withWalk
       jobs.push(placeProp(pl, parent, (i - 1) * W * 0.9, D * 2.4 + i * D * 0.6, 0).then(h => { h.position.y = 55 + i * 30; return h; }));
     }
   }
-  // Creatures walk the lane from gate to tower and loop; speed follows their stat (1 stud = 0.28 m).
+  // Creatures run the lane from gate to tower and loop; speed is their stat (studs/s, 1 stud = 0.28 m),
+  // scaled with the arena so a lobby diorama crosses in the same time as the full-size map (W = 260 m).
   const walkers = withWalkers ? (fam?.creatures ?? []).filter(c => c.type !== 'Boss').slice(0, maxWalkers) : [];
   const laneLen = curve.getLength();
   walkers.forEach((def, i) => jobs.push((async () => {
@@ -667,16 +720,21 @@ function buildArena(theme, d, parent, { W = 260, D = 200, propMult = 3, withWalk
     inst.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
     inst.scale.setScalar(def.scale);
     const mixer = new THREE.AnimationMixer(inst);
-    const clip = gltf.animations.find(c => clipName(c) === def.anims.walk) ?? gltf.animations[0];
+    const clip = gltf.animations.find(c => clipName(c) === def.anims.run) ?? gltf.animations.find(c => clipName(c) === def.anims.walk) ?? gltf.animations[0];
     if (clip) { mixer.clipAction(clip).play(); mixer.update(r() * 2); }
     const b = posedBox(inst); inst.position.y -= b.min.y; inst.position.x -= (b.min.x + b.max.x) / 2; inst.position.z -= (b.min.z + b.max.z) / 2;
     const holder = new THREE.Group(); holder.add(inst); parent.add(holder);
+    // HP bar: the creature is "shot" as it advances (down to a per-creature remainder), full again on respawn.
+    const bodyH = posedBox(inst).getSize(new THREE.Vector3()).y;
+    const bar = hpBarSprite(Math.min(3, Math.max(0.7, bodyH * 0.8))); bar.position.y = bodyH + bar.scale.x * 0.12 + 0.15; if (hpBars) holder.add(bar);
+    const maxHp = def.stats.health, left = 0.05 + ((i * 37) % 10) / 20;
     let t = 0.06 + 0.86 * ((i * 7919) % 97) / 97;
-    const speed = (def.stats.speed * 0.28) / laneLen; // fraction of the lane per second
+    const speed = (def.stats.speed * 0.28 * Math.min(1, W / 260)) / laneLen; // fraction of the lane per second
     const step = { update: dt => {
-      mixer.update(dt); t += dt * speed * 0.6; if (t > 0.97) t = 0.03;
+      mixer.update(dt); t += dt * speed; if (t > 0.97) { t = 0.03; hitTower(def.stats.damage); }
       const p = curve.getPoint(t), ahead = curve.getPoint(Math.min(1, t + 0.01));
       holder.position.copy(p); holder.lookAt(ahead.x, 0, ahead.z);
+      bar.userData.set(maxHp * (1 - (1 - left) * Math.min(1, (t - 0.03) / 0.94)), maxHp);
     } };
     step.update(0); mixers.push(step);
   })()));
@@ -895,7 +953,7 @@ async function loadWeapon(w) {
 // Put `obj` in the character's hand. `len` is the weapon length as a fraction of the character height;
 // grip 'gun' points it along the arm, grip 'melee' points it the way the character faces (so it rises with
 // the arm), grip 'shield' stands it in front of the forearm. `offset` slides the hand toward the butt end.
-function holdInHand(root, obj, { side = 'right', len = 0.4, fwd = '+z', grip = 'melee', offset = 0, charHeight, facing = 1 }) {
+function holdInHand(root, obj, { side = 'right', len = 0.4, fwd = '+z', grip = 'melee', offset = 0, at = null, charHeight, facing = 1 }) {
   const arm = findBone(root, side === 'right' ? /^RightHand$/ : /^LeftHand$/) ?? findBone(root, side === 'right' ? ARM_R : ARM_L);
   const att = findBone(root, side === 'right' ? /^RightGrip_Att$/ : /^LeftGrip_Att$/);
   if (!arm) { root.add(obj); return; }
@@ -907,7 +965,14 @@ function holdInHand(root, obj, { side = 'right', len = 0.4, fwd = '+z', grip = '
   // Cached scenes may already carry a scale/offset from a thumbnail or the Weapons tab, so normalise
   // through a wrapper instead of overwriting the model's own transform.
   const norm = new THREE.Group(); norm.add(obj); norm.scale.setScalar(k);
-  norm.position.copy(box.getCenter(new THREE.Vector3()).multiplyScalar(-k));
+  // `at` = [along, up] as fractions of the model's box (along runs butt to muzzle on z): the point the fist closes on,
+  // measured from side views of each gun. Without it the hand sits at the middle of the model.
+  const pivot = box.getCenter(new THREE.Vector3());
+  if (at) { const ax = fwd[1]; pivot[ax] = fwd[0] === '-' ? box.max[ax] - size[ax] * at[0] : box.min[ax] + size[ax] * at[0]; if (ax !== 'y') pivot.y = box.min.y + size.y * at[1]; }
+  norm.position.copy(pivot.multiplyScalar(-k));
+  // Markers at the business end and the back end, so skill effects can start at the muzzle and fly along the barrel.
+  const axis = fwd[1], end = (sgn) => { const p = box.getCenter(new THREE.Vector3()); p[axis] = (fwd[0] === '-') === (sgn > 0) ? box.min[axis] : box.max[axis]; if (axis !== 'y') p.y += size.y * 0.2; return p; };
+  const tip = new THREE.Object3D(); tip.position.copy(end(1)); const butt = new THREE.Object3D(); butt.position.copy(end(-1)); norm.add(tip, butt); obj.userData.tip = tip; obj.userData.butt = butt;
   const inner = new THREE.Group(); inner.add(norm); orientForward(inner, fwd);
   const holder = new THREE.Group(); holder.add(inner);
   const ab = localBox(arm); const asz = ab.getSize(new THREE.Vector3());
@@ -917,9 +982,9 @@ function holdInHand(root, obj, { side = 'right', len = 0.4, fwd = '+z', grip = '
   const L = len * charHeight / Math.max(ws.x, 1e-6);
   // A rig that faces -z in its own frame (Roblox export) gets the mirrored tilt plus a half turn.
   const tilt = (x) => facing < 0 ? holder.rotation.set(-x, Math.PI, 0) : holder.rotation.set(x, 0, 0);
-  if (grip === 'gun') { tilt(Math.PI / 2); holder.position.y += L * 0.05; inner.position.z = -L * offset; }
+  if (grip === 'gun') { tilt(Math.PI / 2); if (!at) { holder.position.y += L * 0.05; inner.position.z = -L * offset; } }
   else if (grip === 'shield') { if (!att) { holder.position.y = ab.min.y + asz.y * 0.45; } holder.position.z += facing * (asz.z * 0.5 + L * 0.03); tilt(-Math.PI / 2); } // disc upright, face forward
-  else { tilt(-1.25); inner.position.z = L * offset; } // melee: mostly up, a little forward, so it rises with the swing
+  else { tilt(-1.25); if (!at) inner.position.z = L * offset; } // melee: mostly up, a little forward, so it rises with the swing
   arm.add(holder);
 }
 
@@ -1002,6 +1067,41 @@ function makeRigClips(n, sign) {
     clip('emote-no', 1, [new THREE.QuaternionKeyframeTrack(n.head + '.quaternion', [0, 0.25, 0.5, 0.75, 1], [0, 0.35, 0, -0.35, 0].flatMap(a => new THREE.Quaternion().setFromEuler(new THREE.Euler(0, a, 0)).toArray()))]),
     clip('die', 1, [new THREE.QuaternionKeyframeTrack(n.root + '.quaternion', [0, 1], [...qx(0).toArray(), ...new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI / 2)).toArray()])]),
   ];
+  // Skill moves (classes): bigger, readable motions. `te` takes [x, y] per key: x swings forward/back like `track`,
+  // y twists around the vertical axis. Forearm tracks only on rigs that have elbows (the exported avatar).
+  const te = (node, times, xy) => new THREE.QuaternionKeyframeTrack(node + '.quaternion', times, xy.flatMap(([x, y]) => new THREE.Quaternion().setFromEuler(new THREE.Euler(x * sign, y, 0, 'YXZ')).toArray()));
+  const fore = (side, times, angles) => (n[side] ? [track(n[side], times, angles)] : []);
+  const k = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+  animations.push(
+    // three quick kicks with the support hand on the gun
+    clip('skill-burst', 1.0, [track(n.armR, k, [F, F - 0.45, F, F - 0.45, F, F - 0.45, F, F, F, F, F]), track(n.armL, k, [F + 0.15, F - 0.3, F + 0.15, F - 0.3, F + 0.15, F - 0.3, F + 0.15, F + 0.15, F + 0.15, F + 0.15, F + 0.15]), track(n.torso, k, [0, -0.16, 0, -0.16, 0, -0.16, 0, 0, 0, 0, 0]), track(n.head, k, [0, -0.12, 0, -0.12, 0, -0.12, 0, 0, 0, 0, 0])]),
+    // one heavy kick that rocks the whole upper body back
+    clip('skill-recoil', 0.8, [track(n.armR, [0, 0.06, 0.35, 0.8], [F, F - 0.7, F + 0.05, F]), track(n.armL, [0, 0.06, 0.35, 0.8], [F + 0.15, F - 0.5, F + 0.15, F + 0.15]), track(n.torso, [0, 0.06, 0.35, 0.8], [0, -0.3, 0.05, 0]), track(n.head, [0, 0.06, 0.4, 0.8], [0, -0.25, 0, 0])]),
+    // wind up behind the head, lob forward, follow through
+    clip('skill-throw', 0.9, [track(n.armR, [0, 0.3, 0.45, 0.6, 0.9], [0, -2.9, -2.2, -0.6, 0]), ...fore('foreR', [0, 0.3, 0.45, 0.6, 0.9], [0, -1.2, -0.3, 0, 0]), track(n.armL, [0, 0.3, 0.55, 0.9], [0, -1.2, 0.4, 0]), track(n.torso, [0, 0.3, 0.55, 0.9], [0, -0.25, 0.35, 0])]),
+    // off-hand lob: the gun stays aimed in the right hand while the left winds up and throws
+    clip('skill-toss', 0.9, [track(n.armR, [0, 0.9], [F, F]), track(n.armL, [0, 0.3, 0.45, 0.6, 0.9], [0, -2.9, -2.2, -0.6, 0]), ...fore('foreL', [0, 0.3, 0.45, 0.6, 0.9], [0, -1.2, -0.3, 0, 0]), te(n.torso, [0, 0.3, 0.55, 0.9], [[0, 0], [-0.2, -0.35], [0.3, 0.25], [0, 0]])]),
+    // full turn with the weapon arm out
+    clip('skill-spin', 0.9, [te(n.root, [0, 0.15, 0.4, 0.65, 0.9], [[0, 0], [0, 0.4], [0, 2.4], [0, 4.4], [0, 6.283]]), track(n.armR, [0, 0.15, 0.75, 0.9], [0, -1.6, -1.6, 0]), track(n.armL, [0, 0.15, 0.75, 0.9], [0, -0.9, -0.9, 0]), track(n.torso, [0, 0.15, 0.75, 0.9], [0, 0.2, 0.2, 0])]),
+    // wide horizontal swing: arm up and out, upper body twists across
+    clip('skill-cleave', 0.8, [te(n.torso, [0, 0.3, 0.5, 0.8], [[0, 0], [-0.1, 0.9], [0.25, -0.9], [0, 0]]), track(n.armR, [0, 0.3, 0.5, 0.8], [0, -2.6, -1.3, 0]), track(n.armL, [0, 0.3, 0.5, 0.8], [0, -1.0, -0.6, 0])]),
+    // shield arm held across the front, braced
+    clip('skill-shield', 1.0, [track(n.armL, [0, 0.2, 1], [0, -0.4, -0.4]), track(n.armR, [0, 0.2, 1], [0, 0.45, 0.45]), track(n.torso, [0, 0.2, 1], [0, 0.18, 0.18]), track(n.legR, [0, 0.2, 1], [0, 0.35, 0.35]), track(n.legL, [0, 0.2, 1], [0, -0.35, -0.35])]),
+    // leaning sprint burst
+    clip('skill-dash', 0.5, [track(n.torso, [0, 0.1, 0.4, 0.5], [0, 0.55, 0.55, 0]), track(n.armR, [0, 0.1, 0.4, 0.5], [F, 0.9, 0.9, F]), track(n.armL, [0, 0.1, 0.4, 0.5], [F, 0.9, 0.9, F]), track(n.legR, [0, 0.1, 0.25, 0.4, 0.5], [0, -1.1, 0.8, -1.1, 0]), track(n.legL, [0, 0.1, 0.25, 0.4, 0.5], [0, 0.8, -1.1, 0.8, 0])]),
+    // raise the weapon hand overhead and thrust it at the target
+    clip('skill-cast', 0.9, [track(n.armR, [0, 0.3, 0.45, 0.6, 0.9], [0, -2.8, -2.8, -1.45, 0]), ...fore('foreR', [0, 0.3, 0.6, 0.9], [0, -0.5, 0, 0]), track(n.torso, [0, 0.3, 0.6, 0.9], [0, -0.15, 0.2, 0]), track(n.armL, [0, 0.3, 0.6, 0.9], [0, -0.6, 0.3, 0])]),
+    // both hands up, slam down: area spell
+    clip('skill-nova', 1.2, [track(n.armR, [0, 0.4, 0.6, 0.9, 1.2], [0, -3.0, -0.4, -0.4, 0]), track(n.armL, [0, 0.4, 0.6, 0.9, 1.2], [0, -3.0, -0.4, -0.4, 0]), track(n.torso, [0, 0.4, 0.6, 0.9, 1.2], [0, -0.25, 0.45, 0.45, 0]), track(n.legR, [0, 0.6, 0.9, 1.2], [0, -0.5, -0.5, 0]), track(n.legL, [0, 0.6, 0.9, 1.2], [0, 0.4, 0.4, 0])]),
+    // power-up: arms flexed up, chest out, shaking
+    clip('skill-roar', 1.2, [track(n.armR, k, [0, -2.7, -2.85, -2.7, -2.85, -2.7, -2.85, -2.7, -2.85, -1.2, 0]), track(n.armL, k, [0, -2.7, -2.85, -2.7, -2.85, -2.7, -2.85, -2.7, -2.85, -1.2, 0]), ...fore('foreR', [0, 0.2, 0.9, 1.0], [0, -0.35, -0.35, 0]), ...fore('foreL', [0, 0.2, 0.9, 1.0], [0, -0.35, -0.35, 0]), track(n.torso, [0, 0.2, 0.9, 1.0], [0, -0.28, -0.28, 0]), track(n.head, [0, 0.2, 0.9, 1.0], [0, -0.35, -0.35, 0])]),
+    // steady two-handed aim, head down to the sights, slow sweep
+    clip('skill-aim', 1.6, [te(n.torso, [0, 0.4, 1.2, 1.6], [[0.08, 0], [0.08, 0.25], [0.08, -0.25], [0.08, 0]]), track(n.armR, [0, 1.6], [F, F]), track(n.armL, [0, 1.6], [F + 0.12, F + 0.12]), track(n.head, [0, 1.6], [0.18, 0.18])]),
+    // sweeping a stream left to right
+    clip('skill-sweep', 1.5, [te(n.torso, [0, 0.35, 1.1, 1.5], [[0, 0], [0.05, 0.7], [0.05, -0.7], [0, 0]]), track(n.armR, [0, 0.1, 1.4, 1.5], [F, F + 0.1, F + 0.1, F]), track(n.armL, [0, 0.1, 1.4, 1.5], [F + 0.15, F + 0.2, F + 0.2, F + 0.15])]),
+    // kneel and set something on the ground
+    clip('skill-place', 1.0, [track(n.torso, [0, 0.35, 0.65, 1], [0, 0.75, 0.75, 0]), track(n.armR, [0, 0.35, 0.65, 1], [0, -1.2, -1.2, 0]), track(n.legR, [0, 0.35, 0.65, 1], [0, -1.1, -1.1, 0]), track(n.legL, [0, 0.35, 0.65, 1], [0, 0.6, 0.6, 0])]),
+  );
   return animations;
 }
 // The developer's own R15 avatar, exported from Studio (File > Export as glTF) to showcase/avatar/Rig.gltf.
@@ -1028,7 +1128,7 @@ async function makeAvatarRig() {
     const faceTex = new THREE.CanvasTexture(fc); faceTex.colorSpace = THREE.SRGBColorSpace;
     const face = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 0.95), new THREE.MeshBasicMaterial({ map: faceTex, transparent: true })); face.position.set(0, headH * 0.4, -0.6); face.rotation.y = Math.PI; headNode.add(face);
   }
-  const animations = makeRigClips({ armR: 'RightUpperArm', armL: 'LeftUpperArm', legR: 'RightUpperLeg', legL: 'LeftUpperLeg', head: 'Head', torso: 'UpperTorso', root: 'Rig' }, -1);
+  const animations = makeRigClips({ armR: 'RightUpperArm', armL: 'LeftUpperArm', foreR: 'RightLowerArm', foreL: 'LeftLowerArm', legR: 'RightUpperLeg', legL: 'LeftUpperLeg', head: 'Head', torso: 'UpperTorso', root: 'Rig' }, -1);
   return { scene: facing, animations, facing: -1 };
 }
 let clsRig = new URLSearchParams(location.search).get('rig') ?? 'avatar';
@@ -1058,20 +1158,32 @@ async function showClass(cls) {
   const charHeight = meshBox(root).getSize(new THREE.Vector3()).y;
   // A person-shaped figure is framed from its height, with room for a raised weapon; the pixel fit is for creatures.
   { const h = charHeight * 1.35, dist = (h / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.min(1, camera.aspect / 0.9);
-    controls.target.set(0, charHeight * 0.5, 0); camera.position.set(dist * 0.55, charHeight * 0.62, dist * 0.84); controls.minDistance = charHeight * 0.4; controls.update(); }
+    controls.target.set(0, charHeight * 0.5, charHeight * 0.45); camera.position.set(dist * 0.8, charHeight * 0.62, charHeight * 0.45 + dist * 0.6); controls.minDistance = charHeight * 0.4; controls.update(); } // three-quarter view, room in front for skill effects
   const extras = [];
+  const weapons = [];
   for (const w of cls.hold ?? []) {
     const obj = w.flail ? makeFlail() : await loadWeapon(w);
     holdInHand(root, obj, { ...w, fwd: w.flail ? '+y' : w.fwd, charHeight, facing });
+    weapons.push(obj);
   }
-  if (cls.turret) { const t = (await loadGltf(cls.turret)).scene.clone(true); t.traverse(o => { if (o.isMesh) o.castShadow = true; }); fitHeight(t, charHeight * 0.42); t.position.x += charHeight * 1.05; t.position.z -= charHeight * 0.1; t.rotation.y = Math.PI; root.parent.add(t); extras.push(t); }
+  // Melee secondary (slot 2 in game): in the same hand, hidden until the player switches to it.
+  let meleeObj = null;
+  if (cls.melee) { meleeObj = await loadWeapon(cls.melee); holdInHand(root, meleeObj, { ...cls.melee, charHeight, facing }); meleeObj.parent.parent.parent.visible = false; }
+  if (cls.turret) { const t = (await loadGltf(cls.turret)).scene.clone(true); t.traverse(o => { if (o.isMesh) o.castShadow = true; }); fitHeight(t, charHeight * 0.42); t.position.x += charHeight * 0.35; t.position.z -= charHeight * 0.9; /* the turret model already faces +z, like the player */ root.parent.add(t); extras.push(t); }
   let petMixer = null;
   if (cls.pet) { const pg = await loadGltf(cls.pet); const pet = cloneSkinned(pg.scene); fitHeight(pet, charHeight * 0.28); pet.position.set(-charHeight * 0.55, charHeight * 0.7, charHeight * 0.15); root.parent.add(pet); extras.push(pet); petMixer = new THREE.AnimationMixer(pet); const c = pg.animations.find(c => clipName(c) === cls.petAnims.idle) ?? pg.animations[0]; if (c) petMixer.clipAction(c).play(); }
   if (seq !== loadSeq) { scene.remove(root); extras.forEach(e => scene.remove(e)); return; }
   log(`class ${cls.id}: rig ${rigFile.split('/').pop()} size ${fsize.x.toFixed(2)}x${fsize.y.toFixed(2)}x${fsize.z.toFixed(2)} clips ${gltf.animations.length} weapons ${(cls.hold ?? []).length}`);
   classCooldowns = {};
-  current = { def: cls, root, mixer, extraMixers: petMixer ? [petMixer] : [], actions, hp: 1, maxHp: 1, state: 'idle', stepTimer: 0, animated: true, bob: false, extras, isClass: true };
+  current = { def: cls, root, mixer, extraMixers: petMixer ? [petMixer] : [], actions, hp: 1, maxHp: 1, state: 'idle', stepTimer: 0, animated: true, bob: false, extras, isClass: true, weapons, charHeight, meleeObj, slot: 1 };
   playAnim(cls.anims.idle);
+  // ?skill=1|2: fire that skill shortly after loading (visual checks of the skill move and effect).
+  const autoSkill = Number(new URLSearchParams(location.search).get('skill'));
+  if (autoSkill) { const fire = () => { if (current?.def !== cls) return; classCooldowns = {}; useSkill(autoSkill - 1); if (new URLSearchParams(location.search).has('agent')) fetch(`http://127.0.0.1:8799/__log/skillfired%20${cls.id}%20${autoSkill}`).catch(() => {}); setTimeout(fire, 6000 * timeScale); }; setTimeout(fire, 1500); }
+  // ?closeup=right|left|top: after the hold pose settles, look at the weapon hand from that side (grip checks).
+  const closeup = new URLSearchParams(location.search).get('closeup');
+  if (closeup) setTimeout(() => { const hand = findBone(root, /^RightHand$/) ?? findBone(root, ARM_R); if (!hand) return; const p = hand.getWorldPosition(new THREE.Vector3()), d = charHeight * 1.0;
+    controls.target.copy(p); camera.position.set(p.x + (closeup === 'left' ? d : closeup === 'top' ? 0.01 : -d), p.y + (closeup === 'top' ? d : d * 0.15), p.z); controls.update(); }, 600);
   $('hud-name').textContent = `${cls.id} · ${cls.weapon}`;
   $('hud-state').textContent = cls.tier === 'Free' ? 'Free class' : `Locked · ${cls.cost} gems`;
   $('cls-anim-select').innerHTML = gltf.animations.map(c => `<option>${clipName(c)}</option>`).join('');
@@ -1079,9 +1191,14 @@ async function showClass(cls) {
   $('btn-skill1').textContent = `${cls.skills[0].name} (${cls.skills[0].cooldown}s)`;
   $('btn-skill2').textContent = `${cls.skills[1].name} (${cls.skills[1].cooldown}s)`;
   $('btn-cls-repair').classList.toggle('hidden', !cls.skills[0].repair);
+  $('btn-cls-slot').classList.toggle('hidden', !cls.melee); $('btn-cls-slot').textContent = 'Switch to melee (2)';
+  if (new URLSearchParams(location.search).get('slot') === '2') setTimeout(() => setSlot(2), 800);
   $('cooldowns').textContent = 'Both skills ready.';
   $('stats').innerHTML = [
-    ['Tier', cls.tier === 'Free' ? 'Free' : `Locked · ${cls.cost} gems`], ['Role', cls.role], ['Weapon', cls.weapon + (cls.hold?.some(w => w.flail) ? ' (flail is a placeholder model)' : '')], ['Passive', cls.passive],
+    ['Tier', cls.tier === 'Free' ? 'Free' : `Locked · ${cls.cost} gems`], ['Role', cls.role], ['Health', `${cls.hp} HP`],
+    ['Weapon (1)', cls.weapon + (cls.hold?.some(w => w.flail) ? ' (flail is a placeholder model)' : '')],
+    ['Magazine', cls.magazine ? `${cls.magazine}${cls.id === 'Pyro' ? ' fuel' : ' rounds'} · reload ${cls.reload} s` : cls.hold?.some(w => w.grip === 'gun') ? '-' : 'None (melee / magic, never reloads)'],
+    ['Melee (2)', cls.melee ? `${cls.melee.name} · ${cls.melee.damage} damage · ${cls.melee.rate} swings/s` : 'None'], ['Passive', cls.passive],
     [`Skill 1 · ${cls.skills[0].name}`, `${cls.skills[0].desc}. Cooldown ${cls.skills[0].cooldown} s${cls.skills[0].duration ? `, lasts ${cls.skills[0].duration} s` : ''}. Anim: ${cls.skills[0].anim}${cls.skills[0].repair ? `; repair swing: ${cls.skills[0].repair}` : ''}`],
     [`Skill 2 · ${cls.skills[1].name}`, `${cls.skills[1].desc}. Cooldown ${cls.skills[1].cooldown} s${cls.skills[1].duration ? `, lasts ${cls.skills[1].duration} s` : ''}. Anim: ${cls.skills[1].anim}`],
   ].map(([k, v]) => `<tr><td>${k}</td><td style="text-align:left;font-weight:400">${v}</td></tr>`).join('');
@@ -1095,11 +1212,148 @@ function useSkill(i) {
   current.state = 'idle';
   play('impact_generic_light', 0.5);
   playAnim(skill.anim, { once: !skill.loop, then: () => playAnim(clsIdle()) });
+  skillFx(skill.fx, skill);
   if (skill.duration >= 3) setTimeout(() => { if (current?.def === cls && current.state !== 'walk' && current.state !== 'run') playAnim(clsIdle()); }, skill.duration * 1000);
+}
+// ---- Skill effects (preview only): short-lived meshes updated every frame. Each effect is
+// { obj, t, dur, step(k, dt) } with k = t / dur; the object leaves the scene when k reaches 1.
+const fxs = [];
+const fxTimeout = (fn, ms) => setTimeout(fn, ms * timeScale), fxInterval = (fn, ms) => setInterval(fn, ms * timeScale);
+function addFx(obj, dur, step, delay = 0) { const f = { obj, t: -delay, dur, step }; obj.visible = delay <= 0; scene.add(obj); fxs.push(f); return f; }
+function tickFx(dt) {
+  for (let i = fxs.length - 1; i >= 0; i--) {
+    const f = fxs[i]; f.t += dt; if (f.t < 0) continue; f.obj.visible = true;
+    const k = Math.min(1, f.t / f.dur); f.step?.(k, dt, f);
+    if (k >= 1) { scene.remove(f.obj); fxs.splice(i, 1); }
+  }
+}
+function clearFx() { for (const f of fxs) scene.remove(f.obj); fxs.length = 0; }
+const fxGlow = (color, opacity = 1) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending });
+function fxCtx() {
+  const root = current.root, h = current.charHeight;
+  const hand = side => (findBone(root, side === 'left' ? /^LeftHand$/ : /^RightHand$/) ?? findBone(root, side === 'left' ? ARM_L : ARM_R))?.getWorldPosition(new THREE.Vector3()) ?? new THREE.Vector3(0, h * 0.6, 0);
+  // muzzle: the front of the held weapon's box (the character faces +z)
+  const muzzle = (i = 0) => { const w = current.weapons?.[i]; if (!w?.userData.tip) return hand('right').add(new THREE.Vector3(0, 0, h * 0.2)); return w.userData.tip.getWorldPosition(new THREE.Vector3()); };
+  // where the barrel points: muzzle + barrel direction * d (falls back to straight ahead)
+  const aim = (d, i = 0) => { const w = current.weapons?.[i]; if (!w?.userData.tip) return new THREE.Vector3(0, h * 0.45, h * d); const t = w.userData.tip.getWorldPosition(new THREE.Vector3()), b = w.userData.butt.getWorldPosition(new THREE.Vector3()); return t.clone().addScaledVector(t.clone().sub(b).normalize(), h * d); };
+  const ahead = (d, y = 0.45) => new THREE.Vector3(0, h * y, h * d);
+  return { h, hand, muzzle, aim, ahead, root };
+}
+function muzzleFlash(pos, size, color = 0xffd27a, dur = 0.12) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(size, 10, 8), fxGlow(color));
+  m.position.copy(pos); addFx(m, dur, k => { m.scale.setScalar(1 + k * 1.5); m.material.opacity = 1 - k; });
+  const l = new THREE.PointLight(color, 6, size * 30); l.position.copy(pos); addFx(l, dur, k => { l.intensity = 6 * (1 - k); });
+}
+function bolt(from, to, { color = 0xffe08a, size, dur = 0.25, arc = 0, delay = 0, trail = true, onHit } = {}) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(size, 12, 8), fxGlow(color)); m.position.copy(from);
+  let hit = false, puff = 0;
+  addFx(m, dur, (k, dt) => {
+    m.position.lerpVectors(from, to, k); m.position.y += arc * 4 * k * (1 - k);
+    if (trail && (puff += dt) > 0.02) { puff = 0; const p = new THREE.Mesh(new THREE.SphereGeometry(size * 0.7, 8, 6), fxGlow(color, 0.6)); p.position.copy(m.position); addFx(p, 0.25, q => { p.scale.setScalar(1 - q); p.material.opacity = 0.6 * (1 - q); }); }
+    if (k >= 1 && !hit) { hit = true; onHit?.(to); }
+  }, delay);
+}
+function tracer(from, to, h, color = 0xffe08a, { onHit } = {}) { // a bright streak that flies from the muzzle
+  const len = h * 0.5, dir = to.clone().sub(from).normalize();
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(h * 0.012, h * 0.012, len, 6), fxGlow(color)); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+  let hit = false; addFx(m, 0.3, k => { m.position.lerpVectors(from, to, k).addScaledVector(dir, len / 2); if (k >= 1 && !hit) { hit = true; onHit?.(to); } });
+}
+function ring(pos, color, radius, dur = 0.6, { delay = 0, width = 0.12, y = 0.05 } = {}) {
+  const m = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 48), fxGlow(color, 0.9)); m.rotation.x = -Math.PI / 2; m.position.set(pos.x, pos.y + y, pos.z);
+  addFx(m, dur, k => { const r = 0.2 + radius * Math.sqrt(k); m.scale.set(r, r, 1); m.geometry.dispose(); m.geometry = new THREE.RingGeometry(Math.max(0, 1 - width / Math.max(r / radius, 0.2)), 1, 48); m.material.opacity = 0.9 * (1 - k); }, delay);
+}
+function sparks(pos, color, n, speed, { dur = 0.7, size, gravity = 9, up = 0.6, delay = 0 } = {}) {
+  for (let i = 0; i < n; i++) {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(size, 6, 4), fxGlow(color)); m.position.copy(pos);
+    const a = Math.random() * Math.PI * 2, e = Math.random() * up; const v = new THREE.Vector3(Math.cos(a) * Math.cos(e), Math.sin(e) + up * 0.5, Math.sin(a) * Math.cos(e)).multiplyScalar(speed * (0.5 + Math.random() * 0.7));
+    addFx(m, dur * (0.7 + Math.random() * 0.6), (k, dt) => { v.y -= gravity * dt; m.position.addScaledVector(v, dt); m.material.opacity = 1 - k; m.scale.setScalar(1 - k * 0.6); }, delay);
+  }
+}
+function boom(pos, h, color = 0xff8a2a, delay = 0) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(h * 0.35, 18, 12), fxGlow(color)); m.position.copy(pos);
+  addFx(m, 0.45, k => { m.scale.setScalar(0.3 + k * 1.4); m.material.opacity = 1 - k; }, delay);
+  sparks(pos, 0xffc04a, 18, h * 2.2, { size: h * 0.035, delay }); ring(pos.clone().setY(0), 0xff9a40, h * 1.2, 0.5, { delay, y: 0.03 });
+  if (delay <= 0) play('impact_generic_light', 0.6);
+}
+function aura(root, color, dur, h, { rise = true } = {}) {
+  const g = new THREE.Group(); g.position.copy(root.position);
+  const cyl = new THREE.Mesh(new THREE.CylinderGeometry(h * 0.42, h * 0.48, h * 1.05, 32, 1, true), fxGlow(color, 0.35)); cyl.position.y = h * 0.52; g.add(cyl);
+  let puff = 0;
+  addFx(g, dur, (k, dt) => {
+    cyl.material.opacity = 0.35 * Math.min(1, k * 8, (1 - k) * 6) * (0.75 + 0.25 * Math.sin(k * dur * 12)); cyl.rotation.y += dt * 2;
+    if (rise && (puff += dt) > 0.05) { puff = 0; const a = Math.random() * Math.PI * 2, p = new THREE.Mesh(new THREE.SphereGeometry(h * 0.025, 6, 4), fxGlow(color)); p.position.set(Math.cos(a) * h * 0.4, h * 0.05, Math.sin(a) * h * 0.4).add(root.position); addFx(p, 0.9, (q, d2) => { p.position.y += d2 * h * 1.1; p.material.opacity = 1 - q; }); }
+  });
+}
+function floatText(pos, text, color, h) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 96; const g = c.getContext('2d');
+  g.font = 'bold 60px system-ui, sans-serif'; g.textAlign = 'center'; g.lineWidth = 8; g.strokeStyle = '#000'; g.strokeText(text, 256, 70); g.fillStyle = color; g.fillText(text, 256, 70);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false })); sp.scale.set(h * 0.7, h * 0.13, 1); sp.position.copy(pos);
+  addFx(sp, 1.4, (k, dt) => { sp.position.y += dt * h * 0.4; sp.material.opacity = Math.min(1, (1 - k) * 3); });
+}
+function dummyTarget(pos, h, color = 0xff4444, dur = 1.5) { // stands in for a creature so aimed skills have something to hit
+  const m = new THREE.Mesh(new THREE.OctahedronGeometry(h * 0.12), fxGlow(color, 0.9)); m.position.copy(pos);
+  addFx(m, dur, (k, dt) => { m.rotation.y += dt * 3; m.material.opacity = 0.9 * Math.min(1, (1 - k) * 4); });
+  return m;
+}
+function skillFx(kind, skill) {
+  if (!kind || !current?.root) return;
+  const c = fxCtx(), h = c.h, Y = new THREE.Vector3(0, 1, 0);
+  const shot = (delay, spread = 0.1, color = 0xffe08a) => fxTimeout(() => { if (!current?.isClass) return; const m = c.muzzle(); muzzleFlash(m, h * 0.022); play('impact_metal_light', 0.25);
+    tracer(m, c.aim(3).add(new THREE.Vector3(0, (Math.random() - 0.5) * spread * h, 0)), h, color, { onHit: p => sparks(p, 0xffd27a, 6, h, { size: h * 0.015 }) }); }, delay * 1000);
+  switch (kind) {
+    case 'burst': [0.08, 0.28, 0.48].forEach(t => shot(t)); break;
+    case 'crate': fxTimeout(() => { const crate = new THREE.Mesh(new THREE.BoxGeometry(h * 0.22, h * 0.16, h * 0.16), new THREE.MeshStandardMaterial({ color: 0x5b6b3a, roughness: 0.8 }));
+      const lid = new THREE.Mesh(new THREE.BoxGeometry(h * 0.23, h * 0.03, h * 0.17), new THREE.MeshStandardMaterial({ color: 0xc9a227 })); lid.position.y = h * 0.09; crate.add(lid); crate.castShadow = true;
+      const from = c.hand('left'), to = new THREE.Vector3(h * 0.4, h * 0.08, h * 0.3); crate.position.copy(from);
+      addFx(crate, 4.5, (k, dt, f) => { const q = Math.min(1, f.t / 0.55); crate.position.lerpVectors(from, to, q); crate.position.y += h * 0.6 * 4 * q * (1 - q); crate.rotation.x = (1 - q) * 4; if (q >= 1 && !f.landed) { f.landed = true; ring(to, 0xffe066, h * 0.9, 0.7); sparks(to, 0xffe066, 10, h, { size: h * 0.02 }); floatText(to.clone().setY(h * 0.5), 'AMMO +20%', '#ffe066', h); play('impact_generic_light', 0.5); } if (k > 0.85) crate.scale.setScalar((1 - k) / 0.15); }); }, 450); break;
+    case 'sweep': { const g = new THREE.Mesh(new THREE.TorusGeometry(h * 0.75, h * 0.03, 6, 48, Math.PI * 1.4), fxGlow(0xd8d8ff, 0.8)); g.rotation.x = Math.PI / 2; g.position.set(0, h * 0.5, 0); addFx(g, 0.9, (k, dt) => { g.rotation.z += dt * 8; g.material.opacity = 0.8 * (1 - k); });
+      ring(new THREE.Vector3(), 0xcfcfff, h * 1.4, 0.7, { delay: 0.3 }); sparks(new THREE.Vector3(0, h * 0.1, 0), 0xb59a6a, 20, h * 1.6, { size: h * 0.025, delay: 0.3, up: 0.3 }); break; }
+    case 'shield': { const dome = new THREE.Mesh(new THREE.SphereGeometry(h * 0.6, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), fxGlow(0x5aa8ff, 0.25)); dome.scale.set(1, 1.3, 1); addFx(dome, skill.duration, (k, dt) => { dome.material.opacity = 0.25 * Math.min(1, k * 20, (1 - k) * 10) * (0.8 + 0.2 * Math.sin(k * 40)); });
+      ring(new THREE.Vector3(), 0x5aa8ff, h * 1.2, 0.6); floatText(new THREE.Vector3(0, h * 1.25, 0), 'TAUNT', '#7ec0ff', h); break; }
+    case 'dash': { const r = c.root, z0 = r.position.z; addFx(new THREE.Group(), 0.5, k => { r.position.z = z0 + h * 0.7 * Math.sin(Math.PI * Math.min(1, k * 1.25)) * (k < 0.8 ? 1 : (1 - k) / 0.2); });
+      for (let i = 0; i < 5; i++) { const l = new THREE.Mesh(new THREE.BoxGeometry(h * 0.01, h * 0.01, h * 0.9), fxGlow(0xffffff, 0.7)); l.position.set((Math.random() - 0.5) * h * 0.6, h * (0.25 + Math.random() * 0.6), h * 0.3); addFx(l, 0.4, k => { l.position.z = h * (0.3 + k * 0.8); l.material.opacity = 0.7 * (1 - k); }, i * 0.04); } break; }
+    case 'mark': { const p = c.ahead(2.4, 0.35); dummyTarget(p, h, 0xff5555, skill.duration || 2); fxTimeout(() => { const m = c.muzzle(); muzzleFlash(m, h * 0.04, 0xff6060); bolt(m, p, { color: 0xff5050, size: h * 0.02, dur: 0.2, onHit: q => { ring(q.clone().setY(0), 0xff4444, h * 0.5, 0.6); floatText(q.clone().add(new THREE.Vector3(0, h * 0.25, 0)), '+30%', '#ff6b6b', h); } }); }, 200); break; }
+    case 'repair': ring(new THREE.Vector3(), 0x5cff8a, h * 2.2, 1.0, { delay: 0.45 }); ring(new THREE.Vector3(), 0x5cff8a, h * 1.6, 1.0, { delay: 0.6 }); sparks(c.hand('right'), 0x7dffa0, 14, h, { size: h * 0.02, delay: 0.35, gravity: -2 }); fxTimeout(() => floatText(new THREE.Vector3(0, h * 1.2, 0), '+150 HP', '#5cff8a', h), 500); break;
+    case 'overcharge': aura(c.root, 0xffd23f, skill.duration || 3, h); floatText(new THREE.Vector3(0, h * 1.3, 0), 'INVULNERABLE', '#ffd23f', h); break;
+    case 'turret': { const t = current.extras?.[0]; if (t) { const s0 = t.scale.clone(); t.scale.setScalar(0.001); addFx(new THREE.Group(), 0.6, k => t.scale.copy(s0).multiplyScalar(Math.max(0.001, k < 0.6 ? 0 : (k - 0.6) / 0.4 * (1 + 0.15 * Math.sin((k - 0.6) * 20))))); fxTimeout(() => { t.scale.copy(s0); ring(t.position, 0x9fd3ff, h * 0.8, 0.6); sparks(t.position.clone().setY(h * 0.1), 0xbfbfbf, 14, h, { size: h * 0.02, up: 0.4 }); }, 650); } break; }
+    case 'overclock': { const t = current.extras?.[0]; aura(c.root, 0x6fd3ff, 1.6, h, { rise: false }); if (t) { const tb = new THREE.Box3().setFromObject(t); const tm = new THREE.Vector3((tb.min.x + tb.max.x) / 2, tb.min.y + (tb.max.y - tb.min.y) * 0.7, tb.max.z);
+      for (let i = 0; i < 10; i++) fxTimeout(() => { if (!current?.isClass) return; muzzleFlash(tm, h * 0.04); bolt(tm, tm.clone().add(new THREE.Vector3(0, 0, h * 2)), { size: h * 0.015, dur: 0.15 }); }, 300 + i * 110); floatText(tm.clone().add(new THREE.Vector3(0, h * 0.3, 0)), 'x2 FIRE RATE', '#6fd3ff', h); } break; }
+    case 'cleave': { const g = new THREE.Mesh(new THREE.TorusGeometry(h * 0.7, h * 0.05, 6, 40, Math.PI * 0.9), fxGlow(0xffffff, 0.85)); g.rotation.set(Math.PI / 2, 0, Math.PI * 0.05); g.position.set(0, h * 0.55, h * 0.15); addFx(g, 0.35, k => { g.rotation.z = Math.PI * (0.05 + k * 0.9) - Math.PI * 0.45; g.material.opacity = 0.85 * (1 - k); }, 0.3);
+      [-1, 0, 1].forEach(i => sparks(new THREE.Vector3(i * h * 0.5, h * 0.5, h * 1.0), 0xff5a5a, 6, h, { size: h * 0.025, delay: 0.45 })); break; }
+    case 'rage': aura(c.root, 0xff3b30, Math.min(skill.duration || 3, 4), h); sparks(new THREE.Vector3(0, h * 0.9, 0), 0xff6b4a, 24, h * 1.8, { size: h * 0.03, delay: 0.2 }); floatText(new THREE.Vector3(0, h * 1.3, 0), 'RAGE', '#ff4b3a', h); break;
+    case 'arcane': { const p = c.ahead(2.4, 0.4); dummyTarget(p, h, 0xff4444, 1.4); fxTimeout(() => { const from = c.hand('right').add(new THREE.Vector3(0, h * 0.25, 0)); muzzleFlash(from, h * 0.06, 0xb06bff); bolt(from, p, { color: 0xb06bff, size: h * 0.06, dur: 0.45, arc: h * 0.5, onHit: q => { sparks(q, 0xc98bff, 16, h * 1.4, { size: h * 0.025 }); floatText(q.clone().add(new THREE.Vector3(0, h * 0.2, 0)), '35', '#d6a8ff', h); } }); }, 480); break; }
+    case 'nova': fxTimeout(() => { ring(new THREE.Vector3(), 0x9ee8ff, h * 3, 0.8); ring(new THREE.Vector3(), 0xffffff, h * 2.2, 0.7, { delay: 0.1 });
+      for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, sh = new THREE.Mesh(new THREE.ConeGeometry(h * 0.06, h * 0.35, 5), new THREE.MeshStandardMaterial({ color: 0xbfefff, transparent: true, opacity: 0.85, roughness: 0.1 })); sh.position.set(Math.cos(a) * h * 1.2, 0, Math.sin(a) * h * 1.2); addFx(sh, 2.6, k => { sh.position.y = h * 0.17 * Math.min(1, k * 10); sh.material.opacity = 0.85 * Math.min(1, (1 - k) * 4); }, 0.1 + i * 0.02); }
+      sparks(new THREE.Vector3(0, h * 0.1, 0), 0xdff7ff, 24, h * 2, { size: h * 0.02, up: 0.3 }); }, 600); break;
+    case 'flames': { let n = 0; const iv = fxInterval(() => { if (!current?.isClass || ++n > 40) return clearInterval(iv); const m = c.muzzle(); const dir = new THREE.Vector3(0, 0, 1).applyAxisAngle(Y, current.root.getObjectByName('UpperTorso')?.rotation?.y ?? 0);
+      for (let i = 0; i < 2; i++) { const f = new THREE.Mesh(new THREE.SphereGeometry(h * 0.025, 8, 6), fxGlow(i ? 0xff6a00 : 0xffc23a, 0.8)); f.position.copy(m); const v = c.aim(1).sub(m).normalize().multiplyScalar(h * 2.2).add(new THREE.Vector3((Math.random() - 0.5) * h * 0.5, (Math.random() - 0.3) * h * 0.25, (Math.random() - 0.5) * h * 0.5));
+        addFx(f, 0.5, (k, dt) => { f.position.addScaledVector(v, dt); f.scale.setScalar(1 + k * 2.5); f.material.opacity = 0.8 * (1 - k); f.material.color.setHex(k > 0.5 ? 0xaa2200 : f.material.color.getHex()); }); } }, 35); break; }
+    case 'firewall': fxTimeout(() => { for (let i = -4; i <= 4; i++) { const base = new THREE.Vector3(i * h * 0.18, 0, h * 1.1 - i * h * 0.1);
+      for (let j = 0; j < 2; j++) { const fl = new THREE.Mesh(new THREE.ConeGeometry(h * 0.09, h * 0.38, 8), fxGlow(j ? 0xffc23a : 0xff5a00, 0.8)); fl.position.copy(base); addFx(fl, 3.5, k => { const s = Math.min(1, k * 10) * Math.min(1, (1 - k) * 5) * (0.8 + 0.3 * Math.sin(k * 60 + i * 2 + j)); fl.scale.set(1, s * (j ? 0.7 : 1), 1); fl.position.y = h * 0.19 * s * (j ? 0.7 : 1); }, Math.abs(i) * 0.05); } } }, 550); break;
+    case 'pierce': fxTimeout(() => { const m = c.muzzle(); muzzleFlash(m, h * 0.09); play('impact_metal_heavy', 0.6); const targets = [1.0, 1.4, 1.8, 2.2, 2.6].map((d, i) => dummyTarget(new THREE.Vector3((i % 2 - 0.5) * h * 0.1, h * 0.42, h * d), h, 0xff4444, 1.2));
+      const beam = new THREE.Mesh(new THREE.CylinderGeometry(h * 0.012, h * 0.012, h * 4, 6), fxGlow(0xfff2b0)); beam.rotation.x = Math.PI / 2; beam.position.set(m.x, m.y, m.z + h * 2); addFx(beam, 0.35, k => { beam.material.opacity = 1 - k; beam.scale.x = beam.scale.z = 1 + k * 3; });
+      targets.forEach((t, i) => fxTimeout(() => sparks(t.position, 0xffd27a, 8, h, { size: h * 0.02 }), 40 + i * 30)); }, 60); break;
+    case 'laser': { const beam = new THREE.Mesh(new THREE.CylinderGeometry(h * 0.004, h * 0.004, h * 5, 4), fxGlow(0xff2020, 0.9)); beam.rotation.x = Math.PI / 2; addFx(beam, Math.min(skill.duration || 3, 5), () => { const m = c.muzzle(); beam.position.set(m.x, m.y, m.z + h * 2.5); });
+      const dot = dummyTarget(c.ahead(3, 0.4), h, 0xff2020, Math.min(skill.duration || 3, 5)); dot.scale.setScalar(0.5); floatText(new THREE.Vector3(0, h * 1.25, 0), 'CRIT x5', '#ff5050', h); break; }
+    case 'grenade': fxTimeout(() => { const from = c.hand('left'), to = new THREE.Vector3(h * 0.25, h * 0.05, h * 1.0); bolt(from, to, { color: 0x6b8e3a, size: h * 0.05, dur: 0.7, arc: h * 1.2, trail: false, onHit: p => boom(p, h) }); }, 450); break;
+    case 'cluster': fxTimeout(() => { const m = c.muzzle(); muzzleFlash(m, h * 0.08, 0xffb060); const mid = new THREE.Vector3(0, h * 0.9, h * 0.8);
+      bolt(m, mid, { size: h * 0.06, dur: 0.35, arc: h * 0.4, color: 0xffb060, onHit: q => { for (let i = 0; i < 6; i++) { const to = new THREE.Vector3((i - 2.5) * h * 0.3, 0, h * (0.9 + (i % 2) * 0.35)); bolt(q, to, { size: h * 0.03, dur: 0.45, arc: h * 0.4, color: 0xffb060, onHit: p => boom(p, h * 0.55), delay: i * 0.05 }); } } }); }, 60); break;
+  }
 }
 $('btn-skill1').onclick = () => useSkill(0);
 $('btn-skill2').onclick = () => useSkill(1);
 $('btn-cls-repair').onclick = () => { if (current?.isClass) { play('impact_metal_light', 0.6); playAnim(current.def.skills[0].repair, { once: true, then: () => playAnim(clsIdle()) }); } };
+function setSlot(slot) {
+  if (!current?.isClass) return;
+  if (slot === 2 && !current.meleeObj) return;
+  current.slot = slot;
+  const holderOf = o => o.parent.parent.parent; // obj -> norm -> inner -> holder
+  current.weapons.forEach((w, i) => { if (i === 0 || current.def.hold[i]?.side === 'right') holderOf(w).visible = slot === 1; });
+  if (current.meleeObj) holderOf(current.meleeObj).visible = slot === 2;
+  $('btn-cls-slot').textContent = slot === 1 ? `Switch to melee (2)` : 'Switch to primary (1)';
+  if (slot === 2) { play('impact_metal_light', 0.4); playAnim('attack-melee-right', { once: true, then: () => playAnim('idle') }); } else playAnim(clsIdle());
+}
+$('btn-cls-slot').onclick = () => setSlot(current?.slot === 2 ? 1 : 2);
 $('btn-cls-walk').onclick = () => { if (current?.isClass) { current.state = 'walk'; playAnim('walk'); } };
 $('btn-cls-run').onclick = () => { if (current?.isClass) { current.state = 'run'; playAnim('sprint'); } };
 $('btn-cls-idle').onclick = () => { if (current?.isClass) { current.state = 'idle'; playAnim(clsIdle()); } };
@@ -1122,7 +1376,8 @@ function playAnim(name, { once = false, then = null } = {}) {
     once = false;
   }
   if (active && active !== next) active.fadeOut(0.15);
-  next.reset().setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat).fadeIn(0.15).play();
+  if (active === next) next.reset().setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat).play();
+  else next.reset().setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat).fadeIn(0.15).play();
   next.clampWhenFinished = once;
   active = next;
   $('hud-state').textContent = name;
@@ -1393,7 +1648,7 @@ function groundNow(cur, k = 1) {
 }
 function tick() {
   requestAnimationFrame(tick);
-  const dt = clock.getDelta();
+  const dt = clock.getDelta() / (current?.isClass ? timeScale : 1);
   if (current?.isClass) {
     let txt = [];
     for (const [i, cd] of Object.entries(classCooldowns)) { if (cd > 0) { classCooldowns[i] = Math.max(0, cd - dt); txt.push(`${current.def.skills[i].name}: ${classCooldowns[i].toFixed(1)} s`); } }
@@ -1418,6 +1673,7 @@ function tick() {
   } else if (current && $('chk-spin').checked) {
     current.root.rotation.y += dt * 0.6;
   }
+  tickFx(dt);
   applyZoom();
   controls.update();
   renderer.render(scene, camera);
