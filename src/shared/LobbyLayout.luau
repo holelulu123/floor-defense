@@ -112,6 +112,25 @@ LobbyLayout.Zones = {
 	},
 } :: { Zone }
 
+-- Each dungeon's accent colour (RGB 0-255): its light pillar and sign in the lobby. All distinct and bright enough
+-- to read against the sky from the spawn plaza.
+LobbyLayout.Accents = {
+	Graveyard = { 150, 110, 255 },
+	Farm = { 255, 220, 80 },
+	Swamp = { 110, 205, 90 },
+	Sewer = { 190, 255, 60 },
+	Village = { 255, 145, 60 },
+	Frozen = { 170, 240, 255 },
+	Jungle = { 40, 230, 170 },
+	Pirate = { 40, 160, 255 },
+	Factory = { 255, 70, 50 },
+	Station = { 235, 90, 255 },
+} :: { [string]: { number } }
+
+function LobbyLayout.accent(dungeonId: string): { number }
+	return LobbyLayout.Accents[dungeonId] or { 255, 180, 84 }
+end
+
 function LobbyLayout.mode(name: string): Mode
 	for _, m in LobbyLayout.Modes do
 		if m.mode == name then

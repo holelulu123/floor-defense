@@ -102,4 +102,15 @@ for _, zone in LobbyLayout.Zones do
 	assert(math.sqrt(zone.x ^ 2 + zone.z ^ 2) - zone.radius > LobbyLayout.PlazaRadius, `{zone.id} clear of the plaza`)
 end
 
+-- every dungeon has its own accent colour for the lobby light pillar and sign
+local seenAccent = {}
+for _, dungeon in Dungeons.List do
+	local c = LobbyLayout.Accents[dungeon.id]
+	assert(c, `{dungeon.id} has an accent colour`)
+	local key = `{c[1]},{c[2]},{c[3]}`
+	assert(not seenAccent[key], `{dungeon.id} accent is unique`)
+	seenAccent[key] = true
+	assert(math.max(c[1], c[2], c[3]) >= 160, `{dungeon.id} accent is bright`)
+end
+
 print("LobbyLayout.spec: ok")

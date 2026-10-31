@@ -5,17 +5,20 @@
 -- countdown finishes; countdown rules live in PadLogic so they stay unit-testable. Meshes replace the
 -- placeholder blocks later; every Part that stands in for a prop carries a "Model" attribute.
 
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local BackdropPlan = require(ReplicatedStorage.Shared.Backdrop)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Dungeons = require(ReplicatedStorage.Shared.Dungeons)
 local LobbyLayout = require(ReplicatedStorage.Shared.LobbyLayout)
 local PadLogic = require(ReplicatedStorage.Shared.PadLogic)
 local ModelFit = require(ReplicatedStorage.Shared.ModelFit)
 local Roster = require(ReplicatedStorage.Shared.Roster)
+local Backdrop = require(script.Parent.Backdrop)
 local Models = require(script.Parent.Models)
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -31,6 +34,9 @@ local Y_PATH = 0.15 -- dungeon spokes (they only overlap each other under the pl
 local Y_ZONE_PATH = 0.17 -- paths to the scoreboard, shop and reserved plots (+0.008 each, up to 0.21)
 local Y_ROAD = 0.22 -- ring road segments, crossing the spokes; consecutive segments alternate +0.03
 local Y_PLAZA = 0.3
+-- Dungeon plinths: each diorama stands on its own stone block whose top is PLINTH_HEIGHT above the plaza plus
+-- index * 0.01 (unique per plot), with a step half as high in front of it where the spoke arrives.
+local PLINTH_HEIGHT = 2.4
 local PAD_HEIGHT = 0.5
 
 local GRASS = Color3.fromRGB(79, 138, 58)
@@ -45,6 +51,9 @@ local MODE_COLORS = {
 	Squad = Color3.fromRGB(255, 138, 95),
 }
 local MODE_SUBTITLES = { Solo = "1 player", Duo = "2 players", Squad = "4 players" }
+local LOCKED_GREY = Color3.fromRGB(150, 150, 158)
+local MARKER_TAG = "LobbyDungeonMarker" -- LobbyMarkers.client recolours these per player level
+local BEAM_HEIGHT = 160
 
 type Pad = {
 	def: LobbyLayout.PadDef,
@@ -127,7 +136,8 @@ local function billboard(
 	text: string,
 	sub: string,
 	color: Color3,
-	width: number
+	width: number,
+	maxDistance: number?
 ): TextLabel
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Sign"
@@ -135,7 +145,7 @@ local function billboard(
 	local studs = width / 20
 	gui.Size = UDim2.fromScale(studs, studs * 0.3)
 	gui.StudsOffsetWorldSpace = Vector3.new(0, height, 0)
-	gui.MaxDistance = if width <= 170 then 110 else 260
+	gui.MaxDistance = maxDistance or if width <= 170 then 110 else 260
 	gui.AlwaysOnTop = false
 	gui.Parent = parent
 
@@ -164,11 +174,12 @@ local function billboard(
 	return subtitle
 end
 
-local function post(x: number, z: number, height: number, parent: Instance): Part
+local function post(x: number, z: number, height: number, parent: Instance, base: number?): Part
+	local bottom = base or Y_PLAZA
 	return part({
 		Name = "Post",
 		Size = Vector3.new(1, height, 1),
-		Position = Vector3.new(x, Y_PLAZA + height / 2, z),
+		Position = Vector3.new(x, bottom + height / 2, z),
 		Color = WOOD,
 		Material = Enum.Material.Wood,
 		Parent = parent,
@@ -186,14 +197,15 @@ local function segmentDistance(x: number, z: number, s: { number }): number
 	return math.sqrt((x - s[1] - dx * t) ^ 2 + (z - s[2] - dz * t) ^ 2)
 end
 
-local function isFree(x: number, z: number): boolean
+local function isFree(x: number, z: number, margin: number?): boolean
+	local m = margin or 0
 	for _, k in keepClear do
-		if math.sqrt((x - k[1]) ^ 2 + (z - k[2]) ^ 2) <= k[3] then
+		if math.sqrt((x - k[1]) ^ 2 + (z - k[2]) ^ 2) <= k[3] + m then
 			return false
 		end
 	end
 	for _, s in keepSpokes do
-		if segmentDistance(x, z, s) <= 9 then
+		if segmentDistance(x, z, s) <= 9 + m then
 			return false
 		end
 	end
@@ -373,8 +385,129 @@ local function swapForProp(placeholder: Part, propName: string, height: number, 
 	end)
 end
 
--- One dungeon's plot: brick spoke from the plaza, a themed diorama with a mini tower and gate, the
--- name sign, and the three pads on the pad ring in front of it.
+-- Whether a dungeon shows as open before any player's level is known (the client restyles it per player).
+local function openByDefault(dungeon: Dungeons.Dungeon): boolean
+	return unlockAll or dungeon.unlockLevel <= 1
+end
+
+local function markerSubtitle(dungeon: Dungeons.Dungeon, open: boolean): string
+	if not open then
+		return `LOCKED - reach Level {dungeon.unlockLevel}`
+	end
+	return if dungeon.unlockLevel > 1 then `Level {dungeon.unlockLevel} - open` else "Level 1 - start here"
+end
+
+-- What makes a plot read from the spawn plaza: a stone plinth with a step, a tall light pillar in the dungeon's
+-- accent colour and a big name sign. Grouped in a persistent Model (streamed to every client from the start) tagged
+-- for LobbyMarkers.client, which greys out the pillar and sign for dungeons above the local player's level.
+local function buildMarker(
+	dungeon: Dungeons.Dungeon,
+	frame: CFrame,
+	plinthTop: number,
+	signHeight: number,
+	parent: Instance
+)
+	local depth = LobbyLayout.Diorama.depth
+	local width = LobbyLayout.Diorama.width
+	local accent = rgb(LobbyLayout.accent(dungeon.id))
+	local open = openByDefault(dungeon)
+	local color = if open then accent else LOCKED_GREY
+
+	local marker = Instance.new("Model")
+	marker.Name = "Marker"
+	marker.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+	marker:SetAttribute("Dungeon", dungeon.id)
+	marker:SetAttribute("UnlockLevel", dungeon.unlockLevel)
+	marker:SetAttribute("Accent", accent)
+
+	-- The plinth sinks below the field so only its top and sides show.
+	local bottom = Y_FIELD - 1
+	local plinth = part({
+		Name = "Plinth",
+		Size = Vector3.new(width + 4, plinthTop - bottom, depth + 4),
+		CFrame = frame * CFrame.new(0, (plinthTop + bottom) / 2, 0),
+		Color = Color3.fromRGB(118, 112, 104),
+		Material = Enum.Material.Cobblestone,
+		Parent = marker,
+	})
+	marker.PrimaryPart = plinth
+	-- Step where the spoke arrives: reaches 0.5 into the plinth, top halfway up (lower than the plinth top).
+	local stepTop = (Y_PLAZA + plinthTop) / 2
+	part({
+		Name = "Step",
+		Size = Vector3.new(LobbyLayout.PathWidth + 2, stepTop - bottom, 4.5),
+		CFrame = frame * CFrame.new(0, (stepTop + bottom) / 2, -(depth + 4) / 2 - 2 + 0.5),
+		Color = Color3.fromRGB(128, 121, 112),
+		Material = Enum.Material.Cobblestone,
+		Parent = marker,
+	})
+
+	-- Light pillar behind the tower; its foot is sunk into the plinth so no face sits on the plinth top, and the glow
+	-- stays inside the plinth's footprint.
+	local beamFoot = plinthTop - 1
+	local beamPos = frame * CFrame.new(0, beamFoot + BEAM_HEIGHT / 2, depth / 2 - 1.6)
+	local vertical = CFrame.Angles(0, 0, math.pi / 2) -- a Cylinder's axis is its X
+	part({
+		Name = "Beam",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(BEAM_HEIGHT, 2.6, 2.6),
+		CFrame = beamPos * vertical,
+		Color = color,
+		Material = Enum.Material.Neon,
+		Transparency = if open then 0.15 else 0.55,
+		CanCollide = false,
+		CanQuery = false,
+		CanTouch = false,
+		CastShadow = false,
+		Parent = marker,
+	})
+	part({
+		Name = "Glow",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(BEAM_HEIGHT - 10, 7, 7),
+		CFrame = (beamPos * CFrame.new(0, -5, 0)) * vertical,
+		Color = color,
+		Material = Enum.Material.Neon,
+		Transparency = if open then 0.82 else 0.93,
+		CanCollide = false,
+		CanQuery = false,
+		CanTouch = false,
+		CastShadow = false,
+		Parent = marker,
+	})
+	local lightAt = Instance.new("Attachment")
+	lightAt.Name = "BeamLight"
+	lightAt.Position = Vector3.new(0, plinth.Size.Y / 2 + 8, depth / 2 - 2)
+	lightAt.Parent = plinth
+	local light = Instance.new("PointLight")
+	light.Color = accent
+	light.Range = 40
+	light.Brightness = 2.5
+	light.Enabled = open
+	light.Parent = lightAt
+
+	-- Name sign high over the diorama, readable across the field.
+	local subtitle = billboard(
+		plinth,
+		plinth.Size.Y / 2 + signHeight,
+		dungeon.name,
+		markerSubtitle(dungeon, open),
+		if open then accent:Lerp(Color3.new(1, 1, 1), 0.35) else LOCKED_GREY,
+		880,
+		1200
+	)
+	local sign = subtitle.Parent :: BillboardGui
+	sign.Name = "NameSign"
+	sign.LightInfluence = 0
+	subtitle.TextColor3 = if open then Color3.new(1, 1, 1) else Color3.fromRGB(205, 205, 210)
+
+	CollectionService:AddTag(marker, MARKER_TAG)
+	marker.Parent = parent
+	return marker
+end
+
+-- One dungeon's plot: brick spoke from the plaza, a themed diorama on a stone plinth with a mini tower and gate, a
+-- light pillar and the name signs, and the three pads on the pad ring in front of it.
 local function buildPlot(plot: LobbyLayout.Plot, folder: Folder, padFolder: Folder)
 	local dungeon = Dungeons.get(plot.dungeonId)
 	local theme = Roster.theme(plot.dungeonId)
@@ -388,11 +521,16 @@ local function buildPlot(plot: LobbyLayout.Plot, folder: Folder, padFolder: Fold
 	local frame = CFrame.lookAt(centre, centre - radial)
 	local depth = LobbyLayout.Diorama.depth
 	local width = LobbyLayout.Diorama.width
+	-- Plinth top (unique per plot); the diorama floor's top sits 0.3 above it, everything else stands on `base`.
+	local plinthTop = Y_PLAZA + PLINTH_HEIGHT + plot.index * 0.01
+	local base = plinthTop + 0.3
+	local towerHeight = math.clamp(theme.towerHeight * 1.4 * 1.6, 16, 29)
+	buildMarker(dungeon, frame, plinthTop, towerHeight + 16, plotFolder)
 
 	local floor = part({
 		Name = "Diorama",
 		Size = Vector3.new(width, 0.6, depth),
-		CFrame = frame * CFrame.new(0, Y_PLAZA - 0.3, 0),
+		CFrame = frame * CFrame.new(0, base - 0.3, 0),
 		Color = rgb(theme.ground),
 		Material = Enum.Material.Grass,
 		Parent = plotFolder,
@@ -403,28 +541,27 @@ local function buildPlot(plot: LobbyLayout.Plot, folder: Folder, padFolder: Fold
 	part({
 		Name = "MiniLane",
 		Size = Vector3.new(4, 0.2, depth * 0.7),
-		CFrame = frame * CFrame.new(0, Y_PLAZA + 0.1, -depth * 0.05),
+		CFrame = frame * CFrame.new(0, base + 0.1, -depth * 0.05),
 		Color = rgb(theme.path),
 		Material = Enum.Material.Cobblestone,
 		Parent = plotFolder,
 	})
 
-	local towerHeight = math.clamp(theme.towerHeight * 1.4, 10, 18)
 	local tower = part({
 		Name = theme.tower,
-		Size = Vector3.new(8, towerHeight, 8),
-		CFrame = frame * CFrame.new(0, Y_PLAZA + towerHeight / 2, depth / 2 - 7),
+		Size = Vector3.new(12, towerHeight, 12),
+		CFrame = frame * CFrame.new(0, base + towerHeight / 2, depth / 2 - 12),
 		Color = Color3.fromRGB(190, 170, 120),
 		Material = Enum.Material.Brick,
 		Parent = plotFolder,
 	})
 	tower:SetAttribute("Model", theme.tower)
-	swapForProp(tower, theme.tower, towerHeight, 14)
+	swapForProp(tower, theme.tower, towerHeight, 22)
 
 	local gate = part({
 		Name = theme.gate,
 		Size = Vector3.new(8, 4, 1),
-		CFrame = frame * CFrame.new(0, Y_PLAZA + 2, -depth / 2 + 2),
+		CFrame = frame * CFrame.new(0, base + 2, -depth / 2 + 2),
 		Color = Color3.fromRGB(40, 40, 50),
 		Material = Enum.Material.Slate,
 		Parent = plotFolder,
@@ -437,7 +574,8 @@ local function buildPlot(plot: LobbyLayout.Plot, folder: Folder, padFolder: Fold
 		plot.x - plot.tx * 8 - plot.ux * (depth / 2 - 4),
 		plot.z - plot.tz * 8 - plot.uz * (depth / 2 - 4),
 		10,
-		plotFolder
+		plotFolder,
+		base
 	)
 	signPost.Name = "SignPost"
 	local sub = if dungeon.unlockLevel > 1 then `Unlocks at Level {dungeon.unlockLevel}` else "Level 1"
@@ -748,8 +886,19 @@ function Lobby.start(onLaunch: (mode: string, players: { Player }, dungeonId: st
 		buildZone(zone, zones)
 	end
 
+	-- Low grass mounds in the outskirts, clear of paths, plots and zones; trees keep off them.
+	local mounds = BackdropPlan.fieldMounds(20251031, 14, function(x: number, z: number, reach: number): boolean
+		return isFree(x, z, reach)
+	end)
+	for _, f in BackdropPlan.footprints(mounds) do
+		table.insert(keepClear, { f[1], f[2], f[3] + 3 })
+	end
+
 	buildTrees(folder, random)
 	folder.Parent = Workspace
+	-- Terrain: the mounds, a grass lip round the field rim, hills and snowy mountains beyond (fills in over a few
+	-- frames, see Backdrop.luau).
+	Backdrop.buildLobby(mounds)
 
 	task.spawn(function()
 		while true do

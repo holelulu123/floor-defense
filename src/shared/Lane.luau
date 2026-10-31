@@ -54,6 +54,9 @@ local function rng(seed: number): () -> number
 	end
 end
 
+-- The same generator for other pure layout modules (Backdrop) that want seeded, platform-independent randomness.
+Lane.random = rng
+
 function Lane.seed(text: string): number
 	local h = 7
 	for i = 1, #text do
@@ -98,6 +101,7 @@ local function pointSegmentDistance(p: Point, a: Point, b: Point): number
 	local cx, cz = a.x + dx * t, a.z + dz * t
 	return math.sqrt((p.x - cx) ^ 2 + (p.z - cz) ^ 2)
 end
+Lane.pointSegmentDistance = pointSegmentDistance
 
 local function cross(ax: number, az: number, bx: number, bz: number): number
 	return ax * bz - az * bx

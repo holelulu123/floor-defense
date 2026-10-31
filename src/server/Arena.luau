@@ -13,6 +13,7 @@ local Dungeons = require(ReplicatedStorage.Shared.Dungeons)
 local Lane = require(ReplicatedStorage.Shared.Lane)
 local ModelFit = require(ReplicatedStorage.Shared.ModelFit)
 local Roster = require(ReplicatedStorage.Shared.Roster)
+local Backdrop = require(script.Parent.Backdrop)
 local Models = require(script.Parent.Models)
 
 local Arena = {}
@@ -24,6 +25,9 @@ local LANE_THICKNESS = 0.2
 local TOWER_SIZE = 16
 local GATE_HEIGHT = 12
 local TOWER_FRONT = 8 -- the tower's front face sits this far before its lane point (the lane stops 10 short)
+-- Floor slab depth: top at y = 0, bottom above the HorizonGround top (y = -4) so the two never share a plane; the
+-- backdrop's terrain skirt covers its sides.
+local FLOOR_THICKNESS = 3.5
 
 local function part(props: { [string]: any }): Part
 	local p = Instance.new("Part")
@@ -113,6 +117,8 @@ function Arena.build(dungeonId: string?): Built
 	local dungeon = Dungeons.get(id)
 	local theme = Roster.theme(id)
 	local layout = Lane.layout(id)
+	-- Mountains and corner mounds in Terrain; fills in over the next frames while the props load.
+	Backdrop.buildArena(id, Arena.Origin, layout)
 
 	local folder = Instance.new("Folder")
 	folder.Name = "Arena"
@@ -121,8 +127,8 @@ function Arena.build(dungeonId: string?): Built
 
 	part({
 		Name = "Floor",
-		Size = Vector3.new(Lane.Arena.width, 1, Lane.Arena.depth),
-		Position = Arena.Origin - Vector3.new(0, 0.5, 0),
+		Size = Vector3.new(Lane.Arena.width, FLOOR_THICKNESS, Lane.Arena.depth),
+		Position = Arena.Origin - Vector3.new(0, FLOOR_THICKNESS / 2, 0),
 		Color = rgb(theme.ground),
 		Material = Enum.Material.Grass,
 		Parent = folder,
@@ -142,9 +148,9 @@ function Arena.build(dungeonId: string?): Built
 		if length < 0.01 then
 			continue
 		end
-		-- Neighbouring segments overlap at the joints; equal tops there z-fight (the flickering floor seen in Studio),
-		-- so cycle the thickness over three levels 0.03 studs apart.
-		local thickness = LANE_THICKNESS + (i % 3) * 0.03
+		-- Segments overlap at joints and on tight bends; equal tops z-fight (the flickering floor seen in Studio), so
+		-- every segment gets its own top, 0.004 studs apart (about +0.5 at the far end of a long lane: invisible).
+		local thickness = LANE_THICKNESS + i * 0.004
 		local mid = (a + b) / 2 + Vector3.new(0, thickness / 2, 0)
 		part({
 			Name = `Lane{i}`,
@@ -236,6 +242,7 @@ function Arena.destroy()
 	local existing = Workspace:FindFirstChild("Arena")
 	if existing then
 		existing:Destroy()
+		Backdrop.clearArena()
 	end
 end
 
