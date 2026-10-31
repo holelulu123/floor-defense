@@ -259,7 +259,14 @@ local function onFire(player: Player, origin: any, direction: any)
 			endpoint = root.Position + ahead * def.range * 0.6
 		end
 		local count = Damage.area(endpoint, radius, damage, player.UserId)
-		hitFx:FireAllClients(player.UserId, origin, endpoint, count > 0, nil, def.melee == true)
+		hitFx:FireAllClients(
+			player.UserId,
+			origin,
+			endpoint,
+			count > 0,
+			if creature then creature.part else nil,
+			def.melee == true
+		)
 		return
 	end
 

@@ -87,11 +87,13 @@ Loadout and health (numbers in `src/shared/Classes.luau` `maxHealth` / `secondar
 | Scout | 90 | Dual pistols | 24 (2 x 12) | 1.4 s | Karambit, 18 dmg, 2.8/s |
 | Medic | 110 | SMG | 40 | 1.8 s | Scalpel, 16 dmg, 2.5/s |
 | Engineer | 120 | Shotgun | 6 | 2.6 s | Hammer, 28 dmg, 1.6/s (repairs turrets) |
-| Berserker | 170 | Great axe (melee) | none | none | Sword, 30 dmg, 1.8/s |
+| Berserker | 170 | Great axe (melee) | none | none | none (the axe is already melee) |
 | Mage | 90 | Staff (magic) | none | none | Dagger, 18 dmg, 2.4/s |
 | Pyro | 130 | Flamethrower | 100 fuel | 3.0 s | Machete, 26 dmg, 1.9/s |
 | Sniper | 85 | Bolt rifle | 5 | 3.0 s | Combat knife, 22 dmg, 2.2/s |
 | Demolisher | 120 | Grenade launcher | 6 | 3.2 s | Hatchet, 27 dmg, 1.7/s |
+
+Splash: every melee hit also lands on creatures within 8 studs of the impact (`Weapons.MeleeSplash`; creatures walk the lane 7 to 8 studs apart, so a hit reaches the next one; the Great axe and the Tank's flail reach 10). Every damaging skill hits an area too: Arcane Bolt splashes 9 studs around its target, Piercing Shot 8 studs around each creature it pierces, turret shots 8 studs (`Skills.Turret.Splash`); Cleave, Flail Sweep, Flame Sweep, Fire Wall, Frag Toss and Cluster Bomb were area skills already.
 
 Turrets (Engineer): turret **types and rarities** are bought between runs with Diamonds and never change in a run; turret **levels** are bought in-run with coins. Placed turrets have HP; creatures that bump into them damage them, the Engineer's melee (the Hammer, slot 2) repairs them. Overclock doubles fire rate for 10 s. More classes are easy to add later (the data lives in `src/shared/Classes.luau` and `showcase/catalog.js`).
 

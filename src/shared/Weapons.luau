@@ -32,6 +32,9 @@ Weapons.MeleeRange = 8
 -- A swing that misses with its ray still connects with the nearest creature in this arc in front of the player:
 -- creatures run 20-38 studs/s, so the server's hitbox has moved on by the time the swing arrives.
 Weapons.MeleeArc = { slack = 3, halfAngle = 60 } -- extra studs of reach (hitbox half-width), degrees each side
+-- Every melee hit splashes: creatures within this many studs of the impact take the hit too (the big two-handers,
+-- GreatAxe and Flail, reach 10).
+Weapons.MeleeSplash = 8 -- creatures walk the lane 7-8 studs apart: reaches the next one
 
 local function melee(name: string, damage: number, fireRate: number): Weapon
 	return {
@@ -41,6 +44,7 @@ local function melee(name: string, damage: number, fireRate: number): Weapon
 		range = Weapons.MeleeRange,
 		automatic = true,
 		melee = true,
+		splash = Weapons.MeleeSplash,
 	}
 end
 
@@ -107,8 +111,16 @@ Weapons.Definitions = {
 	},
 	-- Melee and magic primaries never reload.
 	-- The Tank's flail hits everything within `splash` studs of the swing's impact (area damage).
-	Flail = { name = "Flail", damage = 25, fireRate = 1.5, range = 10, automatic = true, melee = true, splash = 6 },
-	GreatAxe = { name = "GreatAxe", damage = 45, fireRate = 1.2, range = 10, automatic = true, melee = true },
+	Flail = { name = "Flail", damage = 25, fireRate = 1.5, range = 10, automatic = true, melee = true, splash = 10 },
+	GreatAxe = {
+		name = "GreatAxe",
+		damage = 45,
+		fireRate = 1.2,
+		range = 10,
+		automatic = true,
+		melee = true,
+		splash = 10,
+	},
 	Staff = { name = "Staff", damage = 20, fireRate = 2, range = 150, automatic = false },
 
 	-- Melee secondaries (Classes.luau `secondary` field), slot 2.

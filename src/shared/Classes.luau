@@ -16,7 +16,7 @@ export type Class = {
 	role: string,
 	maxHealth: number, -- Humanoid MaxHealth while playing this class
 	weapon: string, -- slot 1 (key 1), key into Weapons.Definitions
-	secondary: string?, -- slot 2 (key 2), a melee weapon; nil when the class has none (Tank)
+	secondary: string?, -- slot 2 (key 2), a melee weapon; nil when the class has none (Tank, Berserker)
 	passive: string,
 	skills: { Skill },
 }
@@ -88,8 +88,7 @@ local list: { Class } = {
 		cost = 1200,
 		role = "Melee damage",
 		maxHealth = 170,
-		weapon = "GreatAxe",
-		secondary = "Sword",
+		weapon = "GreatAxe", -- already melee: no secondary, like the Tank
 		passive = "Kills heal 5 HP; melee +25%",
 		skills = { skill("Cleave", "Cleave", 4, 1), skill("Rage", "Rage", 30, 10) },
 	},

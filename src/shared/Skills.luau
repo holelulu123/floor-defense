@@ -55,13 +55,14 @@ Skills.Effects = {
 	Cleave = { kind = "cone", damage = 60, range = 8, halfAngle = 70, fx = "sweep" },
 	Rage = { kind = "buff", stat = "FireRateMult", multiplier = 1.4, speed = 1.4, duration = 10, fx = "buff" },
 	-- Mage
-	ArcaneBolt = { kind = "bolt", damage = 35, range = 60, delay = 0.3, fx = "bolt" },
+	ArcaneBolt = { kind = "bolt", damage = 35, range = 60, delay = 0.3, splash = 9, fx = "bolt" },
 	FrostNova = { kind = "freeze", radius = 15, duration = 3, fx = "nova" },
 	-- Pyro
 	FlameSweep = { kind = "cone", damage = 20, range = 20, halfAngle = 30, burn = 4, fx = "flame" },
 	FireWall = { kind = "zone", width = 16, depth = 3, duration = 8, tickDamage = 10, burn = 1, fx = "firewall" },
 	-- Sniper
-	PiercingShot = { kind = "line", damage = 80, range = 120, radius = 2.5, maxTargets = 5, fx = "pierce" },
+	-- splash: creatures within this many studs of each pierced target are hit as well (once each).
+	PiercingShot = { kind = "line", damage = 80, range = 120, radius = 2.5, maxTargets = 5, splash = 8, fx = "pierce" },
 	Overwatch = { kind = "crit", count = 5, duration = 10, multiplier = 2, fx = "buff" },
 	-- Demolisher
 	FragToss = { kind = "grenade", damage = 120, radius = 8, range = 60, delay = 0.8, fx = "blast" },
@@ -263,6 +264,7 @@ Skills.Turret = {
 	Damage = 8,
 	Interval = 0.6, -- seconds between shots
 	Range = 40,
+	Splash = 8, -- studs around the target that each shot also hits
 	BumpDamagePerSecond = 15, -- creatures within BumpRadius chew on the turret
 	BumpRadius = 4,
 	RepairReach = 8, -- studs the Engineer may be from a turret to repair it with a swing

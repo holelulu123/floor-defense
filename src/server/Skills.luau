@@ -452,9 +452,14 @@ handlers.bolt = function(ctx)
 	end
 	broadcastFx({ kind = ctx.effect.fx, position = ctx.origin, target = target.part, duration = ctx.effect.delay })
 	local userId = ctx.player.UserId
+	local splash = ctx.effect.splash
 	task.delay(ctx.effect.delay, function()
 		if target.health > 0 and target.part.Parent then
-			Damage.hit(target, ctx.effect.damage, userId)
+			if splash then
+				Damage.area(target.part.Position, splash, ctx.effect.damage, userId) -- the target and its neighbours
+			else
+				Damage.hit(target, ctx.effect.damage, userId)
+			end
 		end
 	end)
 	return true
@@ -514,9 +519,19 @@ handlers.line = function(ctx)
 		ctx.effect.maxTargets
 	)
 	local hitAt = {}
+	local struck: { [any]: boolean } = {}
+	local splash = ctx.effect.splash
+	local positions = Damage.positions(creatures)
 	for _, i in hits do
 		table.insert(hitAt, creatures[i].part.Position)
-		Damage.hit(creatures[i], ctx.effect.damage, ctx.player.UserId)
+		-- the pierced creature, plus anything within `splash` of it; each creature takes the shot once
+		local around = if splash then SharedSkills.inRadius(positions[i], positions, splash) else { i }
+		for _, j in around do
+			if not struck[j] then
+				struck[j] = true
+				Damage.hit(creatures[j], ctx.effect.damage, ctx.player.UserId)
+			end
+		end
 	end
 	broadcastFx({
 		kind = ctx.effect.fx,

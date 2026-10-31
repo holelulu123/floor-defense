@@ -176,7 +176,7 @@ local function step(dt: number)
 				t.head.CFrame = CFrame.lookAt(t.head.Position, Vector3.new(aim.X, t.head.Position.Y, aim.Z))
 				if Skills.Turret.canFire(t.lastFired, t.overclockUntil, now) then
 					t.lastFired = now
-					Damage.hit(target, Skills.Turret.Damage, player.UserId)
+					Damage.area(aim, Skills.Turret.Splash, Skills.Turret.Damage, player.UserId) -- target + neighbours
 					skillFx:FireAllClients({ kind = "turretShot", from = t.head.Position, to = aim })
 				end
 			end
