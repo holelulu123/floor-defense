@@ -15,6 +15,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
 
 local Classes = require(ReplicatedStorage.Shared.Classes)
 local HealthBar = require(ReplicatedStorage.Shared.HealthBar)
@@ -698,6 +699,86 @@ local function showCountdown(state)
 		then Color3.fromRGB(255, 70, 60)
 		else Color3.new(1, 1, 1)
 end
+
+-- Reload progress under the crosshair, filling like an install bar with the seconds left ("2.4s") until the server's ReloadEnd
+-- (Workspace:GetServerTimeNow() seconds), then a green "Ready" that fades out.
+local reloadBar = Instance.new("Frame")
+reloadBar.Name = "ReloadBar"
+reloadBar.AnchorPoint = Vector2.new(0.5, 0)
+reloadBar.Position = UDim2.new(0.5, 0, 0.5, 40)
+reloadBar.Size = UDim2.fromOffset(260, 28)
+reloadBar.BackgroundColor3 = Color3.fromRGB(58, 62, 78)
+reloadBar.BackgroundTransparency = 0.1
+reloadBar.BorderSizePixel = 0
+reloadBar.Visible = false
+reloadBar.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(1, 0)
+	c.Parent = reloadBar
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.new(1, 1, 1)
+	stroke.Transparency = 0.6
+	stroke.Thickness = 1.5
+	stroke.Parent = reloadBar
+end
+local reloadFill = Instance.new("Frame")
+reloadFill.Size = UDim2.fromScale(0, 1)
+reloadFill.BackgroundColor3 = Color3.fromRGB(255, 196, 80)
+reloadFill.BorderSizePixel = 0
+reloadFill.Parent = reloadBar
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(1, 0)
+	c.Parent = reloadFill
+	local shine = Instance.new("UIGradient")
+	shine.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.25),
+		NumberSequenceKeypoint.new(0.5, 0),
+		NumberSequenceKeypoint.new(1, 0.25),
+	})
+	shine.Parent = reloadFill
+end
+local reloadText = Instance.new("TextLabel")
+reloadText.Size = UDim2.fromScale(1, 1)
+reloadText.BackgroundTransparency = 1
+reloadText.Font = Enum.Font.GothamBlack
+reloadText.TextSize = 15
+reloadText.TextColor3 = Color3.new(1, 1, 1)
+reloadText.TextStrokeTransparency = 0.3
+reloadText.ZIndex = 2
+reloadText.Parent = reloadBar
+
+local reloadStart, reloadEnd = 0, 0
+local reloadShownUntil = 0 -- keeps the finished bar up briefly
+local function onReloading()
+	if player:GetAttribute("Reloading") == true then
+		local ends = player:GetAttribute("ReloadEnd")
+		reloadStart = Workspace:GetServerTimeNow()
+		reloadEnd = if type(ends) == "number" then ends else reloadStart
+		reloadFill.BackgroundColor3 = Color3.fromRGB(255, 196, 80)
+		reloadBar.Visible = true
+	elseif reloadBar.Visible then
+		reloadFill.Size = UDim2.fromScale(1, 1)
+		reloadFill.BackgroundColor3 = Color3.fromRGB(110, 220, 120)
+		reloadText.Text = "Ready"
+		reloadShownUntil = os.clock() + 0.5
+	end
+end
+player:GetAttributeChangedSignal("Reloading"):Connect(onReloading)
+RunService.RenderStepped:Connect(function()
+	if not reloadBar.Visible then
+		return
+	end
+	if player:GetAttribute("Reloading") == true then
+		local total = math.max(reloadEnd - reloadStart, 0.01)
+		local f = math.clamp((Workspace:GetServerTimeNow() - reloadStart) / total, 0, 1)
+		reloadFill.Size = UDim2.fromScale(f, 1)
+		reloadText.Text = string.format("%.1fs", math.max(reloadEnd - Workspace:GetServerTimeNow(), 0))
+	elseif os.clock() >= reloadShownUntil then
+		reloadBar.Visible = false
+	end
+end)
 
 gui.Parent = player:WaitForChild("PlayerGui")
 
